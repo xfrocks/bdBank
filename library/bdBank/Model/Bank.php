@@ -1,0 +1,329 @@
+<?php
+
+class bdBank_Model_Bank extends XenForo_Model {
+	const TYPE_SYSTEM = 0;
+	const TYPE_PERSONAL = 1;
+	const TYPE_ADMIN = 2;
+	
+	const FETCH_USER = 0x01;
+	
+	protected static $_reversedTransactions = array();
+	
+	public function getActionBonus($action) {
+		// I prefer a static method
+		// but just in case... someone wants to extend this class?
+		switch($action) {
+			case 'thread': return self::options('bonus_thread');
+			case 'post': return self::options('bonus_post');
+			case 'attachment_post': return self::options('bonus_attachment_post');
+			case 'liked': return self::options('bonus_liked');
+			
+			case 'unlike': return -1 * self::options('penalty_unlike'); // it's kinda funny here, but I'm lazy
+			
+			case 'attachment_downloaded':
+				$args = func_get_args();
+				if (!empty($args[1])) {
+					$extension = strtolower($args[1]);
+					$list = explode("\n", self::options('bonus_attachment_downloaded'));
+					foreach ($list as $line) {
+						$parts = explode("=", $line);
+						if (count($parts) == 2) {
+							$extensions = explode(',', str_replace(' ', '', strtolower($parts[0])));
+							$point = intval($parts[1]);
+							if (count($extensions) == 1 AND $extensions[0] == '*') {
+								// match all rule
+								return $point;
+							} else if (in_array($extension, $extensions)) {
+								return $point;
+							}
+						}
+					}
+				}
+				return 0;
+				break;
+			
+			default: return 0; break;
+		}
+	}
+	
+	public function parseComment($comment) {
+		// just in case someone extends this
+		$parts = explode(' ',$comment);
+		$link = false;
+		if (count($parts) == 2) {
+			// all default system commment have 2 parts only
+			switch ($parts[0]) {
+				case 'post':
+				case 'attachment_post':
+				case 'liked_post':
+				case 'unlike_post':
+					$comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0]);
+					$link = XenForo_Link::buildPublicLink('posts', array('post_id' => $parts[1])); 
+					break;
+				case 'attachment_downloaded':
+				case 'attachment_downloaded_paid':	
+					$comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0]);
+					$link = XenForo_Link::buildPublicLink('attachments', array('attachment_id' => $parts[1])); 
+					break; 	
+			}
+		}
+		
+		return array($comment, $link);
+	}
+	
+	public function saveTransaction($data) {
+		static $required = array('from_user_id','to_user_id','amount','transaction_type');
+		foreach ($required as $column) {
+			if (!isset($data[$column])) {
+				throw new bdBank_Exception('transaction_data_missing');
+			}
+		}
+		
+		$rtFound = false;
+		if ($data['transaction_type'] == self::TYPE_SYSTEM) {
+			// only looking for system type transaction
+			// normal transaction doesn't have much reversion
+			foreach (self::$_reversedTransactions as &$rt) {
+				$mismatched = false;
+				foreach ($required as $column) {
+					if ($rt[$column] != $data[$column]) {
+						$mismatched = true;
+						break;
+					}
+				}
+				if (!$mismatched) {
+					$rtFound = $rt['transaction_id'];
+					break;
+				}
+			}
+		}
+		
+		if ($rtFound) {
+			// found a reversed transaction with the same data
+			// this happens a lot, we will update the old transaction
+			// instead of creating a lot of reversed transactions
+			$this->_getDb()->update('xf_bdbank_transaction', array('reversed' => 0), array('transaction_id = ?' => $rtFound));
+		} else {
+			$data['transfered'] = time();
+			$this->_getDb()->insert('xf_bdbank_transaction',$data);
+		}
+	}
+	
+	public function reverseSystemTransactionByComment($comments) {
+		if (!is_array($comments)) $comments = array($comments);
+		if (empty($comments)) return;
+		
+		$commentsQuoted = $this->_getDb()->quote($comments);
+		$reversed = array();
+			
+		$found = $this->fetchAllKeyed('
+			SELECT *
+			FROM xf_bdbank_transaction
+			WHERE comment IN (' . $commentsQuoted . ')
+				AND reversed = 0
+				AND transaction_type = ' . self::TYPE_SYSTEM . '
+		','transaction_id');
+		
+		if (count($found) > 0) {
+			$personal = $this->personal();
+			foreach ($found as $transactionId => $info) {
+				try {
+					$personal->transfer($info['to_user_id'], $info['from_user_id'], $info['amount'], null, self::TYPE_SYSTEM, false);
+					$reversed[$transactionId] = $info['amount'];
+					self::$_reversedTransactions[$transactionId] = $info;
+				} catch (bdBank_Exception $e) {
+					// simply ignore it
+				}
+			}
+			
+			if (count($reversed) > 0) {
+				$this->_getDb()->update(
+					'xf_bdbank_transaction'
+					,array('reversed' => time())
+					,'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+				);
+			}
+		}
+		
+		$totalReversed = 0;
+		foreach ($reversed as $amount) {
+			$totalReversed += $amount;
+		}
+		return $totalReversed;
+	}
+	
+	public function getTransactionByComment($comment, array $fetchOptions = array()) {
+		$fetchOptions['order'] = 'transaction_id';
+		$fetchOptions['direction'] = 'desc';
+		$fetchOptions['limit'] = 1;
+		
+		$transactions = $this->getTransactions(array('comment' => $comment), $fetchOptions);
+		
+		return reset($transactions);
+	}
+	
+	public function countTransactions(array $conditions = array(), array $fetchOptions = array()) {
+		$whereClause = $this->prepareTransactionConditions($conditions, $fetchOptions);
+		$joinOptions = $this->prepareTransactionFetchOptions($fetchOptions);
+
+		return $this->_getDb()->fetchOne('
+				SELECT COUNT(*)
+				FROM xf_bdbank_transaction AS transaction
+				' . $joinOptions['joinTables'] . '
+				WHERE ' . $whereClause . '
+		');
+	}
+	
+	public function getTransactions(array $conditions = array(), array $fetchOptions = array()) {
+		$whereClause = $this->prepareTransactionConditions($conditions, $fetchOptions);
+
+		$orderClause = $this->prepareTransactionOrderOptions($fetchOptions);
+		$joinOptions = $this->prepareTransactionFetchOptions($fetchOptions);
+		$limitOptions = $this->prepareLimitFetchOptions($fetchOptions);
+
+		$transactions = $this->fetchAllKeyed($this->limitQueryResults(
+			'
+				SELECT transaction.*
+					' . $joinOptions['selectFields'] . '
+				FROM xf_bdbank_transaction AS transaction
+				' . $joinOptions['joinTables'] . '
+				WHERE ' . $whereClause . '
+				' . $orderClause . '
+			', $limitOptions['limit'], $limitOptions['offset']
+		), 'transaction_id');
+		
+		if (!empty($fetchOptions['join']) AND ($fetchOptions['join'] & self::FETCH_USER)) {
+			$userIds = array();
+			$usernames = array();
+			foreach ($transactions as $transaction) {
+				$userIds[] = $transaction['from_user_id'];
+				$userIds[] = $transaction['to_user_id'];
+			}
+			$userIds = array_unique($userIds);
+			if (count($userIds) > 0) {
+				$users = $this->_getUserModel()->getUsersByIds($userIds);
+				foreach ($userIds as $userId) {
+					if (!isset($users[$userId])) {
+						$users[$userId] = array('user_id' => 0, 'username' => 'User #' . $userId); // handle deleted users
+					}
+				}
+			}
+			$users['0'] = array('user_id' => 0,'username' => new XenForo_Phrase('bdbank_bank'));
+		}
+
+		foreach ($transactions as &$transaction) {
+			if (!empty($fetchOptions['join']) AND ($fetchOptions['join'] & self::FETCH_USER)) {
+				$transaction['from_user'] = $users[$transaction['from_user_id']];
+				$transaction['to_user'] = $users[$transaction['to_user_id']];
+			}
+			
+			if ($transaction['transaction_type'] == self::TYPE_SYSTEM) {
+				list($transaction['comment'], $transaction['comment_link']) = $this->parseComment($transaction['comment']);
+			}
+		}
+		
+		return $transactions;
+	}
+	
+	public function prepareTransactionFetchOptions(array $fetchOptions) {
+		$selectFields = '';
+		$joinTables = '';
+
+		return array(
+			'selectFields' => $selectFields,
+			'joinTables'   => $joinTables
+		);
+	}
+
+	public function prepareTransactionConditions(array $conditions, array &$fetchOptions) {
+		$db = $this->_getDb();
+		$sqlConditions = array();
+		
+		if (!empty($conditions['transaction_id'])) {
+			if (is_array($conditions['transaction_id'])) {
+				$sqlConditions[] = 'transaction.transaction_id IN (' . $db->quote($conditions['transaction_id']) . ')';
+			} else {
+				$sqlConditions[] = 'transaction.transaction_id = ' . $db->quote($conditions['transaction_id']);
+			}
+		}
+
+		if (!empty($conditions['user_id'])) {
+			$userIdQuoted = $db->quote($conditions['user_id']);
+			if (is_array($conditions['user_id'])) {
+				$sqlConditions[] = '(transaction.from_user_id IN (' . $userIdQuoted . ') OR transaction.to_user_id IN (' . $userIdQuoted . '))';
+			} else {
+				$sqlConditions[] = '(transaction.from_user_id = ' . $userIdQuoted . ' OR transaction.to_user_id = ' . $userIdQuoted . ')';
+			}
+		}
+		
+		if (!empty($conditions['comment'])) {
+			if (is_array($conditions['comment'])) {
+				$sqlConditions[] = 'transaction.comment IN (' . $db->quote($conditions['comment']) . ')';
+			} else {
+				$sqlConditions[] = 'transaction.comment = ' . $db->quote($conditions['comment']);
+			}
+		}
+
+		return $this->getConditionsForClause($sqlConditions);
+	}
+
+	public function prepareTransactionOrderOptions(array &$fetchOptions) {
+		$choices = array(
+			'date' => 'transaction.transfered',
+			'transaction_id' => 'transaction.transaction_id',
+		);
+		return $this->getOrderByClause($choices, $fetchOptions);
+	}
+	
+	public function personal() {
+		return $this->getModelFromCache('bdBank_Model_Personal');
+	}
+	
+	public function macro_bonusAttachment($contentType, $contentId, $userId) {
+		$db = XenForo_Application::get('db');
+		
+		$attachments = $db->fetchOne("SELECT COUNT(*) FROM `xf_attachment` WHERE content_type = ? AND content_id = ?", array($contentType, $contentId));
+		if ($attachments > 0) {
+			$point = $this->getActionBonus('attachment_' . $contentType);
+			if ($point != 0) {
+				$this->personal()->give($userId, $point * $attachments, $this->comment('attachment_' . $contentType, $contentId));
+			}
+		}
+	}
+	
+	protected function _getUserModel() {
+		return $this->getModelFromCache('XenForo_Model_User');
+	}
+	
+	/* STATIC METHODS */
+	
+	public static function options($option_id) {
+		if ($option_id == 'field') return 'bdbank_money';
+		if ($option_id == 'route_prefix') return defined('BDBANK_PREFIX') ? BDBANK_PREFIX : 'no-route-for-bank-found'; 
+		return XenForo_Application::get('options')->get('bdbank_' . $option_id);
+	}
+	
+	/**
+	 * Gets current user balance
+	 */
+	public static function balance() {
+		$visitor = XenForo_Visitor::getInstance();
+		return $visitor->get(self::options('field'));
+	}
+	
+	/**
+	 * Gets current user accounts
+	 */
+	public static function accounts() {
+		return array();
+	}
+	
+	public static function comment($type,$id) {
+		$comment = "$type $id";
+		if (strlen($comment) > 255) {
+			// possible?
+			$comment = substr($comment, 0, 255 - 32) . md5($comment);
+		}
+		return $comment;
+	}
+}

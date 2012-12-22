@@ -7,6 +7,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 	const TYPE_PERSONAL = 1;
 	const TYPE_ADMIN = 2;
 	
+	const TAX_MODE_KEY = 'taxMode';
 	const TAX_MODE_RECEIVER_PAY = 'receiver';
 	const TAX_MODE_SENDER_PAY = 'sender';
 	const TAX_MODE_CHARGE_WAIVED = 'charge_waived';

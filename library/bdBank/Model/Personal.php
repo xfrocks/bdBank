@@ -72,12 +72,18 @@ class bdBank_Model_Personal extends XenForo_Model {
 		$comment = null,
 		$type = bdBank_Model_Bank::TYPE_PERSONAL,
 		$saveTransaction = true,
-		$taxMode = bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY
+		array $options = array()
 	) {
 		$db = $this->_getDb();
 		$from = intval($from);
 		$to = intval($to);
 		$amount = intval($amount);
+		
+		// merge specified options with the default options set
+		$defaultOptions = array(
+			bdBank_Model_Bank::TAX_MODE_KEY => bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY,
+		);
+		$options = XenForo_Application::mapMerge($defaultOptions, $options);
 		
 		/* @var $userModel XenForo_Model_User */
 		$userModel = $this->getModelFromCache('XenForo_Model_User');
@@ -113,12 +119,12 @@ class bdBank_Model_Personal extends XenForo_Model {
 		}
 		
 		// calculate amount for each party
-		$taxAmount = $this->calculateTax($from, $to, $amount, $type, $taxMode);
+		$taxAmount = $this->calculateTax($from, $to, $amount, $type, $options[bdBank_Model_Bank::TAX_MODE_KEY]);
 		$fromAmount = -1 * $amount;
 		$toAmount = $amount;
 		
 		if ($taxAmount > 0) {
-			switch ($taxMode) {
+			switch ($options[bdBank_Model_Bank::TAX_MODE_KEY]) {
 				case bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY:
 					$toAmount -= $taxAmount;
 					break;

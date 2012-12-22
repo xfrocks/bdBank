@@ -6,7 +6,9 @@ class bdBank_XenForo_ControllerAdmin_Forum extends XFCP_bdBank_XenForo_Controlle
 		if ($response instanceof XenForo_ControllerResponse_View) {
 			$forum =& $response->params['forum'];
 			
-			$response->params['bdBankOptions'] = bdBank_Model_Bank::helperUnserialize($forum['bdbank_options']);
+			if (!empty($forum['bdbank_options'])) {
+				$response->params['bdBankOptions'] = bdBank_Model_Bank::helperUnserialize($forum['bdbank_options']);
+			}
 		}
 		
 		return $response;

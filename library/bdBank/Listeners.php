@@ -78,6 +78,16 @@ class bdBank_Listeners {
 		}
 	}
 	
+	public static function load_class_importer($class, array &$extend) {
+		static $extended = false;
+		
+		// extend all vbulletin importers
+		if ($extended === false AND strpos(strtolower($class), 'vbulletin') !== false) {
+			$extend[] = 'bdBank_Importer_vBulletin';
+			$extended = true;
+		}
+	}
+	
 	public static function template_create($templateName, array &$params, XenForo_Template_Abstract $template) {
 		if (!defined('BDBANK_CACHED_TEMPLATES')) {
 			define('BDBANK_CACHED_TEMPLATES', true);
@@ -160,5 +170,14 @@ class bdBank_Listeners {
 				}
 			}
 		}
+	}
+	
+	public static function file_health_check(XenForo_ControllerAdmin_Abstract $controller, array &$hashes) {
+		$ourHashes = bdBank_FileSums::getHashes();
+		$hashes = array_merge($hashes, $ourHashes);
+	}
+	
+	public static function bdshop_register_pricing(array &$classes) {
+		$classes[] = 'bdBank_bdShop_Pricing';
 	}
 }

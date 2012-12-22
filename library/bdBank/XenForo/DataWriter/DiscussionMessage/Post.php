@@ -17,8 +17,9 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 		// process bonus money
 		if (bdBank_AntiCheating::checkPostQuality($this)) {
 			$userId = $this->get('user_id');
-			if (!empty($userId)) {
-				$forum = $this->getExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM);
+			$forum = $this->getExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM);
+			
+			if (!empty($userId) AND !empty($forum)) {
 				$bonusType = 'post';
 				
 				if ($this->_bdBank_isDiscussionFirstMessage()) {

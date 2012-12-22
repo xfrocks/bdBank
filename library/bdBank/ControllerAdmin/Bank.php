@@ -1,6 +1,38 @@
 <?php
 
 class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract {
+	public function actionHistory() {
+		// this code is very similar with bdBank_ControllerPublic_Bank::actionHistory()
+		$bank = XenForo_Application::get('bdBank');
+
+		$conditions = array();
+		$fetchOptions = array(
+			'join' => bdBank_Model_Bank::FETCH_USER,
+			'order' => 'date',
+			'direction' => 'desc',
+		);
+		
+		$page = max(1, $this->_input->filterSingle('page', XenForo_Input::UINT));
+		$transactionPerPage = bdBank_Model_Bank::options('perPage');
+		$fetchOptions['page'] = $page;
+		$fetchOptions['limit'] = $transactionPerPage;
+		
+		$transactions = $bank->getTransactions($conditions, $fetchOptions);
+		$totalTransactions = $bank->countTransactions($conditions, $fetchOptions);
+
+		return $this->responseView(
+			'bdBank_ViewAdmin_History',
+			'bdbank_history',
+			array(
+				'transactions' => $transactions,
+				
+				'page' => $page,
+				'perPage' => $transactionPerPage,
+				'total' => $totalTransactions,
+			)
+		);
+	}
+	
 	public function actionTransfer() {
 		$formData = $this->_input->filter(array(
 			'receivers' => XenForo_Input::STRING,

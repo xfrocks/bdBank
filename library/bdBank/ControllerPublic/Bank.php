@@ -21,15 +21,25 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		$userId = $visitor->get('user_id');
 		$bank = XenForo_Application::get('bdBank');
 
-		$conditions = array('user_id' => $userId);
+		// please take time to update bdBank_ControllerAdmin_Bank::actionHistory() if you change this
+		$conditions = array(
+			'user_id' => $userId
+		);
 		$fetchOptions = array(
 			'join' => bdBank_Model_Bank::FETCH_USER,
 			'order' => 'date',
 			'direction' => 'desc',
 		);
 		
+		if (bdBank_Model_Bank::options('showSystemTransactions')) {
+			// show system transactions, do nothing here
+		} else {
+			// restrict to show non-system transactions only...
+			$conditions['transaction_type'] = array(bdBank_Model_Bank::TYPE_PERSONAL, bdBank_Model_Bank::TYPE_ADMIN);
+		}
+		
 		$page = max(1, $this->_input->filterSingle('page', XenForo_Input::UINT));
-		$transactionPerPage = 50;
+		$transactionPerPage = bdBank_Model_Bank::options('perPage');
 		$fetchOptions['page'] = $page;
 		$fetchOptions['limit'] = $transactionPerPage;
 		
@@ -52,10 +62,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 				'transactions' => $transactions,
 				
 				'page' => $page,
-				'perpage' => $transactionPerPage,
+				'perPage' => $transactionPerPage,
 				'transactionStartOffset' => ($page - 1) * $transactionPerPage + 1,
 				'transactionEndOffset' => ($page - 1) * $transactionPerPage + count($transactions),
-				'totalTransactions' => $totalTransactions,
+				'total' => $totalTransactions,
 				'pagenavLink' => bdBank_Model_Bank::options('route_prefix') . '/history',
 			)
 		);

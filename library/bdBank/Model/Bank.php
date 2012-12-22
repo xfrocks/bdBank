@@ -1,6 +1,8 @@
 <?php
 
 class bdBank_Model_Bank extends XenForo_Model {
+	// the type contants are used in bdBank_ControllerPublic_Bank::actionHistory() to filter non-system transactions
+	// please update it if you add more types here...
 	const TYPE_SYSTEM = 0;
 	const TYPE_PERSONAL = 1;
 	const TYPE_ADMIN = 2;
@@ -204,7 +206,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 				$users = $this->_getUserModel()->getUsersByIds($userIds);
 				foreach ($userIds as $userId) {
 					if (!isset($users[$userId])) {
-						$users[$userId] = array('user_id' => 0, 'username' => 'User #' . $userId); // handle deleted users
+						$users[$userId] = array('user_id' => 0, 'username' => new XenForo_Phrase('bdbank_user_x', array('id' => $userId))); // handle deleted users
 					}
 				}
 			}
@@ -256,6 +258,14 @@ class bdBank_Model_Bank extends XenForo_Model {
 			}
 		}
 		
+		if (!empty($conditions['transaction_type'])) {
+			if (is_array($conditions['transaction_type'])) {
+				$sqlConditions[] = 'transaction.transaction_type IN (' . $db->quote($conditions['transaction_type']) . ')';
+			} else {
+				$sqlConditions[] = 'transaction.transaction_type = ' . $db->quote($conditions['transaction_type']);
+			}
+		}
+		
 		if (!empty($conditions['comment'])) {
 			if (is_array($conditions['comment'])) {
 				$sqlConditions[] = 'transaction.comment IN (' . $db->quote($conditions['comment']) . ')';
@@ -298,8 +308,8 @@ class bdBank_Model_Bank extends XenForo_Model {
 	/* STATIC METHODS */
 	
 	public static function options($option_id) {
-		if ($option_id == 'field') return 'bdbank_money';
 		if ($option_id == 'route_prefix') return defined('BDBANK_PREFIX') ? BDBANK_PREFIX : 'no-route-for-bank-found'; 
+		if ($option_id == 'perPage') return 50;
 		
 		return XenForo_Application::get('options')->get('bdbank_' . $option_id);
 	}

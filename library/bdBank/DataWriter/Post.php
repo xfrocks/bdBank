@@ -14,13 +14,13 @@ class bdBank_DataWriter_Post extends XFCP_bdBank_DataWriter_Post {
 					// not the first post
 					$point = XenForo_Application::get('bdBank')->getActionBonus('post');
 					if ($point != 0) {
-						XenForo_Application::get('bdBank')->personal()->give($user_id,$point,$this->_bdBankComment());
+						XenForo_Application::get('bdBank')->personal()->give($user_id, $point, $this->_bdBankComment());
 					}
 				} else {
 					// this is the first post of a thread
 					$point = XenForo_Application::get('bdBank')->getActionBonus('thread');
 					if ($point != 0) {
-						XenForo_Application::get('bdBank')->personal()->give($user_id,$point,$this->_bdBankComment());
+						XenForo_Application::get('bdBank')->personal()->give($user_id, $point, $this->_bdBankComment());
 					}
 				}
 			}
@@ -46,6 +46,6 @@ class bdBank_DataWriter_Post extends XFCP_bdBank_DataWriter_Post {
 	}
 	
 	protected function _bdBankComment() {
-		return XenForo_Application::get('bdBank')->comment('post',$this->get('post_id'));
+		return XenForo_Application::get('bdBank')->comment('post', $this->get('post_id'));
 	}
 }

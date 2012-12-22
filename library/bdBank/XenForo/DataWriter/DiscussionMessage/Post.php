@@ -52,6 +52,8 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 	
 	protected function _messagePostDelete() {
 		bdBank_Model_Bank::getInstance()->reverseSystemTransactionByComment($this->_bdBankComment());
+		
+		return parent::_messagePostDelete();
 	}
 	
 	protected function _associateAttachments($attachmentHash) {

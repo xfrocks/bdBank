@@ -36,7 +36,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 		}
 	}
 	
-	public function getActionBonus($action, $extraData) {
+	public function getActionBonus($action, $extraData = array()) {
 		// I prefer a static method
 		// but just in case... someone wants to extend this class?
 		switch($action) {

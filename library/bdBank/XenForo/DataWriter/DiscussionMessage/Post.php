@@ -1,0 +1,74 @@
+<?php
+
+class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenForo_DataWriter_DiscussionMessage_Post {
+	protected function _messagePostSave() {
+		parent::_messagePostSave();
+		
+		$bank = bdBank_Model_Bank::getInstance();
+
+		if (!$this->isInsert()) {
+			// updating a post, first we will reverse the old transaction...
+			$bank->reverseSystemTransactionByComment($this->_bdBankComment());
+		}
+		
+		// process bonus money
+		if (bdBank_AntiCheating::checkPostQuality($this)) {
+			$userId = $this->get('user_id');
+			if (!empty($userId)) {
+				$forum = $this->getExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM);
+				$bonusType = 'post';
+				
+				if ($this->isDiscussionFirstMessage()) {
+					// inserting a thread, this post is the first one
+					$bonusType = 'thread';
+				} elseif ($this->isInsert()) {
+					// inserting new post but not a thread?
+					// obviously just a normal post
+					$bonusType = 'post';
+				} else {
+					// we have to check for the thread 
+					// the result should be cached so no queries will be executed
+					$thread = $this->getModelFromCache('XenForo_Model_Thread')->getThreadById($this->get('thread_id'));
+	
+					if (empty($thread)) {
+						// oops, this shouldn't happen
+						$bonusType = 'thread';
+					} else {
+						if ($thread['first_post_id'] == $this->get('post_id')) {
+							$bonusType = 'thread';
+						} else {
+							$bonusType = 'post';
+						}
+					}
+				}
+				
+				$point = $bank->getActionBonus($bonusType, array('forum' => $forum));
+				if ($point != 0) {
+					$bank->personal()->give($userId, $point, $this->_bdBankComment());
+				}
+			}
+		}
+	}
+	
+	protected function _messagePostDelete() {
+		bdBank_Model_Bank::getInstance()->reverseSystemTransactionByComment($this->_bdBankComment());
+	}
+	
+	protected function _associateAttachments($attachmentHash) {
+		parent::_associateAttachments($attachmentHash);
+		
+		$bank = bdBank_Model_Bank::getInstance();
+		$comment = $bank->comment('attachment_post', $this->get('post_id'));
+		$bank->reverseSystemTransactionByComment($comment); // always do reverse for attachments
+		$bank->macro_bonusAttachment('post', $this->get('post_id'), $this->get('user_id'));
+	}
+	
+	protected function _deleteAttachments() {
+		// the work (should be done) here will be done in bdBank_Model_Attachment (extends XenForo_Model_Attachment)
+		return parent::_deleteAttachments();
+	}
+	
+	protected function _bdBankComment() {
+		return bdBank_Model_Bank::getInstance()->comment('post', $this->get('post_id'));
+	}
+}

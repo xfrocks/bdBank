@@ -1,8 +1,8 @@
 <?php
 
-class bdBank_DataWriter_Thread extends XFCP_bdBank_DataWriter_Thread {
+class bdBank_XenForo_DataWriter_Discussion_Thread extends XFCP_bdBank_XenForo_DataWriter_Discussion_Thread {
 	protected function _discussionPostDelete(array $messages) {
-		$bank = XenForo_Application::get('bdBank'); 
+		$bank = bdBank_Model_Bank::getInstance(); 
 		$comments = array();
 		foreach ($messages as $post_id => $post) {
 			$comments[] = $bank->comment('post',$post_id);

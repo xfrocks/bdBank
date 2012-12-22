@@ -1,6 +1,6 @@
 <?php
 
-class bdBank_Model_Like extends XFCP_bdBank_Model_Like {
+class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like {
 	public function likeContent($contentType, $contentId, $contentUserId, $likeUserId = null, $likeDate = null) {
 		$result = parent::likeContent($contentType, $contentId, $contentUserId, $likeUserId, $likeDate);
 		
@@ -8,7 +8,7 @@ class bdBank_Model_Like extends XFCP_bdBank_Model_Like {
 			// of course, we won't do anything if the parent method fail to like the content
 			if ($contentType == 'post') {
 				// currently, we only deal with posts
-				$bank = XenForo_Application::get('bdBank');
+				$bank = bdBank_Model_Bank::getInstance();
 				$point = $bank->getActionBonus('liked');
 				if ($point != 0) {
 					$bank->personal()->give($contentUserId,$point,$bank->comment('liked_post',$contentId));
@@ -24,7 +24,7 @@ class bdBank_Model_Like extends XFCP_bdBank_Model_Like {
 		if ($result !== false) {
 			if ($like['content_type'] == 'post') {
 				// post only for now
-				$bank = XenForo_Application::get('bdBank');
+				$bank = bdBank_Model_Bank::getInstance();
 				$point = $bank->getActionBonus('unlike');
 				if ($point != 0) {
 					$bank->personal()->give($like['like_user_id'],$point,$bank->comment('unlike_post',$like['content_id']));
@@ -41,7 +41,7 @@ class bdBank_Model_Like extends XFCP_bdBank_Model_Like {
 		if ($contentType == 'post') {
 			if (!is_array($contentIds)) $contentIds = array($contentIds);
 			if (!$contentIds) return;
-			$bank = XenForo_Application::get('bdBank');
+			$bank = bdBank_Model_Bank::getInstance();
 			$comments = array();
 			foreach ($contentIds as $post_id) {
 				$comments[] = $bank->comment('liked_post',$post_id);

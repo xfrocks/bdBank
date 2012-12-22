@@ -1,7 +1,7 @@
 <?php
-class bdBank_Model_Attachment extends XFCP_bdBank_Model_Attachment {
+class bdBank_XenForo_Model_Attachment extends XFCP_bdBank_XenForo_Model_Attachment {
 	public function deleteAttachmentsFromContentIds($contentType, array $contentIds) {
-		$bank = XenForo_Application::get('bdBank');
+		$bank = bdBank_Model_Bank::getInstance();
 		foreach ($contentIds as $contentId) {
 			$bank->reverseSystemTransactionByComment($bank->comment('attachment_' . $contentType, $contentId));
 		}

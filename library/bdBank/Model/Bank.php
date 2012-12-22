@@ -7,25 +7,61 @@ class bdBank_Model_Bank extends XenForo_Model {
 	const TYPE_PERSONAL = 1;
 	const TYPE_ADMIN = 2;
 	
+	const TAX_MODE_RECEIVER_PAY = 'receiver';
+	const TAX_MODE_SENDER_PAY = 'sender';
+	const TAX_MODE_CHARGE_WAIVED = 'charge_waived';
+	
+	const PERM_GROUP = 'bdbank';
+	const PERM_USE_ATTACHMENT_MANAGER = 'bdbank_use_attach_manager';
+	
+	const BALANCE_NOT_AVAILABLE = 'N/A';
+	
 	const FETCH_USER = 0x01;
 	
 	protected static $_reversedTransactions = array();
+	protected static $_taxRules = false;
 	
-	public function getActionBonus($action) {
+	/**
+	 * Called from the listener to do extra stuff with the navigation tab
+	 * 
+	 * @param array $extraTabs the full array of extra tabs
+	 * @param unknown_type $tabId tab id of [bd] Banking
+	 * @param unknown_type $routePrefix the primary route prefix for [bd] Banking controller (you should use it in links)
+	 * @param XenForo_Visitor $visitor the current visitor
+	 */
+	public function prepareNavigationTab(array &$extraTabs, $tabId, $routePrefix, XenForo_Visitor $visitor) {
+		if ($visitor->hasPermission(self::PERM_GROUP, self::PERM_USE_ATTACHMENT_MANAGER)) {
+			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/attachment-manager")] = new XenForo_Phrase('bdbank_attachment_manager'); 
+		}
+	}
+	
+	public function getActionBonus($action, $extraData) {
 		// I prefer a static method
 		// but just in case... someone wants to extend this class?
 		switch($action) {
-			case 'thread': return self::options('bonus_thread');
-			case 'post': return self::options('bonus_post');
+			case 'thread':
+			case 'post':
+				// get the points from system options
+				$points = self::options('bonus_' . $action);
+				
+				// try to get forum-based points if any
+				if (!empty($extraData['forum']['bdbank_options'])) {
+					$tmpOptions = self::helperUnserialize($extraData['forum']['bdbank_options']);
+					if (isset($tmpOptions['bonus_' . $action]) AND $tmpOptions['bonus_' . $action] !== '') {
+						$points = intval($tmpOptions['bonus_' . $action]);
+					}
+				}
+				
+				return $points;
+			
 			case 'attachment_post': return self::options('bonus_attachment_post');
 			case 'liked': return self::options('bonus_liked');
 			
 			case 'unlike': return -1 * self::options('penalty_unlike'); // it's kinda funny here, but I'm lazy
 			
 			case 'attachment_downloaded':
-				$args = func_get_args();
-				if (!empty($args[1])) {
-					$extension = strtolower($args[1]);
+				if (!empty($extraData)) {
+					$extension = strtolower($extraData);
 					$list = explode("\n", self::options('bonus_attachment_downloaded'));
 					foreach ($list as $line) {
 						$parts = explode("=", $line);
@@ -73,8 +109,34 @@ class bdBank_Model_Bank extends XenForo_Model {
 		return array($comment, $link);
 	}
 	
-	public function saveTransaction($data) {
-		static $required = array('from_user_id','to_user_id','amount','transaction_type');
+	public function archiveTransactions($thresholdDate = null) {
+		if ($thresholdDate === null) {
+			$daysOfHistory = self::options('daysOfHistory');
+			if (empty($daysOfHistory)) {
+				// admin disabled this feature
+				return;
+			}
+			
+			$thresholdDate = XenForo_Application::$time - 86400 * $daysOfHistory;
+		}
+		
+		$this->_getDb()->query('
+			INSERT INTO `xf_bdbank_archive`
+			(transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered)
+			SELECT transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered
+			FROM `xf_bdbank_transaction`
+			WHERE transfered < ?
+				AND reversed = 0
+		', $thresholdDate);
+		
+		$this->_getDb()->query('
+			DELETE FROM `xf_bdbank_transaction`
+			WHERE transfered < ?
+		', $thresholdDate);
+	}
+	
+	public function saveTransaction(&$data) {
+		static $required = array('from_user_id', 'to_user_id', 'amount', 'tax_amount', 'transaction_type');
 		foreach ($required as $column) {
 			if (!isset($data[$column])) {
 				throw new bdBank_Exception('transaction_data_missing');
@@ -105,9 +167,11 @@ class bdBank_Model_Bank extends XenForo_Model {
 			// this happens a lot, we will update the old transaction
 			// instead of creating a lot of reversed transactions
 			$this->_getDb()->update('xf_bdbank_transaction', array('reversed' => 0), array('transaction_id = ?' => $rtFound));
+			$data['transaction_id'] = $rtFound;
 		} else {
 			$data['transfered'] = time();
-			$this->_getDb()->insert('xf_bdbank_transaction',$data);
+			$this->_getDb()->insert('xf_bdbank_transaction', $data);
+			$data['transaction_id'] = $this->_getDb()->lastInsertId();
 		}
 	}
 	
@@ -141,8 +205,8 @@ class bdBank_Model_Bank extends XenForo_Model {
 			if (count($reversed) > 0) {
 				$this->_getDb()->update(
 					'xf_bdbank_transaction'
-					,array('reversed' => time())
-					,'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+					, array('reversed' => XenForo_Application::$time)
+					, 'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
 				);
 			}
 		}
@@ -164,19 +228,27 @@ class bdBank_Model_Bank extends XenForo_Model {
 		return reset($transactions);
 	}
 	
+	public function getTransactionById($transactionId, array $fetchOptions = array()) {
+		$transactions = $this->getTransactions(array('transaction_id' => $transactionId), $fetchOptions);
+		
+		return reset($transactions);
+	}
+	
 	public function countTransactions(array $conditions = array(), array $fetchOptions = array()) {
+		$tableName = $this->prepareTableName($conditions);
 		$whereClause = $this->prepareTransactionConditions($conditions, $fetchOptions);
 		$joinOptions = $this->prepareTransactionFetchOptions($fetchOptions);
 
 		return $this->_getDb()->fetchOne('
 				SELECT COUNT(*)
-				FROM xf_bdbank_transaction AS transaction
+				FROM `' . $tableName . '` AS transaction
 				' . $joinOptions['joinTables'] . '
 				WHERE ' . $whereClause . '
 		');
 	}
 	
 	public function getTransactions(array $conditions = array(), array $fetchOptions = array()) {
+		$tableName = $this->prepareTableName($conditions);
 		$whereClause = $this->prepareTransactionConditions($conditions, $fetchOptions);
 
 		$orderClause = $this->prepareTransactionOrderOptions($fetchOptions);
@@ -187,7 +259,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 			'
 				SELECT transaction.*
 					' . $joinOptions['selectFields'] . '
-				FROM xf_bdbank_transaction AS transaction
+				FROM `' . $tableName . '` AS transaction
 				' . $joinOptions['joinTables'] . '
 				WHERE ' . $whereClause . '
 				' . $orderClause . '
@@ -206,35 +278,48 @@ class bdBank_Model_Bank extends XenForo_Model {
 				$users = $this->_getUserModel()->getUsersByIds($userIds);
 				foreach ($userIds as $userId) {
 					if (!isset($users[$userId])) {
-						$users[$userId] = array('user_id' => 0, 'username' => new XenForo_Phrase('bdbank_user_x', array('id' => $userId))); // handle deleted users
+						$users[$userId] = array(
+							'user_id' => 0,
+							'username' => new XenForo_Phrase('bdbank_user_x', array('id' => $userId))
+						); // handle deleted users
 					}
 				}
 			}
-			$users['0'] = array('user_id' => 0,'username' => new XenForo_Phrase('bdbank_bank'));
+			$users['0'] = array(
+				'user_id' => 'hmm', // user_id can not be 0 or gravatar won't show up...
+				'username' => new XenForo_Phrase('bdbank_bank'),
+				'gravatar' => self::options('gravatar'),
+			);
 		}
 
 		foreach ($transactions as &$transaction) {
 			if (!empty($fetchOptions['join']) AND ($fetchOptions['join'] & self::FETCH_USER)) {
 				$transaction['from_user'] = $users[$transaction['from_user_id']];
 				$transaction['to_user'] = $users[$transaction['to_user_id']];
+				if (isset($conditions['user_id'])) {
+					$transaction['other_user'] = $users[$transaction['from_user_id'] == $conditions['user_id'] ? $transaction['to_user_id'] : $transaction['from_user_id']];
+				}
 			}
 			
 			if ($transaction['transaction_type'] == self::TYPE_SYSTEM) {
 				list($transaction['comment'], $transaction['comment_link']) = $this->parseComment($transaction['comment']);
+			}
+			
+			if (isset($conditions['user_id'])) {
+				$isSending = $transaction['from_user_id'] == $conditions['user_id'];
+				$transaction['is_sending'] = $isSending;
 			}
 		}
 		
 		return $transactions;
 	}
 	
-	public function prepareTransactionFetchOptions(array $fetchOptions) {
-		$selectFields = '';
-		$joinTables = '';
-
-		return array(
-			'selectFields' => $selectFields,
-			'joinTables'   => $joinTables
-		);
+	public function prepareTableName(array $conditions) {
+		if (empty($conditions['archive'])) {
+			return 'xf_bdbank_transaction';
+		} else {
+			return 'xf_bdbank_archive';
+		}
 	}
 
 	public function prepareTransactionConditions(array $conditions, array &$fetchOptions) {
@@ -273,8 +358,39 @@ class bdBank_Model_Bank extends XenForo_Model {
 				$sqlConditions[] = 'transaction.comment = ' . $db->quote($conditions['comment']);
 			}
 		}
+		
+		if (!empty($conditions['amount']) && is_array($conditions['amount'])) {
+			list($operator, $cutOff) = $conditions['amount'];
+
+			$this->assertValidCutOffOperator($operator);
+			$sqlConditions[] = "transaction.amount $operator " . $db->quote($cutOff);
+		}
+		
+		if (!empty($conditions['transfered']) && is_array($conditions['transfered'])) {
+			list($operator, $cutOff) = $conditions['transfered'];
+
+			$this->assertValidCutOffOperator($operator);
+			$sqlConditions[] = "transaction.transfered $operator " . $db->quote($cutOff);
+		}
+		
+		if (!empty($conditions['reversed']) && is_array($conditions['reversed'])) {
+			list($operator, $cutOff) = $conditions['reversed'];
+
+			$this->assertValidCutOffOperator($operator);
+			$sqlConditions[] = "transaction.reversed $operator " . $db->quote($cutOff);
+		}
 
 		return $this->getConditionsForClause($sqlConditions);
+	}
+	
+	public function prepareTransactionFetchOptions(array $fetchOptions) {
+		$selectFields = '';
+		$joinTables = '';
+
+		return array(
+			'selectFields' => $selectFields,
+			'joinTables'   => $joinTables
+		);
 	}
 
 	public function prepareTransactionOrderOptions(array &$fetchOptions) {
@@ -285,6 +401,9 @@ class bdBank_Model_Bank extends XenForo_Model {
 		return $this->getOrderByClause($choices, $fetchOptions);
 	}
 	
+	/**
+	 * @return bdBank_Model_Personal
+	 */
 	public function personal() {
 		return $this->getModelFromCache('bdBank_Model_Personal');
 	}
@@ -307,25 +426,84 @@ class bdBank_Model_Bank extends XenForo_Model {
 	
 	/* STATIC METHODS */
 	
-	public static function options($option_id) {
-		if ($option_id == 'route_prefix') return defined('BDBANK_PREFIX') ? BDBANK_PREFIX : 'no-route-for-bank-found'; 
-		if ($option_id == 'perPage') return 50;
+	/**
+	 * @return bdBank_Model_Bank
+	 */
+	public static function getInstance() {
+		return XenForo_Application::get('bdBank');
+	}
+	
+	public static function options($optionId) { 
+		switch ($optionId) {
+			case 'perPage': return 50;
+			case 'perPagePopup': return 5;
+			case 'gravatar': return 'bdbanking@xfrocks.com';
+			
+			case 'taxRules':
+				if (self::$_taxRules === false) {
+					$taxRules = XenForo_Application::get('options')->get('bdbank_taxRules');
+					$lines = explode("\n", $taxRules);
+					self::$_taxRules = array();
+					
+					foreach ($lines as $line) {
+						if (!empty($line)) {
+							$parts = explode(':', trim($line));
+							if (count($parts) == 2
+								AND (is_numeric($parts[0]) OR $parts[0] == '*')
+								AND is_numeric($parts[1])
+							) {
+								self::$_taxRules[] = array(0, $parts[0], $parts[1]);
+							}
+						}
+					}
+					
+					for ($i = 0; $i < count(self::$_taxRules) - 1; $i++) {
+						self::$_taxRules[$i + 1][0] = self::$_taxRules[$i][1];
+					}
+					
+					// in the end, $_taxRules will be an array of array
+					// each array has 3 elements: previous-level-cutoff, cutoff, percent
+					// or can be easier to understand: min, max, percent
+					
+					foreach (self::$_taxRules as &$taxRule) {
+						if ($taxRule[1] != '*') {
+							$taxRule = array($taxRule[1] - $taxRule[0], $taxRule[2]);
+						} else {
+							$taxRule = array('*', $taxRule[2]);
+						}
+					}
+					
+					// in the real end (oops), $_taxRules is still an array of array
+					// each array has 2 elements: range, precent
+				}
+				return self::$_taxRules;
+		}
 		
-		return XenForo_Application::get('options')->get('bdbank_' . $option_id);
+		return XenForo_Application::get('options')->get('bdbank_' . $optionId);
+	}
+	
+	public static function routePrefix() {
+		return defined('BDBANK_PREFIX') ? BDBANK_PREFIX : 'no-route-for-bank-found'; 
 	}
 	
 	/**
-	 * Gets current user balance
+	 * Gets user balance
 	 */
-	public static function balance() {
-		$visitor = XenForo_Visitor::getInstance();
-		return $visitor->get(self::options('field'));
+	public static function balance(array $viewingUser = null) {
+		self::getInstance()->standardizeViewingUserReference($viewingUser);
+		$field = self::options('field');
+		
+		if (isset($viewingUser[$field])) {
+			return $viewingUser[$field];
+		} else {
+			return self::BALANCE_NOT_AVAILABLE;
+		}
 	}
 	
 	/**
 	 * Gets current user accounts
 	 */
-	public static function accounts() {
+	public static function accounts(array $viewingUser = null) {
 		return array();
 	}
 	
@@ -336,5 +514,49 @@ class bdBank_Model_Bank extends XenForo_Model {
 			$comment = substr($comment, 0, 255 - 32) . md5($comment);
 		}
 		return $comment;
+	}
+	
+	public static function helperUnserialize($str) {
+		if (is_array($str)) {
+			$array = $str;
+		} else {
+			$array = @unserialize($str);
+			if (empty($array)) $array = array();
+		}
+		
+		return $array;
+	}
+	
+	public static function helperStrLen($str) {
+		if (function_exists('mb_strlen')) {
+			return mb_strlen($str);
+		} else {
+			return strlen($str);
+		}
+	}
+	
+	public static function helperBalanceFormat($value) {
+		static $currencyName = false;
+		
+		if ($currencyName === false) {
+			// the phrase is cached globally
+			// but there's no reason to keep an object instead of a (cheaper) string around...
+			$tmp = new XenForo_Phrase('bdbank_currency_name');
+			$currencyName = $tmp->render();
+		}
+		
+		$valueFormatted = $value;
+		$negative = false;
+		
+		if (is_numeric($value)) {
+			if ($value < 0) {
+				$negative = true;
+				$value *= -1;
+			}
+			$valueFormatted = XenForo_Template_Helper_Core::numberFormat($value, 0);
+		}
+		
+		// check for option to include the currency after the number instead?
+		return ($negative ? '-' : '') . $currencyName . $valueFormatted;
 	}
 }

@@ -16,12 +16,14 @@ class bdBank_Setup {
 				`transaction_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
 				`from_user_id` INT(10) UNSIGNED NOT NULL,
 				`to_user_id` INT(10) UNSIGNED NOT NULL,
-				`amount` INT(11) NOT NULL,
-				`comment` VARCHAR(255),
-				`transaction_type` SMALLINT(5) UNSIGNED DEFAULT '0',
+				`amount` INT(10) UNSIGNED NOT NULL,
+				`tax_amount` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+				`comment` VARCHAR(255) NOT NULL,
+				`transaction_type` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0',
 				`transfered` INT(10) UNSIGNED NOT NULL,
-				`reversed` INT(10) UNSIGNED DEFAULT '0',
-				PRIMARY KEY (`transaction_id`)
+				`reversed` INT(10) UNSIGNED NOT NULL DEFAULT '0',
+				PRIMARY KEY (`transaction_id`),
+				KEY (`comment`)
 			) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;
 		");
 		
@@ -49,6 +51,40 @@ class bdBank_Setup {
 		if (empty($attachmentPriceColumn)) {
 			$db->query("ALTER TABLE `xf_attachment` ADD COLUMN `bdbank_price` INT(10) UNSIGNED DEFAULT 0");
 		}
+		
+		/* since 1.0 */
+		
+		$forumOptionsColumn = $db->fetchOne("SHOW COLUMNS FROM `xf_forum` LIKE 'bdbank_options'");
+		if (empty($forumOptionsColumn)) {
+			$db->query("ALTER TABLE `xf_forum` ADD COLUMN `bdbank_options` MEDIUMBLOB");
+		}
+		
+		$transactionTaxColumn = $db->fetchOne("SHOW COLUMNS FROM `xf_bdbank_transaction` LIKE 'tax_amount'");
+		if (empty($transactionTaxColumn)) {
+			$db->query("ALTER TABLE `xf_bdbank_transaction` ADD COLUMN `tax_amount` INT(10) UNSIGNED NOT NULL DEFAULT 0");
+		}
+		
+		$db->query("
+			CREATE TABLE IF NOT EXISTS `xf_bdbank_archive` (
+				`transaction_id` INT(10) UNSIGNED NOT NULL,
+				`from_user_id` INT(10) UNSIGNED NOT NULL,
+				`to_user_id` INT(10) UNSIGNED NOT NULL,
+				`amount` INT(10) UNSIGNED NOT NULL,
+				`tax_amount` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+				`comment` VARCHAR(255),
+				`transaction_type` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0',
+				`transfered` INT(10) UNSIGNED NOT NULL
+			) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;
+		");
+		
+		$userOptionShowColumn = $db->fetchOne("SHOW COLUMNS FROM `xf_user_option` LIKE 'bdbank_show_money'");
+		if (empty($userOptionShowColumn)) {
+			$db->query("ALTER TABLE `xf_user_option` ADD COLUMN `bdbank_show_money` TINYINT(3) UNSIGNED NOT NULL DEFAULT 1");
+		}
+		
+		$db->query("REPLACE INTO `xf_content_type` (content_type, addon_id, fields) VALUES ('bdbank_transaction', 'bdbank', '')");
+		$db->query("REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value) VALUES ('bdbank_transaction', 'alert_handler_class', 'bdBank_AlertHandler_Transaction')");
+		XenForo_Model::create('XenForo_Model_ContentType')->rebuildContentTypeCache();
 	}
 	
 	public static function Uninstall() {

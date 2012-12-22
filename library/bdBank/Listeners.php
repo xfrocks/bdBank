@@ -12,6 +12,11 @@ class bdBank_Listeners {
 		
 		XenForo_Application::autoload('bdBank_Exception');
 		XenForo_Application::set('bdBank',XenForo_Model::create('bdBank_Model_Bank'));
+		
+		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_balance'] = array('bdBank_Model_Bank', 'balance');
+		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_balanceformat'] = array('bdBank_Model_Bank', 'helperBalanceFormat');
+		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_options'] = array('bdBank_Model_Bank', 'options');
+		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_routeprefix'] = array('bdBank_Model_Bank', 'routePrefix');
 	}
 	
 	public static function visitor_setup(XenForo_Visitor &$visitor) {
@@ -20,67 +25,56 @@ class bdBank_Listeners {
 	
 	public static function navigation_tabs(array &$extraTabs, $selectedTabId) {
 		$visitor = XenForo_Visitor::getInstance();
+		$bank = bdBank_Model_Bank::getInstance();
 		
 		if ($visitor->get('user_id')) {
 			$tabId = 'bdbank';
 			
-			if (XenForo_Template_Helper_Core::styleProperty('bdbank_navtab') OR $selectedTabId == $tabId) {
+			if (XenForo_Template_Helper_Core::styleProperty('bdbank_navigationInsertNavtab') OR $selectedTabId == $tabId) {
 				// only display the tab if it's enabled globally or user is accessing our pages
-				$route_prefix = bdBank_Model_Bank::options('route_prefix');
-				if ($selectedTabId == $tabId) {
-					$title = new XenForo_phrase('bdbank_bank');
-				} else {
-					$title = new XenForo_Phrase('bdbank_bank_x',array('balance' => XenForo_Template_Helper_Core::numberFormat(bdBank_Model_Bank::balance())));
-				}
+				$routePrefix = bdBank_Model_Bank::routePrefix();
+
 				$extraTabs[$tabId] = array(
-					'href' => XenForo_Link::buildPublicLink("full:$route_prefix"),
-					'title' => $title,
+					'href' => XenForo_Link::buildPublicLink("full:$routePrefix"),
+					'title' => new XenForo_phrase('bdbank_bank'),
 					'linksTemplate' => 'bdbank_links',
 					'selected' => ($selectedTabId == $tabId),
 					'links' => array(
-						XenForo_Link::buildPublicLink("full:$route_prefix") => new XenForo_Phrase('bdbank_home'),
-						XenForo_Link::buildPublicLink("full:$route_prefix/history") => new XenForo_Phrase('bdbank_history'),
-						XenForo_Link::buildPublicLink("full:$route_prefix/transfer") => new XenForo_Phrase('bdbank_transfer'),
-						XenForo_Link::buildPublicLink("full:$route_prefix/attachment-manager") => new XenForo_Phrase('bdbank_attachment_manager'),
+						XenForo_Link::buildPublicLink("full:$routePrefix") => new XenForo_Phrase('bdbank_home'),
+						XenForo_Link::buildPublicLink("full:$routePrefix/history") => new XenForo_Phrase('bdbank_history'),
+						XenForo_Link::buildPublicLink("full:$routePrefix/transfer") => new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money'))),
 					),
 				);
+				
+				$bank->prepareNavigationTab($extraTabs, $tabId, $routePrefix, $visitor);
 			}
 		}
 	}
 	
-	public static function load_class_controller($class, array &$extend) {
-		switch ($class) {
-			case 'XenForo_ControllerPublic_Attachment':
-				$extend[] = 'bdBank_ControllerPublic_Attachment';
-				break;
-		}
-	}
-	
-	public static function load_class_datawriter($class, array &$extend) {
-		switch ($class) {
-			case 'XenForo_DataWriter_Discussion_Thread':
-				$extend[] = 'bdBank_DataWriter_Thread';
-				break;
-			case 'XenForo_DataWriter_DiscussionMessage_Post':
-				$extend[] = 'bdBank_DataWriter_Post';
-				break;
-			case 'XenForo_DataWriter_Attachment':
-				$extend[]= 'bdBank_DataWriter_Attachment';
-				break;
-		}
-	}
-	
-	public static function load_class_model($class, array &$extend) {
-		switch ($class) {
-			case 'XenForo_Model_Like':
-				$extend[] = 'bdBank_Model_Like';
-				break;
-			case 'XenForo_Model_Attachment':
-				$extend[] = 'bdBank_Model_Attachment';
-				break;
-			case 'XenForo_Model_Import':
-				$extend[] = 'bdBank_Model_Import';
-				break;
+	public static function load_class($class, array &$extend) {
+		static $classes = array(
+			'XenForo_ControllerAdmin_Forum',
+			'XenForo_ControllerAdmin_User',
+		
+			'XenForo_ControllerPublic_Account',
+			'XenForo_ControllerPublic_Attachment',
+			'XenForo_ControllerPublic_Thread',
+		
+			'XenForo_DataWriter_Attachment',
+			'XenForo_DataWriter_Discussion_Thread',
+			'XenForo_DataWriter_DiscussionMessage_Post',
+			'XenForo_DataWriter_Forum',
+			'XenForo_DataWriter_User',
+		
+			'XenForo_Model_Attachment',
+			'XenForo_Model_Import',
+			'XenForo_Model_Like',
+			'XenForo_Model_Log',
+			'XenForo_Model_Thread'
+		);
+		
+		if (in_array($class, $classes)) {
+			$extend[] = 'bdBank_' . $class;
 		}
 	}
 	
@@ -88,17 +82,83 @@ class bdBank_Listeners {
 		if (!defined('BDBANK_CACHED_TEMPLATES')) {
 			define('BDBANK_CACHED_TEMPLATES', true);
 			$template->preloadTemplate('bdbank_message_user_info_extra');
+			$template->preloadTemplate('bdbank_sidebar_visitor_panel_stats');
+			$template->preloadTemplate('bdbank_navigation_visitor_tabs_end');
+		}
+		
+		switch ($templateName) {
+			case 'forum_edit': // AdminCP
+				$template->preloadTemplate('bdbank_admin_forum_edit_tabs');
+				$template->preloadTemplate('bdbank_admin_forum_edit_panes');
+				break;
+			case 'user_edit': // AdminCP
+				$template->preloadTemplate('bdbank_user_edit_profile_info');
+				$template->preloadTemplate('bdbank_user_edit_privacy');
+				break;
+			case 'account_alert_preferences':
+				$template->preloadTemplate('bdbank_account_alerts_extra');
+				break;
+			case 'account_privacy':
+				$template->preloadTemplate('bdbank_account_privacy_top');
+				break;
+			case 'member_view':
+				$template->preloadTemplate('bdbank_member_view_info_block');
 		}
 	}
 	
 	public static function template_hook($hookName, &$contents, array $hookParams, XenForo_Template_Abstract $template) {
 		switch ($hookName) {
+			case 'admin_user_edit_panes': // AdminCP
+				$profileInfoTemplate = $template->create('bdbank_user_edit_profile_info', $template->getParams());
+				self::inject($contents, $profileInfoTemplate->render(), strpos($contents, '<!-- slot: pre_profile_info -->'));
+				
+				$privacyTemplate = $template->create('bdbank_user_edit_privacy', $template->getParams());
+				self::inject($contents, $privacyTemplate->render(), strpos($contents, '<!-- slot: pre_privacy -->'));
+				break;
+				
 			case 'message_user_info_extra':
-				$ourTemplate = $template->create('bdbank_message_user_info_extra', $hookParams);
-				$ourTemplate->setParam('bdBankField', XenForo_Application::get('bdBank')->options('field'));
-				$ourTemplate->setParam('bdBankRoutePrefix', XenForo_Application::get('bdBank')->options('route_prefix'));
+				$ourTemplate = $template->create('bdbank_message_user_info_extra', $template->getParams());
+				$ourTemplate->setParams($hookParams);
 				$contents .= $ourTemplate->render();
 				break;
+			
+			// below are hooks that insert to the top of the original contents
+			case 'sidebar_visitor_panel_stats':
+				$ourTemplate = $template->create('bdbank_' . $hookName, $template->getParams());
+				$contents = $ourTemplate->render() . $contents;
+				break;
+				
+			// below are hooks that append the contents
+			case 'admin_forum_edit_tabs': // AdminCP
+			case 'admin_forum_edit_panes': // AdminCP
+			case 'account_alerts_extra':
+			case 'account_privacy_top':
+			case 'member_view_info_block':
+			case 'navigation_visitor_tabs_end':
+				$ourTemplate = $template->create('bdbank_' . $hookName, $template->getParams());
+				$contents .= $ourTemplate->render();
+				break;
+		}
+	}
+	
+	public static function inject(&$target, $html, $offset = 0, $mark = '<!-- [bd] Banking / Mark -->') {
+		if ($offset === false) return; // do nothing if invalid offset is given
+		
+		$startPos = strpos($html, $mark);
+		if ($startPos !== false) {
+			$endPos = strpos($html, $mark, $startPos + 1);
+			if ($endPos !== false) {
+				// found the two marks
+				$markLen = strlen($mark);
+				$marked = trim(substr($html, $startPos + $markLen, $endPos - $startPos - $markLen));
+				
+				$markedPos = strpos($target, $marked, $offset);
+				if ($markedPos !== false) {
+					// the marked text has been found
+					// start injecting our html in place
+					$target = substr_replace($target, $html, $markedPos, strlen($marked));
+				}
+			}
 		}
 	}
 }

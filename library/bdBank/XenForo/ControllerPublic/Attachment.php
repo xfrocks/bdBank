@@ -1,5 +1,5 @@
 <?php
-class bdBank_ControllerPublic_Attachment extends XFCP_bdBank_ControllerPublic_Attachment {
+class bdBank_XenForo_ControllerPublic_Attachment extends XFCP_bdBank_XenForo_ControllerPublic_Attachment {
 	public function actionIndex() {
 		if (XenForo_Visitor::getUserId() > 0) {
 			// our procedure only valids to registered user so... don't bother if guest is viewing
@@ -13,7 +13,7 @@ class bdBank_ControllerPublic_Attachment extends XFCP_bdBank_ControllerPublic_At
 	
 			if ($attachmentModel->canViewAttachment($attachment, $tempHash) AND $attachment['user_id'] != $userId) {
 				// process our stuff here
-				$bank = XenForo_Application::get('bdBank');
+				$bank = bdBank_Model_Bank::getInstance();
 				$extension = XenForo_Helper_File::getFileExtension($attachment['filename']);
 				$point = $bank->getActionBonus('attachment_downloaded', $extension);
 				if ($point > 0) {

@@ -73,7 +73,7 @@ class bdBank_Importer_vBulletin extends XFCP_bdBank_Importer_vBulletin {
 		XenForo_Db::beginTransaction();
 		
 		$db = XenForo_Application::get('db');
-		$personal = XenForo_Application::get('bdBank')->personal();
+		$personal = bdBank_Model_Bank::getInstance()->personal();
 
 		foreach ($records AS $record) {
 			$next = $record['userid'];

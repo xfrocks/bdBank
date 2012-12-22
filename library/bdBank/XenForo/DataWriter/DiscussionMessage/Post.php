@@ -1,6 +1,9 @@
 <?php
 
 class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenForo_DataWriter_DiscussionMessage_Post {
+	
+	const DATA_THREAD = '_bdBank_threadInfo';
+	
 	protected function _messagePostSave() {
 		parent::_messagePostSave();
 		
@@ -18,7 +21,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 				$forum = $this->getExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM);
 				$bonusType = 'post';
 				
-				if ($this->isDiscussionFirstMessage()) {
+				if ($this->_bdBank_isDiscussionFirstMessage()) {
 					// inserting a thread, this post is the first one
 					$bonusType = 'thread';
 				} elseif ($this->isInsert()) {
@@ -73,4 +76,22 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 	protected function _bdBankComment() {
 		return bdBank_Model_Bank::getInstance()->comment('post', $this->get('post_id'));
 	}
+
+	protected function _bdBank_isDiscussionFirstMessage() {
+		$isDFM = $this->isDiscussionFirstMessage();
+		
+		if (!$isDFM AND $this->isUpdate()) {
+			// need to check further...
+			$thread = $this->getExtraData(self::DATA_THREAD);
+			if (empty($thread)) {
+				// the thread info should be cached before (if we are coming from XenForo_ControllerPublic_Post::actionSave()
+				$thread = $this->getModelFromCache('XenForo_Model_Thread')->getThreadById($this->get('thread_id'));
+			}
+			
+			$isDFM = ($thread['first_post_id'] == $this->get('post_id'));
+		}
+		
+		return $isDFM;
+	}
+	
 }

@@ -4,6 +4,7 @@ class bdBank_AntiCheating {
 	
 	public static function checkPostQuality(XenForo_DataWriter_DiscussionMessage_Post $dw) {
 		/*
+		// uncommented because attachment has its own bonus already
 		if ($dw->get('attach_count') > 0) {
 			// a post with attachment should be good
 			return true;

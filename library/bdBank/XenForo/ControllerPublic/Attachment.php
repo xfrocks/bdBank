@@ -35,6 +35,7 @@ class bdBank_XenForo_ControllerPublic_Attachment extends XFCP_bdBank_XenForo_Con
 										, $attachment['user_id']
 										, $attachment['bdbank_price']
 										, $bank->comment('attachment_downloaded_paid', $attachment['attachment_id'])
+										, bdBank_Model_Bank::TYPE_SYSTEM
 									);
 								} catch (bdBank_Exception $be) {
 									return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $be->getMessage())));

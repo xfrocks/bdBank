@@ -17,6 +17,9 @@ class bdBank_Listeners {
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_balanceformat'] = array('bdBank_Model_Bank', 'helperBalanceFormat');
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_options'] = array('bdBank_Model_Bank', 'options');
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_routeprefix'] = array('bdBank_Model_Bank', 'routePrefix');
+		
+		XenForo_CacheRebuilder_Abstract::$builders['bdBank_Bonuses'] = 'bdBank_CacheRebuilder_Bonuses';
+		XenForo_CacheRebuilder_Abstract::$builders['bdBank_User'] = 'bdBank_CacheRebuilder_User';
 	}
 	
 	public static function visitor_setup(XenForo_Visitor &$visitor) {
@@ -105,6 +108,9 @@ class bdBank_Listeners {
 				$template->preloadTemplate('bdbank_user_edit_profile_info');
 				$template->preloadTemplate('bdbank_user_edit_privacy');
 				break;
+			case 'trophy_edit': // AdminCP
+				$template->preloadTemplate('bdbank_user_criteria_content');
+				break;
 			case 'account_alert_preferences':
 				$template->preloadTemplate('bdbank_account_alerts_extra');
 				break;
@@ -113,6 +119,19 @@ class bdBank_Listeners {
 				break;
 			case 'member_view':
 				$template->preloadTemplate('bdbank_member_view_info_block');
+				
+			case 'tools_rebuild': // AdminCP
+				$template->preloadTemplate('bdbank_' . $templateName);
+				break;
+		}
+	}
+	
+	public static function template_post_render($templateName, &$content, array &$containerData, XenForo_Template_Abstract $template) {
+		switch ($templateName) {
+			case 'tools_rebuild': // AdminCP
+				$ourTemplate = $template->create('bdbank_' . $templateName, $template->getParams());
+				$content .= $ourTemplate->render();
+				break;
 		}
 	}
 	
@@ -141,6 +160,7 @@ class bdBank_Listeners {
 			// below are hooks that append the contents
 			case 'admin_forum_edit_tabs': // AdminCP
 			case 'admin_forum_edit_panes': // AdminCP
+			case 'user_criteria_content': // AdminCP
 			case 'account_alerts_extra':
 			case 'account_privacy_top':
 			case 'member_view_info_block':
@@ -175,6 +195,18 @@ class bdBank_Listeners {
 	public static function file_health_check(XenForo_ControllerAdmin_Abstract $controller, array &$hashes) {
 		$ourHashes = bdBank_FileSums::getHashes();
 		$hashes = array_merge($hashes, $ourHashes);
+	}
+	
+	public static function criteria_user($rule, array $data, array $user, &$returnValue) {
+		switch ($rule) {
+			case 'bdbank':
+				$field = bdBank_Model_Bank::getInstance()->options('field');
+
+				if (isset($user[$field]) && $user[$field] >= $data['money']) {
+					$returnValue = true;
+				}
+				break;
+		}
 	}
 	
 	public static function bdshop_register_pricing(array &$classes) {

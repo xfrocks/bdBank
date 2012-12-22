@@ -129,6 +129,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 			'hash' => XenForo_Input::STRING,
 			'to' => XenForo_Input::STRING,
 			'rtn' => XenForo_Input::STRING, // rtn stands for "return"
+			'sender_pays_tax' => XenForo_Input::UINT, // since 0.10
 		));
 		
 		if ($formData['rtn'] == 'ref' AND !empty($_SERVER['HTTP_REFERER'])) {
@@ -139,7 +140,9 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 			// process transfer request
 			// please take time to update bdBank_ControllerAdmin_Bank::actionTransfer() if you change this
 			
-			$currentUserId = XenForo_Visitor::getInstance()->get('user_id');
+			$currentUser = XenForo_Visitor::getInstance();
+			$currentUserId = $currentUser->get('user_id');
+			$senderPaysTax = $formData['sender_pays_tax']; // since 0.10
 			$receiverUsernames = explode(',',$formData['receivers']);
 			
 			/* @var $userModel XenForo_Model_user */
@@ -165,12 +168,60 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
 			}
 			
+			// prepare data for transfer() calls
+			$personal = bdBank_Model_Bank::getInstance()->personal();
+			
+			$taxMode = bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY; // default
+			if (!empty($senderPaysTax)) $taxMode = bdBank_Model_Bank::TAX_MODE_SENDER_PAY; // switched!
+			
+			$senderAndReceivers = array();
+			$senderAndReceivers[$currentUserId] = $currentUser->toArray();
+			$senderAndReceivers = array_merge($senderAndReceivers, $receivers);
+			
 			$balance = bdBank_Model_Bank::balance();
-			$total = $formData['amount'] * count($receivers);
-			$balanceAfter = $balance - $total;
+			$options = array(
+				bdBank_Model_Bank::TAX_MODE_KEY => $taxMode,
+			);
+			$optionsTest = array_merge($options, array(
+				bdBank_Model_Bank::TRANSACTION_OPTION_TEST => true,
+				bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE => $balance,
+				bdBank_Model_Bank::TRANSACTION_OPTION_USERS => $senderAndReceivers,
+			));
+			
+			foreach ($receivers as $receiver) {
+				try {
+					$result = $personal->transfer(
+						$currentUserId, $receiver['user_id'],
+						$formData['amount'], $formData['comment'],
+						bdBank_Model_Bank::TYPE_PERSONAL,
+						true,
+						$optionsTest
+					);
+				} catch (bdBank_Exception $e) {
+					if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY) {
+						// this will never happen because we turned on REPLAY mode
+						// just throw an exeption to save it to server error log
+						throw $e;
+					} else {
+						// display a generic error message
+						return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())));
+					}
+				}
+				
+				// use the new balance in next calls (if any)
+				$optionsTest[bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE] = $result['from_balance_after'];
+			}
+			
+			$balanceAfter = $optionsTest[bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE];
+			$total = $balance - $balanceAfter;
 			if ($balanceAfter < 0) {
 				// oops
-				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough',array('balance' => $balance, 'total' => $total)));
+				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough',
+					array(
+						'balance' => bdBank_Model_Bank::helperBalanceFormat($balance),
+						'total' => bdBank_Model_Bank::helperBalanceFormat($total),
+					)
+				));
 			}
 			
 			$hash = md5(implode(',',array_keys($receivers)) . $formData['amount'] . $balanceAfter);
@@ -200,12 +251,18 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 						'balance' => $balance,
 						'balanceAfter' => $balanceAfter,
 						'hash' => $hash,
+						'senderPaysTax' => $senderPaysTax, // since 0.10
 					)
 				);
 			} else {
-				$personal = bdBank_Model_Bank::getInstance()->personal();
 				foreach ($receivers as $receiver) {
-					$personal->transfer($currentUserId, $receiver['user_id'], $formData['amount'], $formData['comment']);
+					$personal->transfer(
+						$currentUserId, $receiver['user_id'],
+						$formData['amount'], $formData['comment'],
+						bdBank_Model_Bank::TYPE_PERSONAL,
+						true,
+						$options
+					);
 				}
 				
 				if (!$this->_noRedirect()) {

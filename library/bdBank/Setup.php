@@ -52,7 +52,7 @@ class bdBank_Setup {
 			$db->query("ALTER TABLE `xf_attachment` ADD COLUMN `bdbank_price` INT(10) UNSIGNED DEFAULT 0");
 		}
 		
-		/* since 1.0 */
+		/* since 0.9.9 */
 		
 		$forumOptionsColumn = $db->fetchOne("SHOW COLUMNS FROM `xf_forum` LIKE 'bdbank_options'");
 		if (empty($forumOptionsColumn)) {
@@ -85,6 +85,16 @@ class bdBank_Setup {
 		$db->query("REPLACE INTO `xf_content_type` (content_type, addon_id, fields) VALUES ('bdbank_transaction', 'bdbank', '')");
 		$db->query("REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value) VALUES ('bdbank_transaction', 'alert_handler_class', 'bdBank_AlertHandler_Transaction')");
 		XenForo_Model::create('XenForo_Model_ContentType')->rebuildContentTypeCache();
+		
+		/* since 0.9.10 */
+		$archiveTransactionIdKey = $db->fetchOne("SHOW KEYS FROM `xf_bdbank_archive` WHERE key_name = 'transaction_id'");
+		if (empty($archiveTransactionIdKey)) {
+			$db->query("ALTER TABLE xf_bdbank_archive ADD UNIQUE KEY transaction_id (transaction_id)");
+		}
+		$archiveCommentKey = $db->fetchOne("SHOW KEYS FROM `xf_bdbank_archive` WHERE key_name = 'comment'");
+		if (empty($archiveCommentKey)) {
+			$db->query("ALTER TABLE xf_bdbank_archive ADD KEY comment (comment)");
+		}
 	}
 	
 	public static function Uninstall() {

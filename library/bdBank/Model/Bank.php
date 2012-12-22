@@ -12,12 +12,24 @@ class bdBank_Model_Bank extends XenForo_Model {
 	const TAX_MODE_SENDER_PAY = 'sender';
 	const TAX_MODE_CHARGE_WAIVED = 'charge_waived';
 	
+	const TRANSACTION_OPTION_TEST = 'opt_test';
+	const TRANSACTION_OPTION_REPLAY = 'opt_replay';
+	const TRANSACTION_OPTION_FROM_BALANCE = 'opt_fromBalance';
+	const TRANSACTION_OPTION_USERS = 'opt_users';
+	
 	const PERM_GROUP = 'bdbank';
 	const PERM_USE_ATTACHMENT_MANAGER = 'bdbank_use_attach_manager';
 	
 	const BALANCE_NOT_AVAILABLE = 'N/A';
 	
 	const FETCH_USER = 0x01;
+
+	/**
+	 * Please read about TRANSACTION_OPTION_REPLAY in bdBank_Model_Personal::transfer()
+	 * 
+	 * @var bool
+	 */
+	public static $isReplaying = false;
 	
 	protected static $_reversedTransactions = array();
 	protected static $_taxRules = false;
@@ -46,10 +58,14 @@ class bdBank_Model_Bank extends XenForo_Model {
 				$points = self::options('bonus_' . $action);
 				
 				// try to get forum-based points if any
-				if (!empty($extraData['forum']['bdbank_options'])) {
-					$tmpOptions = self::helperUnserialize($extraData['forum']['bdbank_options']);
-					if (isset($tmpOptions['bonus_' . $action]) AND $tmpOptions['bonus_' . $action] !== '') {
-						$points = intval($tmpOptions['bonus_' . $action]);
+				if (empty($extraData['forum'])) {
+					throw new bdBank_Exception('thread_and_post_bonus_requires_forum_info');
+				} else {
+					if (!empty($extraData['forum']['bdbank_options'])) {
+						$tmpOptions = self::helperUnserialize($extraData['forum']['bdbank_options']);
+						if (isset($tmpOptions['bonus_' . $action]) AND $tmpOptions['bonus_' . $action] !== '') {
+							$points = intval($tmpOptions['bonus_' . $action]);
+						}
 					}
 				}
 				
@@ -61,7 +77,9 @@ class bdBank_Model_Bank extends XenForo_Model {
 			case 'unlike': return -1 * self::options('penalty_unlike'); // it's kinda funny here, but I'm lazy
 			
 			case 'attachment_downloaded':
-				if (!empty($extraData)) {
+				if (empty($extraData)) {
+					throw new bdBank_Exception('attachment_downloaded_bonus_requires_file_extension_as_extra_data');
+				} else {
 					$extension = strtolower($extraData);
 					$list = explode("\n", self::options('bonus_attachment_downloaded'));
 					foreach ($list as $line) {
@@ -137,7 +155,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 	}
 	
 	public function saveTransaction(&$data) {
-		static $required = array('from_user_id', 'to_user_id', 'amount', 'tax_amount', 'transaction_type');
+		static $required = array('from_user_id', 'to_user_id', 'amount', 'comment', 'tax_amount', 'transaction_type');
 		foreach ($required as $column) {
 			if (!isset($data[$column])) {
 				throw new bdBank_Exception('transaction_data_missing');
@@ -162,7 +180,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 				}
 			}
 		}
-		
+
 		if ($rtFound) {
 			// found a reversed transaction with the same data
 			// this happens a lot, we will update the old transaction
@@ -183,21 +201,33 @@ class bdBank_Model_Bank extends XenForo_Model {
 		$commentsQuoted = $this->_getDb()->quote($comments);
 		$reversed = array();
 			
-		$found = $this->fetchAllKeyed('
-			SELECT *
+		$transactionFound = $this->fetchAllKeyed('
+			SELECT *, "transaction" AS found_table
 			FROM xf_bdbank_transaction
 			WHERE comment IN (' . $commentsQuoted . ')
 				AND reversed = 0
 				AND transaction_type = ' . self::TYPE_SYSTEM . '
 		','transaction_id');
 		
+		$archivedFound = $this->fetchAllKeyed('
+			SELECT *, "archive" AS found_table
+			FROM xf_bdbank_archive
+			WHERE comment IN (' . $commentsQuoted . ')
+				AND transaction_type = ' . self::TYPE_SYSTEM . '
+		','transaction_id');
+		
+		$found = array_merge($transactionFound, $archivedFound);
+		
 		if (count($found) > 0) {
 			$personal = $this->personal();
-			foreach ($found as $transactionId => $info) {
+			foreach ($found as $info) {
 				try {
 					$personal->transfer($info['to_user_id'], $info['from_user_id'], $info['amount'], null, self::TYPE_SYSTEM, false);
-					$reversed[$transactionId] = $info['amount'];
-					self::$_reversedTransactions[$transactionId] = $info;
+					$reversed[$info['transaction_id']] = $info['amount'];
+					
+					if ($info['found_table'] == 'transaction') {
+						self::$_reversedTransactions[$info['transaction_id']] = $info;
+					}
 				} catch (bdBank_Exception $e) {
 					// simply ignore it
 				}
@@ -209,13 +239,18 @@ class bdBank_Model_Bank extends XenForo_Model {
 					, array('reversed' => XenForo_Application::$time)
 					, 'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
 				);
+				$this->_getDb()->delete(
+					'xf_bdbank_archive'
+					, 'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+				);
 			}
 		}
-		
+
 		$totalReversed = 0;
 		foreach ($reversed as $amount) {
 			$totalReversed += $amount;
 		}
+		
 		return $totalReversed;
 	}
 	
@@ -438,7 +473,6 @@ class bdBank_Model_Bank extends XenForo_Model {
 		switch ($optionId) {
 			case 'perPage': return 50;
 			case 'perPagePopup': return 5;
-			case 'gravatar': return 'bdbanking@xfrocks.com';
 			
 			case 'taxRules':
 				if (self::$_taxRules === false) {
@@ -558,6 +592,9 @@ class bdBank_Model_Bank extends XenForo_Model {
 		}
 		
 		// check for option to include the currency after the number instead?
-		return ($negative ? '-' : '') . $currencyName . $valueFormatted;
+		return ($negative ? '-' : '')
+			. ((self::options('balanceFormat') == 'currency_first')
+				? ($currencyName . $valueFormatted)
+				: ($valueFormatted . $currencyName));
 	}
 }

@@ -1,0 +1,1179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon addon_id="bdbank" title="[bd] Banking" version_string="0.10" version_id="11" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
+  <admin_navigation>
+    <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
+    <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
+    <navigation navigation_id="bdbank_transfer" parent_navigation_id="bdbank" display_order="1000" link="bank/transfer" admin_permission_id="" debug_only="0" hide_no_children="0"/>
+  </admin_navigation>
+  <admin_permissions>
+    <admin_permission admin_permission_id="bdbank" display_order="9999"/>
+  </admin_permissions>
+  <admin_style_properties/>
+  <admin_templates>
+    <template title="bdbank_admin_forum_edit_panes"><![CDATA[<li><xen:hook name="bdbank_admin_forum_edit_panes">
+	<xen:controlunit label="{xen:phrase option_bdbank_bonus_thread}" explain="{xen:phrase option_bdbank_bonus_thread_explain}">
+		<xen:checkbox>
+			<xen:option
+				name="_bdbank_options[bonus_thread]"
+				value=""
+				label="{xen:phrase bdbank_use_forum_based_value_instead_of_default_x, 'value={$xenOptions.bdbank_bonus_thread}'}"
+				selected="isset({$bdBankOptions.bonus_thread}) AND {$bdBankOptions.bonus_thread} !== ''"
+				inputclass="Disabler" id="bdbank_bonus_thread" />
+		</xen:checkbox>
+		<div id="bdbank_bonus_thread_Disabler">
+			<xen:textbox name="bdbank_options[bonus_thread]" value="{$bdBankOptions.bonus_thread}" />
+		</div>
+	</xen:controlunit>
+	
+	<xen:controlunit label="{xen:phrase option_bdbank_bonus_post}" explain="{xen:phrase option_bdbank_bonus_post_explain}">
+		<xen:checkbox>
+			<xen:option
+				name="_bdbank_options[bonus_post]"
+				value=""
+				label="{xen:phrase bdbank_use_forum_based_value_instead_of_default_x, 'value={$xenOptions.bdbank_bonus_post}'}"
+				selected="isset({$bdBankOptions.bonus_post}) AND {$bdBankOptions.bonus_post} !== ''"
+				inputclass="Disabler" id="bdbank_bonus_post" />
+		</xen:checkbox>
+		<div id="bdbank_bonus_post_Disabler">
+			<xen:textbox name="bdbank_options[bonus_post]" value="{$bdBankOptions.bonus_post}" />
+		</div>
+	</xen:controlunit>
+</xen:hook></li>]]></template>
+    <template title="bdbank_admin_forum_edit_tabs"><![CDATA[<li><a>{xen:phrase bdbank_bd_banking}</a></li>]]></template>
+    <template title="bdbank_history"><![CDATA[<xen:if is="{$isArchive}">
+	<xen:navigation>
+		<xen:breadcrumb href="{xen:adminlink 'bank/history'}">{xen:phrase bdbank_history}</xen:breadcrumb>
+	</xen:navigation>
+
+	<xen:title>{xen:phrase bdbank_archive}</xen:title>
+<xen:else />
+	<xen:topctrl>
+		<a href="{xen:adminlink 'bank/archive'}" class="button">{xen:phrase bdbank_archive}</a>
+	</xen:topctrl>
+
+	<xen:title>{xen:phrase bdbank_history}</xen:title>
+</xen:if>
+
+<xen:if is="{$transactions}">
+	<table class="dataTable">
+	<col />
+	<col />
+	<col />
+	<col />
+	<col />
+	<tr class="dataRow">
+		<th>{xen:phrase bdbank_transaction_from_user}</th>
+		<th>{xen:phrase bdbank_transaction_to_user}</th>
+		<th>{xen:phrase bdbank_transaction_amount}</th>
+		<th>{xen:phrase bdbank_transaction_comment}</th>
+		<th>{xen:phrase bdbank_transaction_status}</th>
+	</tr>
+	<xen:foreach loop="$transactions" value="$transaction">
+		<tr class="dataRow">
+			<td>
+				<xen:if is="{$transaction.from_user.user_id}">
+					<xen:username user="{$transaction.from_user}" rich="true" />
+				<xen:else />
+					{$transaction.from_user.username}
+				</xen:if>
+			</td>
+			<td>
+				<xen:if is="{$transaction.to_user.user_id}">
+					<xen:username user="{$transaction.to_user}" rich="true" />
+				<xen:else />
+					{$transaction.to_user.username}
+				</xen:if>
+			</td>
+			<td>
+				<xen:if is="{$transaction.reversed}">
+					<s>{xen:number $transaction.amount}</s>
+				<xen:else />
+					{xen:number $transaction.amount}
+				</xen:if>
+			</td>
+			<td>
+				<xen:if is="{$transaction.comment}">
+					{$transaction.comment}
+				<xen:else />
+					&nbsp;
+				</xen:if>
+				<xen:if is="{$transaction.comment_link}">
+					<a href="{$transaction.comment_link}" target="_blank">{xen:phrase bdbank_comment_goto}</a>
+				</xen:if>
+			</td>
+			<td>
+				<xen:if is="{$transaction.reversed}">
+					{xen:phrase bdbank_transaction_reversed}
+					(<xen:datetime time="$transaction.reversed" />)
+				<xen:elseif is="{$transaction.transfered}" />
+					{xen:phrase bdbank_transaction_proceeded}
+					(<xen:datetime time="$transaction.transfered" />)
+				<xen:else />
+					{xen:phrase bdbank_transaction_pending}
+				</xen:if>
+			</td>
+		</tr>
+	</xen:foreach>
+	</table>
+
+	<xen:adminpagenav page="{$page}" perpage="{$perPage}" total="{$total}" link="{xen:if '{$isArchive}', 'bank/archive', 'bank/history'}" linkparams="{$linkParams}" />
+<xen:else />
+	<div>{xen:phrase bdbank_there_no_transactions_to_display}</div>
+</xen:if>
+
+
+<xen:form action="{xen:adminlink '{xen:if '{$isArchive}', 'bank/archive', 'bank/history'}'}" method="post">
+	<h2 class="subHeading">{xen:phrase filter}</h2>
+
+	<xen:textboxunit label="{xen:phrase user_name}:" name="filters[username]" value="{$filters.username}" inputclass="AutoComplete AcSingle" data-autoSubmit="yes" />
+
+	<xen:selectunit label="{xen:phrase bdbank_transaction_amount}:" name="filters[amount_operator]" value="{$filters.amount_operator}">
+		<xen:option value=">=" selected="{$filters.amount_operator} == '>='">{xen:phrase bdbank_greater_than_or_equals_to}</xen:option>
+		<xen:option value="=" selected="{$filters.amount_operator} == '='">{xen:phrase bdbank_equals_to}</xen:option>
+		<xen:option value="<=" selected="{$filters.amount_operator} == '<='">{xen:phrase bdbank_less_than_or_equals_to}</xen:option>
+		<xen:html>
+			<br/><br/><xen:spinbox name="filters[amount]" value="{$filters.amount}" />
+		</xen:html>
+	</xen:selectunit>
+
+	<xen:submitunit save="{xen:phrase filter}">
+		<xen:if is="{$filters}">
+			<a href="{xen:adminlink '{xen:if '{$isArchive}', 'bank/archive', 'bank/history'}'}">
+				{xen:phrase reset}
+			</a>
+		</xen:if>
+	</xen:submitunit>
+</xen:form>]]></template>
+    <template title="bdbank_tools_rebuild"><![CDATA[<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
+	<h2 class="subHeading">{xen:phrase bdbank_rebuild_bonuses}</h2>
+	<xen:selectunit name="options[bonus_type]" value="" label="{xen:phrase bdbank_rebuild_bonuses_type}:" explain="{xen:phrase bdbank_rebuild_bonuses_explain}">
+		<xen:option value="post_and_thread">{xen:phrase bdbank_rebuild_bonuses_type_post_and_thread}</xen:option>
+		<xen:option value="post_like">{xen:phrase bdbank_rebuild_bonuses_type_post_like}</xen:option>
+	</xen:selectunit>
+	<xen:spinboxunit name="options[batch]" value="500" step="50" min="1" label="{xen:phrase items_to_process_per_page}:" />
+	
+	<xen:submitunit save="{xen:phrase rebuild_now}" />
+	<input type="hidden" name="cache" value="bdBank_Bonuses" />
+</xen:form>
+
+<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
+	<h2 class="subHeading">{xen:phrase bdbank_rebuild_user}</h2>
+	<xen:spinboxunit name="options[batch]" value="100" step="50" min="1" label="{xen:phrase items_to_process_per_page}:" />
+	
+	<xen:submitunit save="{xen:phrase rebuild_now}" />
+	<input type="hidden" name="cache" value="bdBank_User" />
+</xen:form>]]></template>
+    <template title="bdbank_transfer"><![CDATA[<xen:title>{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:title>
+
+<xen:form action="{xen:adminlink 'bank/transfer'}">
+
+	<xen:textboxunit label="{xen:phrase bdbank_transfer_receivers}:" name="receivers" inputclass="AutoComplete" hint="{xen:phrase separate_names_with_comma}" />
+	
+	<xen:textboxunit label="{xen:phrase bdbank_transfer_amount}:" name="amount" hint="{xen:phrase bdbank_you_can_input_negative_value}" />
+	
+	<xen:textboxunit label="{xen:phrase bdbank_transfer_comment}:" name="comment" rows="2" inputclass="Elastic" />
+	
+	<xen:submitunit save="{xen:phrase bdbank_transfer_do}" />
+</xen:form>]]></template>
+    <template title="bdbank_user_criteria_content"><![CDATA[	<li><label>
+		<input type="checkbox" name="user_criteria[bdbank][rule]" value="bdbank" class="Disabler" id="ucrit_bdbank" {xen:checked $userCriteria.bdbank} />
+		{xen:phrase bdbank_user_has_at_least_x_of_y, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}:</label>
+		<div class="criteriaQualifier" id="ucrit_bdbank_Disabler">
+			<xen:spinbox name="user_criteria[bdbank][data][money]" value="{$userCriteria.bdbank.money}" size="5" min="0" step="10" />
+		</div>
+	</li>]]></template>
+    <template title="bdbank_user_edit_privacy"><![CDATA[<xen:checkboxunit label="&nbsp;">
+	<xen:option name="bdbank_show_money" selected="{$user.bdbank_show_money}">{xen:phrase bdbank_privacy_show_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</xen:option>
+</xen:checkboxunit>
+
+<!-- [bd] Banking / Mark -->
+<fieldset>
+<!-- [bd] Banking / Mark -->]]></template>
+    <template title="bdbank_user_edit_profile_info"><![CDATA[<xen:if is="{xen:helper bdBank_options, field} == 'bdbank_money'">
+	<fieldset>
+		<xen:spinboxunit label="{xen:phrase bdbank_money}:" name="bdbank_money" value="{xen:helper bdBank_balance, $user}" min="0" />
+		<input type="hidden" name="bdbank_money_included" value="1" />
+	</fieldset>
+
+	<!-- [bd] Banking / Mark --></li><!-- [bd] Banking / Mark -->
+</xen:if>]]></template>
+  </admin_templates>
+  <code_events/>
+  <code_event_listeners>
+    <listener event_id="bdshop_register_pricing" execute_order="10" callback_class="bdBank_Listeners" callback_method="bdshop_register_pricing" active="1" description=""/>
+    <listener event_id="criteria_user" execute_order="10" callback_class="bdBank_Listeners" callback_method="criteria_user" active="1" description=""/>
+    <listener event_id="file_health_check" execute_order="10" callback_class="bdBank_Listeners" callback_method="file_health_check" active="1" description=""/>
+    <listener event_id="init_dependencies" execute_order="10" callback_class="bdBank_Listeners" callback_method="init_dependencies" active="1" description=""/>
+    <listener event_id="load_class_controller" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" description=""/>
+    <listener event_id="load_class_datawriter" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" description=""/>
+    <listener event_id="load_class_importer" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class_importer" active="1" description=""/>
+    <listener event_id="load_class_model" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" description=""/>
+    <listener event_id="navigation_tabs" execute_order="10" callback_class="bdBank_Listeners" callback_method="navigation_tabs" active="1" description=""/>
+    <listener event_id="template_create" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_create" active="1" description=""/>
+    <listener event_id="template_hook" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_hook" active="1" description=""/>
+    <listener event_id="template_post_render" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_post_render" active="1" description=""/>
+    <listener event_id="visitor_setup" execute_order="10" callback_class="bdBank_Listeners" callback_method="visitor_setup" active="1" description=""/>
+  </code_event_listeners>
+  <cron/>
+  <email_templates/>
+  <optiongroups>
+    <group group_id="bdbank" display_order="9999" debug_only="0"/>
+    <option option_id="bdbank_balanceFormat" edit_format="radio" data_type="string" can_backup="1">
+      <default_value>currency_first</default_value>
+      <edit_format_params>currency_first = {xen:phrase bdbank_balance_format_currency_first}
+value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="20020"/>
+    </option>
+    <option option_id="bdbank_bonus_attachment_downloaded" edit_format="textbox" data_type="string" can_backup="1">
+      <default_value>jpg,jpeg,png,gif = 0
+* = 10</default_value>
+      <edit_format_params>rows=5</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="12"/>
+    </option>
+    <option option_id="bdbank_bonus_attachment_post" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>10</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="11"/>
+    </option>
+    <option option_id="bdbank_bonus_liked" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>1</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="101"/>
+    </option>
+    <option option_id="bdbank_bonus_post" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>5</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="2"/>
+    </option>
+    <option option_id="bdbank_bonus_thread" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>10</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="1"/>
+    </option>
+    <option option_id="bdbank_daysOfHistory" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>90</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="10001"/>
+    </option>
+    <option option_id="bdbank_field" edit_format="textbox" data_type="string" can_backup="1" validation_class="bdBank_Option_Field" validation_method="verifyOption">
+      <default_value>bdbank_money</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="10000"/>
+    </option>
+    <option option_id="bdbank_gravatar" edit_format="textbox" data_type="string" can_backup="1">
+      <default_value>bdbanking@xfrocks.com</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="20010"/>
+    </option>
+    <option option_id="bdbank_minimumTax" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>1</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="15020"/>
+    </option>
+    <option option_id="bdbank_penalty_unlike" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>5</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="102"/>
+    </option>
+    <option option_id="bdbank_post_chars_threshold" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>20</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="5"/>
+    </option>
+    <option option_id="bdbank_showSystemTransactions" edit_format="onoff" data_type="unsigned_integer" can_backup="1">
+      <default_value>1</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="20000"/>
+    </option>
+    <option option_id="bdbank_taxRules" edit_format="textbox" data_type="string" can_backup="1">
+      <default_value>50:0
+500:5
+*:10</default_value>
+      <edit_format_params>rows=5</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="15030"/>
+    </option>
+    <option option_id="bdbank_taxSenderPays" edit_format="onoff" data_type="unsigned_integer" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="15015"/>
+    </option>
+    <option option_id="bdbank_useTax" edit_format="onoff" data_type="unsigned_integer" can_backup="1">
+      <default_value>1</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="15010"/>
+    </option>
+  </optiongroups>
+  <permissions>
+    <permission_groups>
+      <permission_group permission_group_id="bdbank"/>
+    </permission_groups>
+    <permissions>
+      <permission permission_group_id="bdbank" permission_id="bdbank_use_attach_manager" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="1000"/>
+    </permissions>
+    <interface_groups>
+      <interface_group interface_group_id="bdbank" display_order="9999"/>
+    </interface_groups>
+  </permissions>
+  <phrases>
+    <phrase title="admin_navigation_bdbank" version_id="5" version_string="0.9.5"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="admin_navigation_bdbank_history" version_id="5" version_string="0.9.5"><![CDATA[Transaction History]]></phrase>
+    <phrase title="admin_navigation_bdbank_transfer" version_id="5" version_string="0.9.5"><![CDATA[Transfer Money]]></phrase>
+    <phrase title="admin_permission_bdbank" version_id="5" version_string="0.9.5"><![CDATA[[bd] Banking - Manage money and stuff]]></phrase>
+    <phrase title="bdbank_alert_transaction_transfer" version_id="6" version_string="0.9.6"><![CDATA[{username} sent you {amount}.]]></phrase>
+    <phrase title="bdbank_archive" version_id="6" version_string="0.9.6"><![CDATA[Archive]]></phrase>
+    <phrase title="bdbank_attachment_attach_date" version_id="3" version_string="beta 3"><![CDATA[Uploaded]]></phrase>
+    <phrase title="bdbank_attachment_download_confirm_to_pay" version_id="4" version_string="0.9.4"><![CDATA[Confirm to Pay for download]]></phrase>
+    <phrase title="bdbank_attachment_filename" version_id="3" version_string="beta 3"><![CDATA[Filename]]></phrase>
+    <phrase title="bdbank_attachment_manager" global_cache="1" version_id="3" version_string="beta 3"><![CDATA[Attachment Manager]]></phrase>
+    <phrase title="bdbank_attachment_pay_and_download" version_id="4" version_string="0.9.4"><![CDATA[Pay & Download]]></phrase>
+    <phrase title="bdbank_attachment_price" version_id="3" version_string="beta 3"><![CDATA[Price]]></phrase>
+    <phrase title="bdbank_attachment_trying_to_download" version_id="4" version_string="0.9.4"><![CDATA[You are trying to download]]></phrase>
+    <phrase title="bdbank_attachment_uploader_set_price" version_id="4" version_string="0.9.4"><![CDATA[The uploader set a price for this download. You have to pay before you can continue...]]></phrase>
+    <phrase title="bdbank_attachment_view_count" version_id="3" version_string="beta 3"><![CDATA[Downloaded]]></phrase>
+    <phrase title="bdbank_balance_format_currency_first" version_id="10" version_string="0.9.9.2"><![CDATA[Currency first (example: $10)]]></phrase>
+    <phrase title="bdbank_balance_format_value_first" version_id="10" version_string="0.9.9.2"><![CDATA[Value first (example: 10$)]]></phrase>
+    <phrase title="bdbank_bank" global_cache="1" version_id="1" version_string="beta"><![CDATA[Bank]]></phrase>
+    <phrase title="bdbank_bd_banking" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="bdbank_comment_goto" version_id="1" version_string="beta"><![CDATA[view]]></phrase>
+    <phrase title="bdbank_currency_name" global_cache="1" version_id="6" version_string="0.9.6"><![CDATA[$]]></phrase>
+    <phrase title="bdbank_days_of_history_is_x" version_id="6" version_string="0.9.6"><![CDATA[Only transactions made in the last {days} days are available.]]></phrase>
+    <phrase title="bdbank_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Equals to...]]></phrase>
+    <phrase title="bdbank_explain_comment_attachment_downloaded" version_id="3" version_string="beta 3"><![CDATA[Bonus attachment being downloaded]]></phrase>
+    <phrase title="bdbank_explain_comment_attachment_downloaded_paid" version_id="4" version_string="0.9.4"><![CDATA[Pay for download]]></phrase>
+    <phrase title="bdbank_explain_comment_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for uploading attachment]]></phrase>
+    <phrase title="bdbank_explain_comment_liked_post" version_id="1" version_string="beta"><![CDATA[Bonus being liked in a post]]></phrase>
+    <phrase title="bdbank_explain_comment_post" version_id="1" version_string="beta"><![CDATA[Bonus posting]]></phrase>
+    <phrase title="bdbank_explain_comment_unlike_post" version_id="1" version_string="beta"><![CDATA[Penalty for unliking a post]]></phrase>
+    <phrase title="bdbank_field_x_not_found_in_y_and_explain" version_id="6" version_string="0.9.6"><![CDATA[Field {field} could not be found in {table}. You must use an existing field as money field for [bd] Banking. If you are integrating this add-on with another add-on, please make sure you fully understand what you are doing. Seeking advice from the other add-on's author is recommended.]]></phrase>
+    <phrase title="bdbank_greater_than_or_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Greater than or equals to...]]></phrase>
+    <phrase title="bdbank_history" global_cache="1" version_id="1" version_string="beta"><![CDATA[Transaction History]]></phrase>
+    <phrase title="bdbank_home" global_cache="1" version_id="1" version_string="beta"><![CDATA[Home]]></phrase>
+    <phrase title="bdbank_less_than_or_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Less than or equals to...]]></phrase>
+    <phrase title="bdbank_money" global_cache="1" version_id="3" version_string="beta 3"><![CDATA[Money]]></phrase>
+    <phrase title="bdbank_money_lowercase" global_cache="1" version_id="6" version_string="0.9.6"><![CDATA[money]]></phrase>
+    <phrase title="bdbank_none" version_id="1" version_string="beta"><![CDATA[none]]></phrase>
+    <phrase title="bdbank_pay_tax_for_this_transfer" version_id="10" version_string="0.9.9.2"><![CDATA[Pay tax for this transfer.]]></phrase>
+    <phrase title="bdbank_privacy" version_id="6" version_string="0.9.6"><![CDATA[Bank Privacy]]></phrase>
+    <phrase title="bdbank_privacy_show_money" version_id="6" version_string="0.9.6"><![CDATA[Show {money_lowercase}]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Rebuild Bonuses]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses_explain" version_id="10" version_string="0.9.9.2"><![CDATA[After rebuilding bonuses, you MUST rebuild user account information!]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses_message" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Bonuses]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses_type" version_id="10" version_string="0.9.9.2"><![CDATA[Bonus Type]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses_type_post_and_thread" version_id="10" version_string="0.9.9.2"><![CDATA[Post and Thread]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses_type_post_like" version_id="10" version_string="0.9.9.2"><![CDATA[Post's Like]]></phrase>
+    <phrase title="bdbank_rebuild_user" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Rebuild User Account Information]]></phrase>
+    <phrase title="bdbank_requested_transaction_not_found" version_id="6" version_string="0.9.6"><![CDATA[The requested transaction could not be found.]]></phrase>
+    <phrase title="bdbank_showing_attachments_x_to_y_of_z" version_id="3" version_string="beta 3"><![CDATA[Showing attachments {start} to {end} of {total}]]></phrase>
+    <phrase title="bdbank_showing_transactions_x_to_y_of_z" version_id="6" version_string="0.9.6"><![CDATA[Showing transactions {start} to {end} of {total}]]></phrase>
+    <phrase title="bdbank_someone_sends_money_to_you" version_id="6" version_string="0.9.6"><![CDATA[Someone sends {money_lowercase} to you]]></phrase>
+    <phrase title="bdbank_tax_for_this_is_x_y_only_receive_z" version_id="10" version_string="0.9.9.2"><![CDATA[Tax for this transaction is {tax}. {receiver} will only receive {amount}.]]></phrase>
+    <phrase title="bdbank_there_no_attachments_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no attachments to display.]]></phrase>
+    <phrase title="bdbank_there_no_transactions_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no transactions to display.]]></phrase>
+    <phrase title="bdbank_this_will_allow_people_to_see_your_money" version_id="6" version_string="0.9.6"><![CDATA[This will allow people to see how much {money_lowercase} you have in various places like posts or your profile.]]></phrase>
+    <phrase title="bdbank_transaction_amount" version_id="1" version_string="beta"><![CDATA[Amount]]></phrase>
+    <phrase title="bdbank_transaction_comment" version_id="1" version_string="beta"><![CDATA[Comment]]></phrase>
+    <phrase title="bdbank_transaction_from_user" version_id="1" version_string="beta"><![CDATA[Sender]]></phrase>
+    <phrase title="bdbank_transaction_pending" version_id="1" version_string="beta"><![CDATA[Pending]]></phrase>
+    <phrase title="bdbank_transaction_proceeded" version_id="1" version_string="beta"><![CDATA[Proceeded]]></phrase>
+    <phrase title="bdbank_transaction_reversed" version_id="1" version_string="beta"><![CDATA[Reversed]]></phrase>
+    <phrase title="bdbank_transaction_status" version_id="1" version_string="beta"><![CDATA[Current Status]]></phrase>
+    <phrase title="bdbank_transaction_to_user" version_id="1" version_string="beta"><![CDATA[Receiver]]></phrase>
+    <phrase title="bdbank_transfer" global_cache="1" version_id="6" version_string="0.9.6"><![CDATA[Transfer {money}]]></phrase>
+    <phrase title="bdbank_transfers_money" version_id="6" version_string="0.9.6"><![CDATA[Transfers {money_lowercase}]]></phrase>
+    <phrase title="bdbank_transfer_amount" version_id="1" version_string="beta"><![CDATA[Transfer Amount]]></phrase>
+    <phrase title="bdbank_transfer_comment" version_id="1" version_string="beta"><![CDATA[Transfer Comment]]></phrase>
+    <phrase title="bdbank_transfer_comment_do" version_id="1" version_string="beta"><![CDATA[Confirm]]></phrase>
+    <phrase title="bdbank_transfer_comment_empty" version_id="1" version_string="beta"><![CDATA[no comment entered]]></phrase>
+    <phrase title="bdbank_transfer_completed_total_x" version_id="6" version_string="0.9.6"><![CDATA[Transferred a total amount of {total}. Thank you.]]></phrase>
+    <phrase title="bdbank_transfer_confirm" version_id="1" version_string="beta"><![CDATA[Transfer Confirmation]]></phrase>
+    <phrase title="bdbank_transfer_do" version_id="1" version_string="beta"><![CDATA[Proceed]]></phrase>
+    <phrase title="bdbank_transfer_error_generic" version_id="4" version_string="0.9.4"><![CDATA[We can not authorize your transfer request. Please contact our staff to resolve your problem. You can specify this error code: {error}. Sorry for any inconveniences.]]></phrase>
+    <phrase title="bdbank_transfer_error_not_enough" version_id="1" version_string="beta"><![CDATA[Even the recession won't let any bank account get negative value. You only have {balance} but are trying to transfer an amount of {total}. That's unethical!]]></phrase>
+    <phrase title="bdbank_transfer_error_no_receivers" version_id="6" version_string="0.9.6"><![CDATA[Your {money} is going to be lost in the infinity space. Did you forget to put your folk's name into the receiver box?]]></phrase>
+    <phrase title="bdbank_transfer_error_receiver_not_found_x" version_id="1" version_string="beta"><![CDATA[Who is {username}? It's a total mystery with the system...]]></phrase>
+    <phrase title="bdbank_transfer_error_self" version_id="6" version_string="0.9.6"><![CDATA[Currently there is no protocol to transfer {money} from yourself to... yourself. Sorry, you will be notified when that feature is available.]]></phrase>
+    <phrase title="bdbank_transfer_error_zero_amount" version_id="1" version_string="beta"><![CDATA[The bank loves dealing with zeros but only when they are behind non-zero numbers. A zero amount is useless with us, sorry...]]></phrase>
+    <phrase title="bdbank_transfer_receivers" version_id="1" version_string="beta"><![CDATA[Receivers]]></phrase>
+    <phrase title="bdbank_transfer_total_x_you_have_y_left_z" version_id="1" version_string="beta"><![CDATA[Total amount is {total}. You currently have {balance}, you will have {balanceAfter} after this.]]></phrase>
+    <phrase title="bdbank_transfer_trying_transfer_to" version_id="1" version_string="beta"><![CDATA[You are trying to transfer to]]></phrase>
+    <phrase title="bdbank_user_has_at_least_x_of_y" version_id="10" version_string="0.9.9.1"><![CDATA[User has at least X of {money_lowercase}]]></phrase>
+    <phrase title="bdbank_user_x" global_cache="1" version_id="5" version_string="0.9.5"><![CDATA[User #{id}]]></phrase>
+    <phrase title="bdbank_use_default_value_of_x" version_id="6" version_string="0.9.6"><![CDATA[Use default value of {value}]]></phrase>
+    <phrase title="bdbank_use_forum_based_value_instead_of_default_x" version_id="6" version_string="0.9.6"><![CDATA[Use forum-based value instead of system-wide value (set at {value})]]></phrase>
+    <phrase title="bdbank_your_accounts" version_id="1" version_string="beta"><![CDATA[Your Accounts]]></phrase>
+    <phrase title="bdbank_your_balance" version_id="1" version_string="beta"><![CDATA[Your Balance]]></phrase>
+    <phrase title="bdbank_you_can_input_negative_value" version_id="5" version_string="0.9.5"><![CDATA[You can input negative value.]]></phrase>
+    <phrase title="bdbank_you_received_x_from_y" version_id="6" version_string="0.9.6"><![CDATA[You received {amount} from {sender}.]]></phrase>
+    <phrase title="bdbank_you_sent_x_to_y" version_id="6" version_string="0.9.6"><![CDATA[You sent {amount} to {receiver}.]]></phrase>
+    <phrase title="bdguard_enter_password_to_access" version_id="1" version_string="beta"><![CDATA[Enter password to access this content.]]></phrase>
+    <phrase title="option_bdbank_balanceFormat" version_id="10" version_string="0.9.9.2"><![CDATA[Balance Format]]></phrase>
+    <phrase title="option_bdbank_balanceFormat_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Money will be formatted before output, you can specify the format here. In order to change the currency symbol, just edit the phrase "bdbank_currency_name". If you want to call money something else (for example: point), you will need to edit 2 phrases: "bdbank_money" and "bdbank_money_lowercase".]]></phrase>
+    <phrase title="option_bdbank_bonus_attachment_downloaded" version_id="1" version_string="beta"><![CDATA[Bonus for Downloaded Attachment]]></phrase>
+    <phrase title="option_bdbank_bonus_attachment_downloaded_explain" version_id="5" version_string="0.9.5"><![CDATA[The uploader will get this bonus when somebody (non-guest) downloads his/her attachment. The file extension will be checked before processing. It's not recommend to enable bonus for images because they can be embedded into the post and it's a little unfair to give the bonus in those cases. The format is {extension} = {bonus}, you can separate extensions by comma, to match all extension, simply use a single asterisk. The list will be matched top down.]]></phrase>
+    <phrase title="option_bdbank_bonus_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for an Attachment]]></phrase>
+    <phrase title="option_bdbank_bonus_attachment_post_explain" version_id="1" version_string="beta"><![CDATA[The bonus will be multiplied if multiple files are attached in a post. When the target post is hard deleted or the attachment is removed individually, the bonus will be taken away accordingly.]]></phrase>
+    <phrase title="option_bdbank_bonus_liked" version_id="1" version_string="beta"><![CDATA[Bonus for Liked Post]]></phrase>
+    <phrase title="option_bdbank_bonus_liked_explain" version_id="1" version_string="beta"><![CDATA[The poster will get this bonus when somebody likes his/her post. The bonus will be taken away only when the post is hard deleted.]]></phrase>
+    <phrase title="option_bdbank_bonus_post" version_id="1" version_string="beta"><![CDATA[Bonus for New Post]]></phrase>
+    <phrase title="option_bdbank_bonus_post_explain" version_id="1" version_string="beta"><![CDATA[The first post of a thread won't get this bonus point. When the post is hard deleted, the bonus will be taken away.]]></phrase>
+    <phrase title="option_bdbank_bonus_thread" version_id="1" version_string="beta"><![CDATA[Bonus for New thread]]></phrase>
+    <phrase title="option_bdbank_bonus_thread_explain" version_id="1" version_string="beta"><![CDATA[When the thread is hard deleted, the bonus will be taken away.]]></phrase>
+    <phrase title="option_bdbank_daysOfHistory" version_id="6" version_string="0.9.6"><![CDATA[Days of History]]></phrase>
+    <phrase title="option_bdbank_daysOfHistory_explain" version_id="6" version_string="0.9.6"><![CDATA[The database table containing transactions will be cleaned up regularly to keep it from going too big. Old records will be moved to another table to archive. You can specify the maximum days to keep a transaction in the primary table here. This also means users will only be able to see history for this number of days. To disable this feature, enter 0.]]></phrase>
+    <phrase title="option_bdbank_field" version_id="5" version_string="0.9.5"><![CDATA[Field]]></phrase>
+    <phrase title="option_bdbank_field_explain" version_id="6" version_string="0.9.6"><![CDATA[If you want to integrate [bd] Banking with other add-ons, you can change the money field to any other field in `xf_user` table. If you are not sure about this option, it's likely that you shouldn't change it at all. The default value is "bdbank_money", change the value back if you run into problems.]]></phrase>
+    <phrase title="option_bdbank_gravatar" version_id="10" version_string="0.9.9.2"><![CDATA[Bank Account Avatar]]></phrase>
+    <phrase title="option_bdbank_gravatar_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Sometimes the Bank account will show up with an avatar (mostly in transaction history). You can use any image you want by uploading to <a href="http://gravatar.com/">Gravatar</a> and enter the email address here.]]></phrase>
+    <phrase title="option_bdbank_minimumTax" version_id="6" version_string="0.9.6"><![CDATA[Minimum Tax]]></phrase>
+    <phrase title="option_bdbank_minimumTax_explain" version_id="6" version_string="0.9.6"><![CDATA[You can set a minimum tax amount for all transaction. If the tax calculated using tax rules are smaller than this value, it will be used as the transaction's tax.]]></phrase>
+    <phrase title="option_bdbank_penalty_unlike" version_id="1" version_string="beta"><![CDATA[Penalty for Unliking Post]]></phrase>
+    <phrase title="option_bdbank_penalty_unlike_explain" version_id="1" version_string="beta"><![CDATA[User will get this penalty (money taken away) if he/she unlikes a post.]]></phrase>
+    <phrase title="option_bdbank_post_chars_threshold" version_id="6" version_string="0.9.6"><![CDATA[Post Character Threshold]]></phrase>
+    <phrase title="option_bdbank_post_chars_threshold_explain" version_id="6" version_string="0.9.6"><![CDATA[Only posts that longer than this specified number of characters (quoted text, bbcode tag excluded) will receive bonus. This applies for thread bonus and post bonus.]]></phrase>
+    <phrase title="option_bdbank_showSystemTransactions" version_id="5" version_string="0.9.5"><![CDATA[Show System Transactions]]></phrase>
+    <phrase title="option_bdbank_showSystemTransactions_explain" version_id="5" version_string="0.9.5"><![CDATA[If enabled, system transactions will be displayed in user's history page. Otherwise they will only be available in AdminCP history page.]]></phrase>
+    <phrase title="option_bdbank_taxRules" version_id="6" version_string="0.9.6"><![CDATA[Tax Rules]]></phrase>
+    <phrase title="option_bdbank_taxRules_explain" version_id="6" version_string="0.9.6"><![CDATA[Each line must contain one rule. Each rule has the format of "{cutoff}:{percent}" (please notice the colon between 2 values). The tax percent will be calculated top down. The default rules are:<br/>
+<br/>
+50:0<br/>
+500:5<br/>
+*:10<br/>
+<br/>
+Example:<br/>
+Transfer $10. Tax = 0<br/>
+Transfer $50. Tax = 0<br/>
+Transfer $100. Tax = ($100 - $50) * 5% = $2.5 = $3<br/>
+Transfer $500. Tax = ($500 - $50) * 5% = $22.5 = $23<br/>
+Transfer $600. Tax = ($500 - $50) * 5% + ($600 - $500) * 10% = $32.5 = $33<br/>
+Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/>]]></phrase>
+    <phrase title="option_bdbank_taxSenderPays" version_id="10" version_string="0.9.9.2"><![CDATA[Allow Sender to Pay Tax]]></phrase>
+    <phrase title="option_bdbank_taxSenderPays_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Turn on this option will add one additional option in the transfer form. Sender who wants to pay tax for the transaction can check the box and let the receiver(s) get the exact amount of the transaction.]]></phrase>
+    <phrase title="option_bdbank_useTax" version_id="6" version_string="0.9.6"><![CDATA[Use Tax]]></phrase>
+    <phrase title="option_bdbank_useTax_explain" version_id="6" version_string="0.9.6"><![CDATA[]]></phrase>
+    <phrase title="option_group_bdbank" version_id="1" version_string="beta"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="option_group_bdbank_description" version_id="1" version_string="beta"><![CDATA[]]></phrase>
+    <phrase title="permission_bdbank_bdbank_use_attach_manager" version_id="6" version_string="0.9.6"><![CDATA[Use Attachment Manager]]></phrase>
+    <phrase title="permission_group_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="permission_interface_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="style_property_bdbank_messageShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information.]]></phrase>
+    <phrase title="style_property_bdbank_messageShowMoney_master" version_id="3" version_string="beta 3"><![CDATA[Show Author Money]]></phrase>
+    <phrase title="style_property_bdbank_navigationInsertNavtab_description_master" version_id="6" version_string="0.9.6"><![CDATA[Automatically insert a tab to the navigation bar to let users quickly access Banking functions (add-on: [bd] Banking).]]></phrase>
+    <phrase title="style_property_bdbank_navigationInsertNavtab_master" version_id="6" version_string="0.9.6"><![CDATA[Insert "Bank" tab]]></phrase>
+    <phrase title="style_property_bdbank_navigationShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the logged in visitor in the visitor panel right next to Alerts on every page (add-on: [bd] Banking).]]></phrase>
+    <phrase title="style_property_bdbank_navigationShowMoney_master" version_id="6" version_string="0.9.6"><![CDATA[Show Visitor Money]]></phrase>
+    <phrase title="style_property_bdbank_visitorPanelShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the logged in visitor in the visitor panel at the top of sidebar on every page (add-on: [bd] Banking).]]></phrase>
+    <phrase title="style_property_bdbank_visitorPanelShowMoney_master" version_id="6" version_string="0.9.6"><![CDATA[Show Visitor Money]]></phrase>
+  </phrases>
+  <route_prefixes>
+    <route_type type="admin">
+      <prefix original_prefix="bank" class="bdBank_Route_PrefixAdmin_Bank" build_link="data_only"/>
+    </route_type>
+    <route_type type="public">
+      <prefix original_prefix="bank" class="bdBank_Route_Prefix_Public" build_link="data_only"/>
+    </route_type>
+  </route_prefixes>
+  <style_properties>
+    <property property_name="bdbank_messageShowMoney" property_type="scalar" definition="1" group_name="message" title="Show Author Money" description="Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information." css_components="" scalar_type="boolean" scalar_parameters="" display_order="9999" sub_group="User Info"><![CDATA[1]]></property>
+    <property property_name="bdbank_navigationInsertNavtab" property_type="scalar" definition="1" group_name="header" title="Insert &quot;Bank&quot; tab" description="Automatically insert a tab to the navigation bar to let users quickly access Banking functions (add-on: [bd] Banking)." css_components="" scalar_type="boolean" scalar_parameters="" display_order="1000" sub_group="bdbank"><![CDATA[1]]></property>
+    <property property_name="bdbank_visitorPanelShowMoney" property_type="scalar" definition="1" group_name="sidebar" title="Show Visitor Money" description="Display the amount of money of the logged in visitor in the visitor panel at the top of sidebar on every page (add-on: [bd] Banking)." css_components="" scalar_type="boolean" scalar_parameters="" display_order="9999" sub_group="Visitor Panel"><![CDATA[0]]></property>
+    <property property_name="bdbank_navigationShowMoney" property_type="scalar" definition="1" group_name="header" title="Show Visitor Money" description="Display the amount of money of the logged in visitor in the visitor panel right next to Alerts on every page (add-on: [bd] Banking)." css_components="" scalar_type="boolean" scalar_parameters="" display_order="2000" sub_group="bdbank"><![CDATA[1]]></property>
+  </style_properties>
+  <templates>
+    <template title="bdbank.css" version_id="4" version_string="0.9.4"><![CDATA[/* TRANSACTION LIST */
+
+.transactionList {
+	position: relative;
+	zoom: 1;
+}
+
+/** column style and width **/
+
+.transactionList .sectionHeaders,
+.transactionListItem {
+	display: table;
+	table-layout: fixed;
+	width: 100%;
+	word-wrap: normal;
+}
+
+	.transactionList .sectionHeaders dt,
+	.transactionList .sectionHeaders dd,
+	.transactionListItem .listBlock {
+		display: table-cell;
+		vertical-align: middle;
+	}
+		.transactionList .sender, .transactionList .receiver { width: 100px; }
+		.transactionList .amount { width: 100px; }
+		.transactionList .comment { width: auto; }
+			.transactionList .comment a { float: right; padding-right: 10px; }
+		.transactionList .status { width: auto; }
+
+/* column headers */
+
+.transactionList .sectionHeaders {
+	{xen:property subHeading}
+	
+	padding: 0;
+}
+
+	.transactionList .sectionHeaders a {
+		display: block;
+		color: {xen:property subHeading.color};
+		outline: none;
+	}
+	
+	.transactionList .sectionHeaders a:hover {
+		text-decoration: none;
+	}
+			
+	.transactionList .sectionHeaders a[href]:hover {
+		{xen:property subHeadingHover}
+	}
+
+	.transactionList .sectionHeaders span {
+		display: block;
+		padding: 5px;
+	}
+		
+/** IE <8 **/
+.transactionList .sectionHeaders,
+.transactionListItem                { *display: block; _vertical-align: bottom; }
+.transactionList .sectionHeaders dt,
+.transactionList .sectionHeaders dd,
+.transactionListItem .listBlock     { *display: block; *float: left; }
+.transactionListItem .listBlock     { _height: 52px; *min-height: 52px; } /* todo: should be calculation */
+.transactionList .sender, .transactionList .receiver      { *width: 14.97%; }
+.transactionList .amount            { *width: 9.98%; }
+.transactionList .comment           { *width: 29.97%; }	
+.transactionList .status            { *width: 29.97%; }
+.transactionList .sectionHeaders dt,
+.transactionList .sectionHeaders dd { *padding: 5px 0; }
+
+/* items in list */
+
+.transactionListItems {}
+	
+/** main **/
+
+.transactionListItem {
+	{xen:property primaryContent.background}
+	
+	{xen:property primaryContent.border}
+}
+
+	.transactionListItem .titleText {
+		padding: 5px;
+		overflow: hidden; zoom: 1;
+	}
+
+	.transactionListItem .sender,		
+	.transactionListItem .amount,
+	.transactionListItem .status {
+		{xen:property secondaryContent.background}
+	}
+	
+	.transactionListItem .receiver,
+	.transactionListItem .comment {
+	}
+
+/** bottom summary **/
+
+.transactionList .sectionFooter {
+	overflow: hidden; zoom: 1;
+}
+
+	.transactionList .sectionFooter .contentSummary {
+		float: left;
+		display: block;
+	}
+
+/* ATTACHMENT LIST */
+
+.attachmentList {
+	position: relative;
+	zoom: 1;
+}
+
+/** column style and width **/
+
+.attachmentList .sectionHeaders,
+.attachmentListItem {
+	display: table;
+	table-layout: fixed;
+	width: 100%;
+	word-wrap: normal;
+}
+
+	.attachmentList .sectionHeaders dt,
+	.attachmentList .sectionHeaders dd,
+	.attachmentListItem .listBlock {
+		display: table-cell;
+		vertical-align: middle;
+	}
+		.attachmentList .filename { width: auto; }
+		.attachmentList .attach_date { width: 150px; }
+		.attachmentList .view_count { width: 150px; }
+		.attachmentList .price { width: 150px; }
+
+/* column headers */
+
+.attachmentList .sectionHeaders {
+	{xen:property subHeading}
+	
+	padding: 0;
+}
+
+	.attachmentList .sectionHeaders a {
+		display: block;
+		color: {xen:property subHeading.color};
+		outline: none;
+	}
+	
+	.attachmentList .sectionHeaders a:hover {
+		text-decoration: none;
+	}
+			
+	.attachmentList .sectionHeaders a[href]:hover {
+		{xen:property subHeadingHover}
+	}
+
+	.attachmentList .sectionHeaders span {
+		display: block;
+		padding: 5px;
+	}
+		
+/** IE <8 **/
+.attachmentList .sectionHeaders,
+.attachmentListItem                { *display: block; _vertical-align: bottom; }
+.attachmentList .sectionHeaders dt,
+.attachmentList .sectionHeaders dd,
+.attachmentListItem .listBlock     { *display: block; *float: left; }
+.attachmentListItem .listBlock     { _height: 52px; *min-height: 52px; } /* todo: should be calculation */
+.attachmentList .filename          { *width: 39.97%; }
+.attachmentList .attach_date       { *width: 19.98%; }
+.attachmentList .view_count        { *width: 19.98%; }
+.attachmentList .price             { *width: 19.98%; }
+.attachmentList .sectionHeaders dt,
+.attachmentList .sectionHeaders dd { *padding: 5px 0; }
+
+/* items in list */
+
+.attachmentListItems {}
+	
+/** main **/
+
+.attachmentListItem {
+	{xen:property primaryContent.background}
+	
+	{xen:property primaryContent.border}
+}
+
+	.attachmentListItem .titleText {
+		padding: 5px;
+		overflow: hidden; zoom: 1;
+	}
+
+	.attachmentListItem .filename,
+	.attachmentListItem .view_count {
+		{xen:property secondaryContent.background}
+	}
+	
+	.attachmentListItem .price {
+	}
+
+/** bottom summary **/
+
+.attachmentList .sectionFooter {
+	overflow: hidden; zoom: 1;
+}
+
+	.attachmentList .sectionFooter .contentSummary {
+		float: left;
+		display: block;
+	}
+
+.attachmentList .FooterControls {
+	text-align: right;
+	padding-top: 5px;
+}
+	
+/* ATTACHMENT MANAGER FORM */
+form.AttachmentManager {
+}
+
+	form.AttachmentManager .price .textCtrl {
+		width: 80%;
+	}]]></template>
+    <template title="bdbank_accounts" version_id="6" version_string="0.9.6"><![CDATA[<dl class="pairsInline">
+	<dt>{xen:phrase bdbank_your_accounts}:</dt>
+	<dd>
+	<xen:if hascontent="true">
+	<xen:contentcheck>
+		<xen:if is="{$accounts}">
+		<xen:foreach loop="$accounts" value="$account">
+			{$account.name} ({xen:helper bdBank_balanceFormat, $account.balance})
+		</xen:foreach>
+		</xen:if>
+	</xen:contentcheck>
+	<xen:else />
+	{xen:phrase bdbank_none}
+	</xen:if>
+	</dd>
+</dl>]]></template>
+    <template title="bdbank_account_alerts_extra" version_id="6" version_string="0.9.6"><![CDATA[<h3 class="sectionHeader">{xen:phrase bdbank_bank}</h3>
+<dl class="ctrlUnit">
+	<dt>{xen:phrase receive_alert_when_someone}...</dt>
+	<dd>
+		<ul>
+			<xen:hook name="bdbank_account_alerts">
+			<li><input type="hidden" name="alertSet[bdbank_transaction_transfer]" value="1" />
+				<label><input type="checkbox" value="1" name="alert[bdbank_transaction_transfer]" {xen:checked "!{$alertOptOuts.bdbank_transaction_transfer}"} /> {xen:phrase bdbank_transfers_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</label>
+				<p class="hint">{xen:phrase bdbank_someone_sends_money_to_you, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</p>
+			</li>
+			</xen:hook>
+		</ul>
+	</dd>
+</dl>]]></template>
+    <template title="bdbank_account_privacy_top" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{$isPrivacySettings}"><h3 class="sectionHeader">{xen:phrase bdbank_privacy}</h3></xen:if>
+<dl class="ctrlUnit{xen:if '!{$isPrivacySettings}', ' sectionLink'}">
+	<xen:if is="{$isPrivacySettings}">
+		<dt></dt>
+	<xen:else />
+		<dt><a href="{xen:link 'account/privacy'}">{xen:phrase edit_your_privacy_settings}</a></dt>
+	</xen:if>
+	<dd>
+		<ul>
+			<xen:hook name="bdbank_account_privacy">
+			<li><label for="ctrl_bdbank_show_money"><input type="checkbox" name="bdbank_show_money" value="1" id="ctrl_bdbank_show_money" {xen:checked "{$visitor.bdbank_show_money}"} /> {xen:phrase bdbank_privacy_show_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</label> <p class="hint">{xen:phrase bdbank_this_will_allow_people_to_see_your_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</p></li>
+			</xen:hook>
+		</ul>
+	</dd>
+</dl>]]></template>
+    <template title="bdbank_alert_transaction_transfer" version_id="6" version_string="0.9.6"><![CDATA[{xen:phrase bdbank_alert_transaction_transfer,
+	'username={xen:helper username, $user, 'subject'}',
+	'amount=<a href="{xen:link '{xen:helper bdBank_routePrefix}/history', '', 'transaction_id={$content.transaction_id}'}" class="PopupItemLink">{xen:helper bdBank_balanceFormat, $content.amount}</a>'}]]></template>
+    <template title="bdbank_info" version_id="6" version_string="0.9.6"><![CDATA[<div class="sectionMain">
+<dl class="pairsInline">
+	<dt>{xen:phrase bdbank_your_balance}:</dt>
+	<dd class="bdBank_Balance" data-balance="$balance" data-userid="{$visitor.user_id}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance}}</dd>
+</dl>
+<xen:include template="bdbank_accounts" />
+</div>]]></template>
+    <template title="bdbank_links" version_id="1" version_string="beta"><![CDATA[<ul class="secondaryContent blockLinksList">
+	<xen:foreach loop="$links" key="$href" value="$title">
+	<li><a href="{$href}">{$title}</a></li>
+	</xen:foreach>
+</ul>]]></template>
+    <template title="bdbank_member_view_info_block" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{$user.bdbank_show_money}">
+	<dt>{xen:phrase bdbank_money}:</dt>
+	<dd>
+		<xen:if is="{$user.user_id} != {$visitor.user_id}">
+			<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
+		<xen:else />
+			<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>
+		</xen:if>
+	</dd>
+</xen:if>]]></template>
+    <template title="bdbank_message_user_info_extra" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
+	<xen:require js="js/bdBank/transfer.js" />
+
+	<dl class="pairsInline">
+		<dt>{xen:phrase bdbank_money}:</dt>
+		<dd>
+			<xen:if is="{$user.user_id} != {$visitor.user_id}">
+				<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
+			<xen:else />
+				<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>
+			</xen:if>
+		</dd>
+	</dl>
+</xen:if>]]></template>
+    <template title="bdbank_navigation_visitor_tabs_end" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{xen:property bdbank_navigationShowMoney}">
+	<xen:require js="js/bdBank/transfer.js" />
+
+	<li class="navTab bdBank_NavigationBalance Popup PopupControl PopupClosed">						
+		<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}" rel="Menu" class="navLink NoPopupGadget">{xen:phrase bdbank_money}:
+			<span class="bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
+				{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $visitor}}
+			</span>
+		</a>
+		
+		<div class="Menu JsOnly navPopup" id="bdBank_NavigationBalanceMenu"
+			data-contentSrc="{xen:link '{xen:helper bdBank_routePrefix}/history-popup'}"
+			data-contentDest="#bdBank_NavigationBalanceMenu .listPlaceholder">
+			
+			<div class="menuHeader primaryContent">
+				<h3>
+					<span class="Progress InProgress"></span>
+					<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}" class="concealed">{xen:phrase bdbank_history}</a>
+				</h3>
+			</div>
+			
+			<div class="listPlaceholder"></div>
+			
+			<div class="sectionFooter">
+				<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}">{xen:phrase show_all}...</a>
+			</div>
+		</div>
+	</li>
+</xen:if>]]></template>
+    <template title="bdbank_page_attachment_confirm_to_pay" version_id="6" version_string="0.9.6"><![CDATA[<xen:title>{xen:phrase bdbank_attachment_download_confirm_to_pay}</xen:title>
+
+<form method="post" class="xenForm">
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_attachment_trying_to_download}:</dt>
+		<dd>{$attachment.filename}</dd>
+	</dl>
+
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_attachment_price}:</dt>
+		<dd>{xen:helper bdBank_balanceFormat, {$attachment.bdbank_price}}<p class="explain">{xen:phrase bdbank_attachment_uploader_set_price}</p></dd>
+	</dl>
+
+	<dl class="ctrlUnit submitUnit">
+		<dt></dt>
+		<input type="hidden" name="hash" value="{$hash}" />
+		<dd><input type="submit" value="{xen:phrase bdbank_attachment_pay_and_download}" class="button primary" /></dd>
+	</dl>
+
+	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
+	<input type="hidden" name="_xfConfirm" value="1" />
+</form>]]></template>
+    <template title="bdbank_page_attachment_manager" version_id="4" version_string="0.9.4"><![CDATA[<xen:require css="bdbank.css" />
+
+<xen:title>{xen:phrase bdbank_attachment_manager}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb source="$breadCrumbs" />
+</xen:navigation>
+
+<form method="post" class="AttachmentManager">
+<div class="attachmentList section sectionMain">
+	<dl class="sectionHeaders">
+		<dt class="filename"><span>{xen:phrase bdbank_attachment_filename}</span></dt>
+		<dt class="attach_date"><span>{xen:phrase bdbank_attachment_attach_date}</span></dt>
+		<dt class="view_count"><span>{xen:phrase bdbank_attachment_view_count}</span></dt>
+		<dd class="price"><span>{xen:phrase bdbank_attachment_price}</span></dd>
+	</dl>
+	<ol class="attachmentListItems">
+	<xen:if is="{$attachments}">
+		<xen:foreach loop="$attachments" value="$attachment">
+			<li id="attachment-{$attachment.attachment_id}" class="attachmentListItem">
+				<div class="listBlock filename">
+					<div class="titleText">
+						{$attachment.filename}
+					</div>
+				</div>
+				<div class="listBlock attach_date">
+					<div class="titleText">
+						<xen:datetime time="{$attachment.attach_date}" />
+					</div>
+				</div>
+				<div class="listBlock view_count">
+					<div class="titleText">
+						{xen:number {$attachment.view_count}}
+					</div>
+				</div>
+				<div class="listBlock price">
+					<div class="titleText">
+						<input type="text" name="price[{$attachment.attachment_id}]" value="{xen:if '{$attachment.bdBankBonusPoint} == 0', '--', {$attachment.bdbank_price}}" class="textCtrl" {xen:if '{$attachment.bdBankBonusPoint} == 0', 'disabled="disabled"'}/>
+					</div>
+				</div>
+			</li>
+		</xen:foreach>
+	<xen:else />
+		<li class="primaryContent">{xen:phrase bdbank_there_no_attachments_to_display}</li>
+	</xen:if>
+	</ol>
+	<xen:if is="{$totalAttachments}">
+		<div class="sectionFooter SelectionCountContainer">
+			<span class="contentSummary">{xen:phrase bdbank_showing_attachments_x_to_y_of_z, 'start={xen:number $attachmentStartOffset}', 'end={xen:number $attachmentEndOffset}', 'total={xen:number $totalAttachments}'}</span>
+		</div>
+	</xen:if>
+	
+	<div class="FooterControls">
+		<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
+		<input type="submit" value="{xen:phrase save}" class="button primary" />
+	</div>
+</div>
+</form>
+
+<xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perpage}" total="{$totalAttachments}" />]]></template>
+    <template title="bdbank_page_history" version_id="6" version_string="0.9.6"><![CDATA[<xen:require css="bdbank.css" />
+
+<xen:title>{xen:phrase bdbank_history}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb source="$breadCrumbs" />
+</xen:navigation>
+
+<xen:include template="bdbank_info" />
+
+<div class="transactionList section sectionMain">
+	<dl class="sectionHeaders">
+		<dt class="sender"><span>{xen:phrase bdbank_transaction_from_user}</span></dt>
+		<dd class="receiver"><span>{xen:phrase bdbank_transaction_to_user}</span></dd>
+		<dd class="amount"><span>{xen:phrase bdbank_transaction_amount}</span></dd>
+		<dd class="comment"><span>{xen:phrase bdbank_transaction_comment}</span></dd>
+		<dd class="status"><span>{xen:phrase bdbank_transaction_status}</span></dd>
+	</dl>
+	<ol class="transactionListItems">
+		<xen:if is="{$transactions}">
+			<xen:foreach loop="$transactions" value="$transaction">
+				<xen:include template="bdbank_transaction_list_item" />
+			</xen:foreach>
+		<xen:else />
+			<li class="primaryContent">{xen:phrase bdbank_there_no_transactions_to_display}</li>
+		</xen:if>
+	</ol>
+	<xen:if is="{$total}">
+		<div class="sectionFooter SelectionCountContainer">
+			<span class="contentSummary">
+				<xen:if is="{xen:helper bdBank_options, daysOfHistory} > 0">
+					{xen:phrase bdbank_days_of_history_is_x, 'days={xen:helper bdBank_options, daysOfHistory}'}
+				</xen:if>
+				{xen:phrase bdbank_showing_transactions_x_to_y_of_z, 'start={xen:number $transactionStartOffset}', 'end={xen:number $transactionEndOffset}', 'total={xen:number $total}'}
+			</span>
+		</div>
+	</xen:if>
+</div>
+
+<xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perPage}" total="{$total}" />]]></template>
+    <template title="bdbank_page_history_popup" version_id="6" version_string="0.9.6"><![CDATA[<xen:require css="bdbank.css" />
+
+<xen:title>{xen:phrase bdbank_history}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb source="$breadCrumbs" />
+</xen:navigation>
+
+<xen:if is="{$transactions}">
+	<div>
+		<ol class="secondaryContent">
+			<xen:foreach loop="$transactions" value="$transaction">
+				<li class="listItem PopupItemLink">
+					<xen:avatar user="$transaction.other_user" size="s" img="true" class="plainImage" />
+
+					<div class="listItemText">
+						<h3 class="title">
+							<xen:set var="$aTagOpen"><a href="{xen:if '{$transaction.comment_link}', '{$transaction.comment_link}', '{xen:link '{xen:helper bdBank_routePrefix}/history', '', 'transaction_id={$transaction.transaction_id}'}'}" class="PopupItemLink"></xen:set>
+							<xen:if is="{$transaction.is_sending}">
+								{xen:phrase bdbank_you_sent_x_to_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, $transaction.amount}</a>', 'receiver={$transaction.other_user.username}'}
+							<xen:else />
+								{xen:phrase bdbank_you_received_x_from_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, $transaction.amount}</a>', 'sender={$transaction.other_user.username}'}
+							</xen:if>
+						</h3>
+						<p class="muted">
+							<xen:if is="{$transaction.comment}">{$transaction.comment},</xen:if>
+							<xen:datetime time="{$transaction.transfered}" />
+						</p>
+					</div>
+				</li>
+			</xen:foreach>
+		</ol>
+	</div>
+<xen:else />
+	<div class="secondaryContent noItems">{xen:phrase bdbank_there_no_transactions_to_display}</div>
+</xen:if>]]></template>
+    <template title="bdbank_page_index" version_id="1" version_string="beta"><![CDATA[<xen:title>{xen:phrase bdbank_bank}</xen:title>
+
+<xen:include template="bdbank_info" />]]></template>
+    <template title="bdbank_page_transfer" version_id="10" version_string="0.9.9.2"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+
+<xen:title>{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb source="$breadCrumbs" />
+</xen:navigation>
+
+<form action="{$formAction}" method="post" class="xenForm AutoValidator formOverlay Transfer" data-redirect="yes">
+	<dl class="ctrlUnit">
+		<dt><label for="ctrl_receivers">{xen:phrase bdbank_transfer_receivers}:</label></dt>
+		<dd>
+			<input type="text" name="receivers" value="{$formData.receivers}" class="textCtrl AutoComplete" id="ctrl_receivers" />
+			<p class="explain">{xen:phrase separate_names_with_comma}</p>
+		</dd>
+	</dl>
+
+	<dl class="ctrlUnit">
+		<dt><label for="ctrl_amount">{xen:phrase bdbank_transfer_amount}:</label></dt>
+		<dd>
+			<input type="text" name="amount" value="{$formData.amount}" class="textCtrl" id="ctrl_amount" />
+		</dd>
+	</dl>
+
+	<dl class="ctrlUnit">
+		<dt><label for="ctrl_comment">{xen:phrase bdbank_transfer_comment}:</label></dt>
+		<dd>
+			<textarea name="comment" class="textCtrl Elastic" id="ctrl_comment">{$formData.comment}</textarea>
+		</dd>
+	</dl>
+    
+    <xen:if is="{xen:helper bdbank_options, taxSenderPays}">
+        <dl class="ctrlUnit">
+        	<dt>&nbsp;</dt>
+    		<dd>
+                <label for="ctrl_sender_pays_tax">
+    			    <input type="checkbox" name="sender_pays_tax" value="1" id="ctrl_sender_pays_tax" />
+                    {xen:phrase bdbank_pay_tax_for_this_transfer}
+                </label>
+    		</dd>
+        </dl>
+    </xen:if>
+
+	<dl class="ctrlUnit submitUnit">
+		<dt></dt>
+		<dd><input type="submit" value="{xen:phrase bdbank_transfer_do}" class="button primary" /></dd>
+	</dl>
+
+	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
+	<input type="hidden" name="rtn" value="{$formData.rtn}" />
+</form>]]></template>
+    <template title="bdbank_page_transfer_confirm" version_id="10" version_string="0.9.9.2"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+
+<xen:title>{xen:phrase bdbank_transfer_confirm}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb source="$breadCrumbs" />
+</xen:navigation>
+
+<form action="{$formAction}" method="post" class="xenForm AutoValidator formOverlay TransferConfirm" data-redirect="1">
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_transfer_trying_transfer_to}:</dt>
+		<dd><ol>
+			<xen:foreach loop="$receivers" value="$receiver">
+			<li><a href="{xen:link 'members', {$receiver}}" target="_blank">{$receiver.username}</a></li>
+			</xen:foreach>
+			<input type="hidden" name="receivers" value="{$formData.receivers}" />
+		</ol></dd>
+	</dl>
+
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_transfer_amount}:</dt>
+		<dd>
+			<input type="text" value="{$formData.amount}" class="textCtrl" disabled="disabled"/>
+			<input type="hidden" name="amount" value="{$formData.amount}"/>
+			<p class="explain">{xen:phrase bdbank_transfer_total_x_you_have_y_left_z, 'total={$total}', 'balance={$balance}', 'balanceAfter={$balanceAfter}'}</p>
+		</dd>
+	</dl>
+
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_transfer_comment}:</dt>
+		<dd>
+			<input type="hidden" name="hash" value="{$hash}" />
+			<textarea class="textCtrl Elastic" disabled="disabled"><xen:if is="{$formData.comment}">{$formData.comment}<xen:else />{xen:phrase bdbank_transfer_comment_empty}</xen:if></textarea>
+			<input type="hidden" name="comment" value="{$formData.comment}" />
+		</dd>
+	</dl>
+    
+    <input type="hidden" name="sender_pays_tax" value="{$senderPaysTax}">
+
+	<dl class="ctrlUnit submitUnit">
+		<dt></dt>
+		<input type="hidden" name="hash" value="{$hash}" />
+		<dd><input type="submit" value="{xen:phrase bdbank_transfer_comment_do}" class="button primary" /></dd>
+	</dl>
+
+	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
+	<input type="hidden" name="rtn" value="{$formData.rtn}" />
+</form>]]></template>
+    <template title="bdbank_sidebar_visitor_panel_stats" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{xen:property bdbank_visitorPanelShowMoney}">
+	<xen:require js="js/bdbank/transfer.js" />
+
+	<dl class="pairsJustified">
+		<dt>{xen:phrase bdbank_money}:</dt>
+		<dd>
+			<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}" title="{xen:phrase bdbank_history}" class="Tooltip bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
+				{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $visitor}}
+			</a>
+		</dd>
+	</dl>
+</xen:if>]]></template>
+    <template title="bdbank_transaction_list_item" version_id="10" version_string="0.9.9.2"><![CDATA[<xen:require css="bdbank.css" />
+
+<li id="transaction-{$transaction.transaction_id}" class="transactionListItem">
+	<div class="listBlock sender">
+		<div class="titleText">
+			<xen:if is="{$transaction.from_user.user_id}">
+				<xen:username user="{$transaction.from_user}" rich="true" />
+			<xen:else />
+				{$transaction.from_user.username}
+			</xen:if>
+		</div>
+	</div>
+	<div class="listBlock receiver">
+		<div class="titleText">
+			<xen:if is="{$transaction.to_user.user_id}">
+				<xen:username user="{$transaction.to_user}" rich="true" />
+			<xen:else />
+				{$transaction.to_user.username}
+			</xen:if>
+		</div>
+	</div>
+	<div class="listBlock amount">
+		<div class="titleText">
+			<xen:if is="{$transaction.reversed}">
+				<s>{xen:helper bdBank_balanceFormat, $transaction.amount}</s>
+			<xen:else />
+                <xen:if is="{$transaction.tax_amount} > 0">
+                    <xen:if is="{$transaction.is_sending}">
+                        {xen:helper bdBank_balanceFormat, $transaction.amount}
+        				(<span title="{xen:phrase bdbank_tax_for_this_is_x_y_only_receive_z, 'tax={xen:helper bdBank_balanceFormat, $transaction.tax_amount}', 'receiver={$transaction.to_user.username}', 'amount={xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}'}" class="Tooltip">{xen:helper bdBank_balanceFormat, {xen:calc '-1 * {$transaction.tax_amount}'}}</span>)
+                    <xen:else />
+                        {xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}
+    				</xen:if>
+                <xen:else />
+                    {xen:helper bdBank_balanceFormat, $transaction.amount}
+                </xen:if>
+			</xen:if>
+		</div>
+	</div>
+	<div class="listBlock comment">
+		<div class="titleText">
+			<xen:if is="{$transaction.comment}">
+				<xen:if is="{$transaction.reversed}">
+					<s>{$transaction.comment}</s>
+				<xen:else />
+					{$transaction.comment}
+				</xen:if>
+			<xen:else />
+				&nbsp;
+			</xen:if>
+			<xen:if is="{$transaction.comment_link}">
+				<a href="{$transaction.comment_link}" target="_blank">{xen:phrase bdbank_comment_goto}</a>
+			</xen:if>
+		</div>
+	</div>
+	<div class="listBlock status">
+		<div class="titleText">
+			<xen:if is="{$transaction.reversed}">
+				{xen:phrase bdbank_transaction_reversed}
+				(<xen:datetime time="$transaction.reversed" />)
+			<xen:elseif is="{$transaction.transfered}" />
+				{xen:phrase bdbank_transaction_proceeded}
+				(<xen:datetime time="$transaction.transfered" />)
+			<xen:else />
+				{xen:phrase bdbank_transaction_pending}
+			</xen:if>
+		</div>
+	</div>
+</li>]]></template>
+  </templates>
+  <bb_code_media_sites/>
+</addon>

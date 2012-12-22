@@ -11,7 +11,7 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like {
 				$bank = bdBank_Model_Bank::getInstance();
 				$point = $bank->getActionBonus('liked');
 				if ($point != 0) {
-					$bank->personal()->give($contentUserId,$point,$bank->comment('liked_post',$contentId));
+					$bank->personal()->give($contentUserId, $point, $bank->comment('liked_post', $contentId));
 				}
 			}
 		}
@@ -21,13 +21,14 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like {
 	
 	public function unlikeContent(array $like) {
 		$result = parent::unlikeContent($like);
+		
 		if ($result !== false) {
 			if ($like['content_type'] == 'post') {
 				// post only for now
 				$bank = bdBank_Model_Bank::getInstance();
 				$point = $bank->getActionBonus('unlike');
 				if ($point != 0) {
-					$bank->personal()->give($like['like_user_id'],$point,$bank->comment('unlike_post',$like['content_id']));
+					$bank->personal()->give($like['like_user_id'], $point, $bank->comment('unlike_post', $like['content_id']));
 				}
 			}
 		}

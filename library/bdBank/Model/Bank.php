@@ -34,6 +34,19 @@ class bdBank_Model_Bank extends XenForo_Model {
 	protected static $_reversedTransactions = array();
 	protected static $_taxRules = false;
 	
+	public function canRefund(array $transaction, array $viewingUser = null) {
+		$this->standardizeViewingUserReference($viewingUser);
+		
+		if ($transaction['transaction_type'] == self::TYPE_PERSONAL
+			AND $transaction['reversed'] == 0
+			AND $transaction['to_user_id'] == $viewingUser['user_id']
+		) {
+			return true;
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * Called from the listener to do extra stuff with the navigation tab
 	 * 
@@ -194,6 +207,23 @@ class bdBank_Model_Bank extends XenForo_Model {
 		}
 	}
 	
+	public function reverseTransaction($transaction) {
+		$personal = $this->personal();
+
+		// get back the fund from receiver account
+		// this may throw not_enough_money exception...
+		$personal->transfer($transaction['to_user_id'], 0, $transaction['amount'] - $transaction['tax_amount'], null, self::TYPE_SYSTEM, false);
+
+		// actual refund
+		$personal->give($transaction['from_user_id'], $transaction['amount'], null, self::TYPE_SYSTEM, false);
+		
+		$this->_getDb()->update(
+			'xf_bdbank_transaction'
+			, array('reversed' => XenForo_Application::$time)
+			, array('transaction_id = ?' => $transaction['transaction_id'])
+		);
+	}
+	
 	public function reverseSystemTransactionByComment($comments) {
 		if (!is_array($comments)) $comments = array($comments);
 		if (empty($comments)) return;
@@ -220,6 +250,9 @@ class bdBank_Model_Bank extends XenForo_Model {
 		
 		if (count($found) > 0) {
 			$personal = $this->personal();
+			
+			XenForo_Db::beginTransaction();
+			
 			foreach ($found as $info) {
 				try {
 					$personal->transfer($info['to_user_id'], $info['from_user_id'], $info['amount'], null, self::TYPE_SYSTEM, false);
@@ -244,6 +277,8 @@ class bdBank_Model_Bank extends XenForo_Model {
 					, 'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
 				);
 			}
+			
+			XenForo_Db::commit();
 		}
 
 		$totalReversed = 0;

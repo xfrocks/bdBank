@@ -30,13 +30,19 @@ class bdBank_CacheRebuilder_User extends XenForo_CacheRebuilder_Abstract {
 			$userDw = XenForo_DataWriter::create('XenForo_DataWriter_User', XenForo_DataWriter::ERROR_SILENT);
 			if ($userDw->setExistingData($userId)) {
 				$userMoney = $db->fetchOne('
-					SELECT SUM(IF(to_user_id = ?, amount, -1 * amount))
+					SELECT SUM(IF(to_user_id = ?, amount - tax_amount, -1 * amount))
 					FROM `xf_bdbank_transaction`
-					WHERE from_user_id = ?
-						OR to_user_id = ?
+					WHERE (from_user_id = ? OR to_user_id = ?)
+						AND reversed = 0
+				', array($userId, $userId, $userId));
+				
+				$userMoneyArchived = $db->fetchOne('
+					SELECT SUM(IF(to_user_id = ?, amount - tax_amount, -1 * amount))
+					FROM `xf_bdbank_archive`
+					WHERE (from_user_id = ? OR to_user_id = ?)
 				', array($userId, $userId, $userId));
 	
-				$userDw->set($field, max(0, intval($userMoney)));
+				$userDw->set($field, max(0, $userMoney + $userMoneyArchived));
 				
 				$userDw->save();
 			}

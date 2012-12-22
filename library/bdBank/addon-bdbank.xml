@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="0.10" version_id="11" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="0.10.1" version_id="12" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -378,6 +378,9 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_rebuild_bonuses_type_post_and_thread" version_id="10" version_string="0.9.9.2"><![CDATA[Post and Thread]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_type_post_like" version_id="10" version_string="0.9.9.2"><![CDATA[Post's Like]]></phrase>
     <phrase title="bdbank_rebuild_user" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Rebuild User Account Information]]></phrase>
+    <phrase title="bdbank_refund" version_id="11" version_string="0.10"><![CDATA[Refund]]></phrase>
+    <phrase title="bdbank_refund_amount" version_id="11" version_string="0.10"><![CDATA[Refund Amount]]></phrase>
+    <phrase title="bdbank_refund_error_not_enough_money" version_id="11" version_string="0.10"><![CDATA[You don't have enough {money_lowercase} in your account to issue refund for this transaction of {refund_amount}. Your current account balance is {balance}.]]></phrase>
     <phrase title="bdbank_requested_transaction_not_found" version_id="6" version_string="0.9.6"><![CDATA[The requested transaction could not be found.]]></phrase>
     <phrase title="bdbank_showing_attachments_x_to_y_of_z" version_id="3" version_string="beta 3"><![CDATA[Showing attachments {start} to {end} of {total}]]></phrase>
     <phrase title="bdbank_showing_transactions_x_to_y_of_z" version_id="6" version_string="0.9.6"><![CDATA[Showing transactions {start} to {end} of {total}]]></phrase>
@@ -411,6 +414,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_transfer_error_zero_amount" version_id="1" version_string="beta"><![CDATA[The bank loves dealing with zeros but only when they are behind non-zero numbers. A zero amount is useless with us, sorry...]]></phrase>
     <phrase title="bdbank_transfer_receivers" version_id="1" version_string="beta"><![CDATA[Receivers]]></phrase>
     <phrase title="bdbank_transfer_total_x_you_have_y_left_z" version_id="1" version_string="beta"><![CDATA[Total amount is {total}. You currently have {balance}, you will have {balanceAfter} after this.]]></phrase>
+    <phrase title="bdbank_transfer_trying_refund_to" version_id="11" version_string="0.10"><![CDATA[You are trying to refund to]]></phrase>
     <phrase title="bdbank_transfer_trying_transfer_to" version_id="1" version_string="beta"><![CDATA[You are trying to transfer to]]></phrase>
     <phrase title="bdbank_user_has_at_least_x_of_y" version_id="10" version_string="0.9.9.1"><![CDATA[User has at least X of {money_lowercase}]]></phrase>
     <phrase title="bdbank_user_x" global_cache="1" version_id="5" version_string="0.9.5"><![CDATA[User #{id}]]></phrase>
@@ -955,7 +959,7 @@ form.AttachmentManager {
 </div>
 
 <xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perPage}" total="{$total}" />]]></template>
-    <template title="bdbank_page_history_popup" version_id="6" version_string="0.9.6"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_page_history_popup" version_id="11" version_string="0.10"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_history}</xen:title>
 
@@ -976,7 +980,7 @@ form.AttachmentManager {
 							<xen:if is="{$transaction.is_sending}">
 								{xen:phrase bdbank_you_sent_x_to_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, $transaction.amount}</a>', 'receiver={$transaction.other_user.username}'}
 							<xen:else />
-								{xen:phrase bdbank_you_received_x_from_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, $transaction.amount}</a>', 'sender={$transaction.other_user.username}'}
+								{xen:phrase bdbank_you_received_x_from_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}</a>', 'sender={$transaction.other_user.username}'}
 							</xen:if>
 						</h3>
 						<p class="muted">
@@ -994,7 +998,31 @@ form.AttachmentManager {
     <template title="bdbank_page_index" version_id="1" version_string="beta"><![CDATA[<xen:title>{xen:phrase bdbank_bank}</xen:title>
 
 <xen:include template="bdbank_info" />]]></template>
-    <template title="bdbank_page_transfer" version_id="10" version_string="0.9.9.2"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+    <template title="bdbank_page_refund" version_id="11" version_string="0.10"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+
+<xen:title>{xen:phrase bdbank_refund}</xen:title>
+
+<form action="{xen:link '{xen:helper bdBank_routePrefix}/refund'}" method="post" class="xenForm AutoValidator formOverlay" data-redirect="1">
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_transfer_trying_refund_to}:</dt>
+		<dd>{$transaction.from_user.username}</dd>
+	</dl>
+
+	<dl class="ctrlUnit">
+		<dt>{xen:phrase bdbank_refund_amount}:</dt>
+		<dd>{xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}</dd>
+	</dl>
+
+	<dl class="ctrlUnit submitUnit">
+		<dt></dt>
+		<dd><input type="submit" value="{xen:phrase bdbank_refund}" class="button primary" /></dd>
+	</dl>
+
+    <input type="hidden" name="transaction_id" value="{$transaction.transaction_id}" />
+	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
+	<input type="hidden" name="_xfConfirm" value="1" />
+</form>]]></template>
+    <template title="bdbank_page_transfer" version_id="11" version_string="0.10"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
 
 <xen:title>{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:title>
 
@@ -1025,7 +1053,7 @@ form.AttachmentManager {
 		</dd>
 	</dl>
     
-    <xen:if is="{xen:helper bdbank_options, taxSenderPays}">
+    <xen:if is="{xen:helper bdBank_options, taxSenderPays}">
         <dl class="ctrlUnit">
         	<dt>&nbsp;</dt>
     		<dd>
@@ -1105,7 +1133,7 @@ form.AttachmentManager {
 		</dd>
 	</dl>
 </xen:if>]]></template>
-    <template title="bdbank_transaction_list_item" version_id="10" version_string="0.9.9.2"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_transaction_list_item" version_id="11" version_string="0.10"><![CDATA[<xen:require css="bdbank.css" />
 
 <li id="transaction-{$transaction.transaction_id}" class="transactionListItem">
 	<div class="listBlock sender">
@@ -1128,20 +1156,20 @@ form.AttachmentManager {
 	</div>
 	<div class="listBlock amount">
 		<div class="titleText">
-			<xen:if is="{$transaction.reversed}">
-				<s>{xen:helper bdBank_balanceFormat, $transaction.amount}</s>
-			<xen:else />
-                <xen:if is="{$transaction.tax_amount} > 0">
-                    <xen:if is="{$transaction.is_sending}">
-                        {xen:helper bdBank_balanceFormat, $transaction.amount}
-        				(<span title="{xen:phrase bdbank_tax_for_this_is_x_y_only_receive_z, 'tax={xen:helper bdBank_balanceFormat, $transaction.tax_amount}', 'receiver={$transaction.to_user.username}', 'amount={xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}'}" class="Tooltip">{xen:helper bdBank_balanceFormat, {xen:calc '-1 * {$transaction.tax_amount}'}}</span>)
-                    <xen:else />
-                        {xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}
-    				</xen:if>
-                <xen:else />
+			<xen:if is="{$transaction.reversed}"><s></xen:if>
+		
+            <xen:if is="{$transaction.tax_amount} > 0">
+                <xen:if is="{$transaction.is_sending}">
                     {xen:helper bdBank_balanceFormat, $transaction.amount}
-                </xen:if>
-			</xen:if>
+    				(<span title="{xen:phrase bdbank_tax_for_this_is_x_y_only_receive_z, 'tax={xen:helper bdBank_balanceFormat, $transaction.tax_amount}', 'receiver={$transaction.to_user.username}', 'amount={xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}'}" class="Tooltip">{xen:helper bdBank_balanceFormat, {xen:calc '-1 * {$transaction.tax_amount}'}}</span>)
+                <xen:else />
+                    {xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}
+				</xen:if>
+            <xen:else />
+                {xen:helper bdBank_balanceFormat, $transaction.amount}
+            </xen:if>
+            
+		    <xen:if is="{$transaction.reversed}"></s></xen:if>
 		</div>
 	</div>
 	<div class="listBlock comment">
@@ -1158,6 +1186,9 @@ form.AttachmentManager {
 			<xen:if is="{$transaction.comment_link}">
 				<a href="{$transaction.comment_link}" target="_blank">{xen:phrase bdbank_comment_goto}</a>
 			</xen:if>
+            <xen:if is="{$transaction.canRefund}">
+                <a href="{xen:link '{xen:helper bdBank_routePrefix}/refund', '', 'transaction_id={$transaction.transaction_id}'}" class="OverlayTrigger">{xen:phrase bdbank_refund}</a>
+            </xen:if>
 		</div>
 	</div>
 	<div class="listBlock status">

@@ -87,6 +87,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		$transactions = $bank->getTransactions($conditions, $fetchOptions);
 		$totalTransactions = $bank->countTransactions($conditions, $fetchOptions);
 		
+		foreach ($transactions as &$transaction) {
+			$transaction['canRefund'] = $bank->canRefund($transaction);
+		}
+		
 		$viewParams = array(
 			'breadCrumbs' => array(
 				'history' => array(
@@ -301,23 +305,74 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 			}
 		}
 		
+		$viewParams = array(
+			'breadCrumbs' => array(
+				'transfer' => array(
+					'href' => $link,
+					'value' => new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money'))),
+					'node_id' => 'transfer',
+				)
+			),
+			'balance' => bdBank_Model_Bank::balance(), 
+			'accounts' => bdBank_Model_Bank::accounts(),
+			'formAction' => $link,
+			'formData' => $formData,
+		);
+		
 		return $this->responseView(
 			'bdBank_ViewPublic_Bank_Transfer',
 			'bdbank_page_transfer',
-			array(
-				'breadCrumbs' => array(
-					'transfer' => array(
-						'href' => $link,
-						'value' => new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money'))),
-						'node_id' => 'transfer',
-					)
-				),
-				'balance' => bdBank_Model_Bank::balance(), 
-				'accounts' => bdBank_Model_Bank::accounts(),
-				'formAction' => $link,
-				'formData' => $formData,
-			)
+			$viewParams
 		);
+	}
+	
+	public function actionRefund() {
+		$bank = bdBank_Model_Bank::getInstance();
+		$transactionId = $this->_input->filterSingle('transaction_id', XenForo_Input::UINT);
+		
+		$transaction = $bank->getTransactionById($transactionId, array('join' => bdBank_Model_Bank::FETCH_USER));
+		if (empty($transaction)) {
+			throw new XenForo_Exception(new XenForo_Phrase('bdbank_requested_transaction_not_found'), true);
+		}
+		
+		if (!$bank->canRefund($transaction)) {
+			return $this->responseNoPermission();
+		}
+		
+		if ($this->isConfirmedPost()) {
+			try {
+				$bank->reverseTransaction($transaction);
+			} catch (bdBank_Exception $e) {
+				if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY) {
+					throw new XenForo_Exception(new XenForo_Phrase('bdbank_refund_error_not_enough_money', array(
+						'money_lowercase' => new XenForo_Phrase('bdbank_money_lowercase'),
+						'refund_amount' => bdBank_Model_Bank::helperBalanceFormat($transaction['amount'] - $transaction['tax_amount']),
+						'balance' => bdBank_Model_Bank::helperBalanceFormat(bdBank_Model_Bank::balance()),
+					)), true);
+				} else {
+					return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())));
+				}
+			}
+			
+			return $this->responseRedirect(
+				XenForo_ControllerResponse_Redirect::SUCCESS,
+				XenForo_Link::buildPublicLink(
+					bdBank_Model_Bank::routePrefix() . '/history',
+					'',
+					array('transaction_id' => $transaction['transaction_id'])
+				)
+			);
+		} else {
+			$viewParams = array(
+				'transaction' => $transaction,
+			);
+			
+			return $this->responseView(
+				'bdBank_ViewPublic_Bank_Refund',
+				'bdbank_page_refund',
+				$viewParams
+			);
+		}
 	}
 	
 	public function actionAttachmentManager() {

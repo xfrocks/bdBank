@@ -82,16 +82,19 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		
 		if ($this->_request->isPost()) {
 			// process transfer request
+			// please take time to update bdBank_ControllerAdmin_Bank::actionTransfer() if you change this
+			
 			$currentUserId = XenForo_Visitor::getInstance()->get('user_id');
 			$receiverUsernames = explode(',',$formData['receivers']);
 			$userModel = XenForo_Model::create('XenForo_Model_User');
+			
 			$receivers = array();
 			foreach ($receiverUsernames as $username) {
 				$username = trim($username);
 				if (empty($username)) continue; 
 				$receiver = $userModel->getUserByName($username);
 				if (empty($receiver)) {
-					return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_receiver_not_found_x',array('username' => $username)));
+					return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_receiver_not_found_x', array('username' => $username)));
 				} else if ($receiver['user_id'] == $currentUserId) {
 					return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_self'));
 				}
@@ -104,6 +107,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 				// it shouldn't be negative because we used filter
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
 			}
+			
 			$balance = bdBank_Model_Bank::balance();
 			$total = $formData['amount'] * count($receivers);
 			$balanceAfter = $balance - $total;
@@ -142,7 +146,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 			} else {
 				$personal = XenForo_Application::get('bdBank')->personal();
 				foreach ($receivers as $receiver) {
-					$personal->transfer($currentUserId,$receiver['user_id'],$formData['amount'],$formData['comment']);
+					$personal->transfer($currentUserId, $receiver['user_id'], $formData['amount'], $formData['comment']);
 				}
 				
 				return $this->responseRedirect(

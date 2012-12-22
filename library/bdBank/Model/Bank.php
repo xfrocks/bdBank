@@ -300,6 +300,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 	public static function options($option_id) {
 		if ($option_id == 'field') return 'bdbank_money';
 		if ($option_id == 'route_prefix') return defined('BDBANK_PREFIX') ? BDBANK_PREFIX : 'no-route-for-bank-found'; 
+		
 		return XenForo_Application::get('options')->get('bdbank_' . $option_id);
 	}
 	

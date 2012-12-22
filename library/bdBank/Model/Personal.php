@@ -5,10 +5,11 @@ class bdBank_Model_Personal extends XenForo_Model {
 	
 	public function __construct() {
 		parent::__construct();
-		$this->_bank = $this->getModelFromCache('bdBank_Model_Bank'); // load the Bank model
+		
+		$this->_bank = XenForo_Application::get('bdBank'); // load the Bank model
 	}
 	
-	public function transfer($from,$to,$amount,$comment = null,$type = bdBank_Model_Bank::TYPE_PERSONAL,$save = true) {
+	public function transfer($from, $to, $amount, $comment = null, $type = bdBank_Model_Bank::TYPE_PERSONAL, $save = true) {
 		$db = $this->_getDb();
 		$from = intval($from);
 		$to = intval($to);
@@ -72,15 +73,16 @@ class bdBank_Model_Personal extends XenForo_Model {
 		$db->commit();
 	}
 	
-	public function give($user_id,$amount,$reason) {
+	public function give($user_id, $amount, $reason, $type = bdBank_Model_Bank::TYPE_SYSTEM) {
 		try {
-			$this->transfer(0,$user_id,$amount,$reason,bdBank_Model_Bank::TYPE_SYSTEM);
+			$this->transfer(0, $user_id, $amount, $reason, $type);
 		} catch (bdBank_Exception $e) {
 			// keep silent
 		}
 	}
 	
 	public static function field() {
-		return 'bdbank_money';
+		// just a shortcut to access the field name
+		return bdBank_Model_Bank::options('field');
 	}
 }

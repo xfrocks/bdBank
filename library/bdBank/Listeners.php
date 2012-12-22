@@ -6,16 +6,16 @@ class bdBank_Listeners {
 			foreach ($data['routesPublic'] as $prefix => $route) {
 				if ($route['route_class'] == 'bdBank_Route_Prefix_Public') {
 					define('BDBANK_PREFIX', $prefix);
-					return;
 				}
 			}
 		}
+		
+		XenForo_Application::autoload('bdBank_Exception');
+		XenForo_Application::set('bdBank',XenForo_Model::create('bdBank_Model_Bank'));
 	}
 	
 	public static function visitor_setup(XenForo_Visitor &$visitor) {
-		// load our stuff
-		XenForo_Application::autoload('bdBank_Exception');
-		XenForo_Application::set('bdBank',XenForo_Model::create('bdBank_Model_Bank'));
+		// temporary do nothing
 	}
 	
 	public static function navigation_tabs(array &$extraTabs,$seletectedTabId) {

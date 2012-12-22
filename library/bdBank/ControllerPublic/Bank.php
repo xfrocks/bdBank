@@ -201,8 +201,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 
 		$conditions = array('user_id' => $userId);
 		$fetchOptions = array(
-			'order' => 'attach_date',
-			'direction' => 'desc',
+			'order' => 'recent',
 		);
 		
 		$page = max(1, $this->_input->filterSingle('page', XenForo_Input::UINT));

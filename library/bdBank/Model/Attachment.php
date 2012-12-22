@@ -25,78 +25,122 @@ class bdBank_Model_Attachment extends XFCP_bdBank_Model_Attachment {
 	}
 	
 	public function countAttachments(array $conditions = array(), array $fetchOptions = array()) {
-		$whereClause = $this->prepareAttachmentConditions($conditions, $fetchOptions);
-		$joinOptions = $this->prepareAttachmentFetchOptions($fetchOptions);
-
-		return $this->_getDb()->fetchOne('
-			SELECT COUNT(*)
-			FROM xf_attachment AS attachment
-			' . $joinOptions['joinTables'] . '
-			WHERE ' . $whereClause . '
-		');
-	}
+		if (XenForo_Application::$versionId < 1010000) {
+			// suppports XenForo 1.0
+			$whereClause = $this->prepareAttachmentConditions($conditions, $fetchOptions);
+			$joinOptions = $this->prepareAttachmentFetchOptions($fetchOptions);
 	
-	public function getAttachments(array $conditions = array(), array $fetchOptions = array()) {
-		$whereClause = $this->prepareAttachmentConditions($conditions, $fetchOptions);
-
-		$orderClause = $this->prepareAttachmentOrderOptions($fetchOptions);
-		$joinOptions = $this->prepareAttachmentFetchOptions($fetchOptions);
-		$limitOptions = $this->prepareLimitFetchOptions($fetchOptions);
-
-		return $this->fetchAllKeyed($this->limitQueryResults(
-			'
-				SELECT attachment.*
-					' . $joinOptions['selectFields'] . '
+			return $this->_getDb()->fetchOne('
+				SELECT COUNT(*)
 				FROM xf_attachment AS attachment
 				' . $joinOptions['joinTables'] . '
 				WHERE ' . $whereClause . '
-				' . $orderClause . '
-			', $limitOptions['limit'], $limitOptions['offset']
-		), 'attachment_id');
+			');
+		} else {
+			// supports XenForo 1.1 and beyond
+			return parent::countAttachments($conditions, $fetchOptions);
+		}
+	}
+	
+	public function getAttachments(array $conditions = array(), array $fetchOptions = array()) {
+		if (XenForo_Application::$versionId < 1010000) {
+			// suppports XenForo 1.0
+			$whereClause = $this->prepareAttachmentConditions($conditions, $fetchOptions);
+
+			$sqlClauses = $this->prepareAttachmentFetchOptions($fetchOptions);
+			$limitOptions = $this->prepareLimitFetchOptions($fetchOptions);
+	
+			return $this->fetchAllKeyed($this->limitQueryResults(
+				'
+					SELECT attachment.*
+						' . $sqlClauses['selectFields'] . '
+					FROM xf_attachment AS attachment
+					' . $sqlClauses['joinTables'] . '
+					WHERE ' . $whereClause . '
+					' . $sqlClauses['orderClause'] . '
+				', $limitOptions['limit'], $limitOptions['offset']
+			), 'attachment_id');
+		} else {
+			// supports XenForo 1.1 and beyond
+			return parent::getAttachments($conditions, $fetchOptions);
+		}
 	}
 	
 	public function prepareAttachmentFetchOptions(array $fetchOptions) {
-		$selectFields = '';
-		$joinTables = '';
+		if (XenForo_Application::$versionId < 1010000) {
+			// suppports XenForo 1.0
+			$selectFields = '';
+			$joinTables = '';
+			
+			$selectFields .= ',' . self::$dataColumns;
+			$joinTables .= ' INNER JOIN xf_attachment_data AS data ON (data.data_id = attachment.data_id)';
+			
+			if (isset($fetchOptions['order']))
+				{
+					switch ($fetchOptions['order'])
+					{
+						case 'recent':
+							$orderBy = 'attachment_data.upload_date DESC';
+							break;
 		
-		$selectFields .= ',' . self::$dataColumns;
-		$joinTables .= ' INNER JOIN xf_attachment_data AS data ON (data.data_id = attachment.data_id)';
-
-		return array(
-			'selectFields' => $selectFields,
-			'joinTables'   => $joinTables
-		);
+						case 'size':
+							$orderBy = 'attachment_data.file_size DESC';
+							break;
+					}
+				}
+	
+			return array(
+				'selectFields' => $selectFields,
+				'joinTables'   => $joinTables,
+				'orderClause' => ($orderBy ? "ORDER BY $orderBy" : '')
+			);
+		} else {
+			// supports XenForo 1.1 and beyond
+			return parent::prepareAttachmentFetchOptions($fetchOptions);
+		}
 	}
 
 	public function prepareAttachmentConditions(array $conditions, array &$fetchOptions) {
-		$db = $this->_getDb();
-		$sqlConditions = array();
-		
-		if (!empty($conditions['attachment_id'])) {
-			if (is_array($conditions['attachment_id'])) {
-				$sqlConditions[] = 'attachment.attachment_id IN (' . $db->quote($conditions['attachment_id']) . ')';
-			} else {
-				$sqlConditions[] = 'attachment.attachment_id = ' . $db->quote($conditions['attachment_id']);
+		if (XenForo_Application::$versionId < 1010000) {
+			// suppports XenForo 1.0
+			$db = $this->_getDb();
+			$sqlConditions = array();
+			
+			if (!empty($conditions['attachment_id'])) {
+				if (is_array($conditions['attachment_id'])) {
+					$sqlConditions[] = 'attachment.attachment_id IN (' . $db->quote($conditions['attachment_id']) . ')';
+				} else {
+					$sqlConditions[] = 'attachment.attachment_id = ' . $db->quote($conditions['attachment_id']);
+				}
 			}
-		}
-		
-		if (!empty($conditions['user_id'])) {
-			if (is_array($conditions['user_id'])) {
-				$sqlConditions[] = 'data.user_id IN (' . $db->quote($conditions['user_id']) . ')';
-			} else {
+			
+			if (!empty($conditions['user_id'])) {
 				$sqlConditions[] = 'data.user_id = ' . $db->quote($conditions['user_id']);
 			}
+	
+			return $this->getConditionsForClause($sqlConditions);
+		} else {
+			// supports XenForo 1.1 and beyond
+			$result = parent::prepareAttachmentConditions($conditions, $fetchOptions);
+			$db = $this->_getDb();
+			$sqlConditions = array($result);
+			
+			if (!empty($conditions['attachment_id'])) {
+				if (is_array($conditions['attachment_id'])) {
+					$sqlConditions[] = 'attachment.attachment_id IN (' . $db->quote($conditions['attachment_id']) . ')';
+				} else {
+					$sqlConditions[] = 'attachment.attachment_id = ' . $db->quote($conditions['attachment_id']);
+				}
+			}
+			
+			if (count($sqlConditions) > 1) {
+				// our condition is found
+				return $this->getConditionsForClause($sqlConditions);
+			} else {
+				// default conditions only?
+				return $result;
+			}
 		}
-
-		return $this->getConditionsForClause($sqlConditions);
-	}
-
-	public function prepareAttachmentOrderOptions(array &$fetchOptions) {
-		$choices = array(
-			'attach_date' => 'attachment.attach_date',
-			'upload_date' => 'data.upload_date',
-		);
-		return $this->getOrderByClause($choices, $fetchOptions);
 	}
 }
 

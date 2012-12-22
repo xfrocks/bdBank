@@ -196,7 +196,7 @@ class bdBank_Model_Personal extends XenForo_Model {
 			// skip all db updates
 		} else {
 			// only proceed with db interactions if this is not a transaction test
-			$db->beginTransaction();
+			XenForo_Db::beginTransaction();
 		
 			if ($saveTransaction) {
 				$transaction = array(
@@ -244,7 +244,7 @@ class bdBank_Model_Personal extends XenForo_Model {
 				}
 			}
 			
-			$db->commit();
+			XenForo_Db::commit();
 		}
 		
 		return array(

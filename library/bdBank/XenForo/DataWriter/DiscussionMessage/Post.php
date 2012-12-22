@@ -5,8 +5,6 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 	const DATA_THREAD = '_bdBank_threadInfo';
 	
 	protected function _messagePostSave() {
-		parent::_messagePostSave();
-		
 		$bank = bdBank_Model_Bank::getInstance();
 
 		if (!$this->isInsert()) {
@@ -52,6 +50,8 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 				}
 			}
 		}
+		
+		return parent::_messagePostSave();
 	}
 	
 	protected function _messagePostDelete() {

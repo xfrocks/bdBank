@@ -95,6 +95,17 @@ class bdBank_Setup {
 		if (empty($archiveCommentKey)) {
 			$db->query("ALTER TABLE xf_bdbank_archive ADD KEY comment (comment)");
 		}
+		
+		/* since 0.11 */
+		$db->query("
+			CREATE TABLE IF NOT EXISTS `xf_bdbank_stats` (
+				`stats_key` VARCHAR(245) NOT NULL,
+				`stats_date` VARCHAR(10) NOT NULL,
+				`stats_value` MEDIUMBLOB,
+				`rebuild_date` INT(10) UNSIGNED NOT NULL,
+				PRIMARY KEY (`stats_key`, `stats_date`)
+			) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;
+		");
 	}
 	
 	public static function Uninstall() {

@@ -11,7 +11,8 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
 	protected function _postSave() {
 		$postSaveGive = $this->getExtraData(self::EXTRA_DATA_POST_SAVE_GIVE);
 		if ($postSaveGive !== null AND $postSaveGive !== 0) {
-			bdBank_Model_Bank::getInstance()->personal()->give($this->get('user_id'), $postSaveGive, '');
+			$adminUserId = XenForo_Visitor::getUserId();
+			bdBank_Model_Bank::getInstance()->personal()->give($this->get('user_id'), $postSaveGive, 'manually_edited ' . $adminUserId);
 		}
 		
 		return parent::_postSave();

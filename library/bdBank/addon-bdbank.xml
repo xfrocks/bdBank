@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="0.10.1" version_id="12" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="0.11.1" version_id="13" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -214,7 +214,9 @@
     <listener event_id="template_post_render" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_post_render" active="1" description=""/>
     <listener event_id="visitor_setup" execute_order="10" callback_class="bdBank_Listeners" callback_method="visitor_setup" active="1" description=""/>
   </code_event_listeners>
-  <cron/>
+  <cron>
+    <entry entry_id="bdbank_statsRichest" cron_class="bdBank_CronEntry_Stats" cron_method="rebuildRichest" active="1"><![CDATA[{"day_type":"dom","dom":["-1"],"hours":["-1"],"minutes":["0","10","20","30","40","50"]}]]></entry>
+  </cron>
   <email_templates/>
   <optiongroups>
     <group group_id="bdbank" display_order="9999" debug_only="0"/>
@@ -358,6 +360,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_explain_comment_attachment_downloaded_paid" version_id="4" version_string="0.9.4"><![CDATA[Pay for download]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for uploading attachment]]></phrase>
     <phrase title="bdbank_explain_comment_liked_post" version_id="1" version_string="beta"><![CDATA[Bonus being liked in a post]]></phrase>
+    <phrase title="bdbank_explain_comment_manually_edited_by_admin_x" version_id="12" version_string="0.11"><![CDATA[Manually edited by admin #{admin_id}]]></phrase>
     <phrase title="bdbank_explain_comment_post" version_id="1" version_string="beta"><![CDATA[Bonus posting]]></phrase>
     <phrase title="bdbank_explain_comment_unlike_post" version_id="1" version_string="beta"><![CDATA[Penalty for unliking a post]]></phrase>
     <phrase title="bdbank_field_x_not_found_in_y_and_explain" version_id="6" version_string="0.9.6"><![CDATA[Field {field} could not be found in {table}. You must use an existing field as money field for [bd] Banking. If you are integrating this add-on with another add-on, please make sure you fully understand what you are doing. Seeking advice from the other add-on's author is recommended.]]></phrase>
@@ -426,6 +429,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_you_received_x_from_y" version_id="6" version_string="0.9.6"><![CDATA[You received {amount} from {sender}.]]></phrase>
     <phrase title="bdbank_you_sent_x_to_y" version_id="6" version_string="0.9.6"><![CDATA[You sent {amount} to {receiver}.]]></phrase>
     <phrase title="bdguard_enter_password_to_access" version_id="1" version_string="beta"><![CDATA[Enter password to access this content.]]></phrase>
+    <phrase title="cron_entry_bdbank_statsRichest" version_id="12" version_string="0.11"><![CDATA[[bd] Banking - Rebuild richest data]]></phrase>
     <phrase title="option_bdbank_balanceFormat" version_id="10" version_string="0.9.9.2"><![CDATA[Balance Format]]></phrase>
     <phrase title="option_bdbank_balanceFormat_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Money will be formatted before output, you can specify the format here. In order to change the currency symbol, just edit the phrase "bdbank_currency_name". If you want to call money something else (for example: point), you will need to edit 2 phrases: "bdbank_money" and "bdbank_money_lowercase".]]></phrase>
     <phrase title="option_bdbank_bonus_attachment_downloaded" version_id="1" version_string="beta"><![CDATA[Bonus for Downloaded Attachment]]></phrase>
@@ -468,7 +472,7 @@ Transfer $600. Tax = ($500 - $50) * 5% + ($600 - $500) * 10% = $32.5 = $33<br/>
 Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/>]]></phrase>
     <phrase title="option_bdbank_taxSenderPays" version_id="10" version_string="0.9.9.2"><![CDATA[Allow Sender to Pay Tax]]></phrase>
     <phrase title="option_bdbank_taxSenderPays_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Turn on this option will add one additional option in the transfer form. Sender who wants to pay tax for the transaction can check the box and let the receiver(s) get the exact amount of the transaction.]]></phrase>
-    <phrase title="option_bdbank_useTax" version_id="6" version_string="0.9.6"><![CDATA[Use Tax]]></phrase>
+    <phrase title="option_bdbank_useTax" version_id="12" version_string="0.11"><![CDATA[Use Transaction Tax]]></phrase>
     <phrase title="option_bdbank_useTax_explain" version_id="6" version_string="0.9.6"><![CDATA[]]></phrase>
     <phrase title="option_group_bdbank" version_id="1" version_string="beta"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="option_group_bdbank_description" version_id="1" version_string="beta"><![CDATA[]]></phrase>

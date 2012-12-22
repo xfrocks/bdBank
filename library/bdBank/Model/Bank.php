@@ -134,7 +134,10 @@ class bdBank_Model_Bank extends XenForo_Model {
 				case 'attachment_downloaded_paid':	
 					$comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0]);
 					$link = XenForo_Link::buildPublicLink('attachments', array('attachment_id' => $parts[1])); 
-					break; 	
+					break; 
+				case 'manually_edited':
+					$comment = new XenForo_Phrase('bdbank_explain_comment_manually_edited_by_admin_x', array('admin_id' => $parts[1]));
+					break;
 			}
 		}
 		
@@ -479,6 +482,13 @@ class bdBank_Model_Bank extends XenForo_Model {
 		return $this->getModelFromCache('bdBank_Model_Personal');
 	}
 	
+	/**
+	 * @return bdBank_Model_Stats
+	 */
+	public function stats() {
+		return $this->getModelFromCache('bdBank_Model_Stats');
+	}
+	
 	public function macro_bonusAttachment($contentType, $contentId, $userId) {
 		$db = XenForo_Application::get('db');
 		
@@ -501,13 +511,30 @@ class bdBank_Model_Bank extends XenForo_Model {
 	 * @return bdBank_Model_Bank
 	 */
 	public static function getInstance() {
-		return XenForo_Application::get('bdBank');
+		$bank = XenForo_Application::get('bdBank');
+		
+		// sometimes the hook system is not setup properly
+		// our global model won't be initialized at all
+		// check for it here and create a new instance if neccessary
+		if (empty($bank)) {
+			static $localBank = false;
+			
+			if ($localBank === false) {
+				$localBank = XenForo_Model::create('bdBank_Model_Bank');
+			}
+			
+			$bank = $localBank;
+		}
+		
+		return $bank;
 	}
 	
 	public static function options($optionId) { 
 		switch ($optionId) {
 			case 'perPage': return 50;
 			case 'perPagePopup': return 5;
+			
+			case 'statsRichestLimit': return 50;
 			
 			case 'taxRules':
 				if (self::$_taxRules === false) {

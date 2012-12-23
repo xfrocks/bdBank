@@ -247,13 +247,19 @@ class bdBank_Model_Personal extends XenForo_Model {
 			XenForo_Db::commit();
 		}
 		
-		return array(
+		$result = array(
 			'from_amount' => $fromAmount,
 			'from_balance' => $fromBalance,
 			'from_balance_after' => $fromBalanceAfter,
 			'to_amount' => $toAmount,
 			'tax_amount' => $taxAmount
 		);
+		
+		if ($saveTransaction AND isset($transaction['transaction_id'])) {
+			$result['transaction_id'] = $transaction['transaction_id'];
+		}
+		
+		return $result;
 	}
 	
 	public function give(

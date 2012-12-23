@@ -29,7 +29,7 @@ class bdBank_Model_Personal extends XenForo_Model {
 			return 0;
 		}
 		
-		if ($from == 0) {
+		if ($from == 0 OR $to == 0) {
 			// no tax for Bank transaction
 			return 0;
 		}

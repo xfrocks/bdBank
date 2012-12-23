@@ -18,7 +18,7 @@ class bdBank_FileSums
   'library/bdBank/Importer/vBulletin.php' => 'c56431ab6a0888aea52cbcb7479ac72e',
   'library/bdBank/Listeners.php' => '771973f33002430d1e1f5347f39c87a7',
   'library/bdBank/Model/Bank.php' => 'a256c6b9d4fce172a9c26aa7dcf1513c',
-  'library/bdBank/Model/Personal.php' => '24825c06f3c44f30dc7f1439ee24dca0',
+  'library/bdBank/Model/Personal.php' => 'f606481f814de31c59ee6eaa5a5f6915',
   'library/bdBank/Model/Stats.php' => 'b730ebe211e778fd7c5f6d234e88c47d',
   'library/bdBank/Option/Field.php' => '36ca4424dc7f7b038310920f0e983ec6',
   'library/bdBank/Route/Prefix/Public.php' => '3a74d8f1e43c16657b603a53c08749e4',

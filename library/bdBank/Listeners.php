@@ -56,6 +56,8 @@ class bdBank_Listeners {
 	
 	public static function load_class($class, array &$extend) {
 		static $classes = array(
+			'bdPaygate_Model_Processor',
+		
 			'XenForo_ControllerAdmin_Forum',
 			'XenForo_ControllerAdmin_User',
 		

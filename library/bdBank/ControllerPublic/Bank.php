@@ -1,6 +1,7 @@
 <?php
 
 class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
+
 	public function actionIndex() {
 		// index has nothing
 		// temporary redirect to history page
@@ -8,9 +9,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 			XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL,
 			XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/history')
 		);
-		
-		$this->_assertRegistrationRequired();
-		
+
 		$viewParams = array();
 		
 		return $this->responseView(
@@ -21,8 +20,6 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 	}
 	
 	public function actionHistory($isPopup = false) {
-		$this->_assertRegistrationRequired();
-		
 		$visitor = XenForo_Visitor::getInstance();
 		$userId = $visitor->get('user_id');
 		$bank = bdBank_Model_Bank::getInstance();
@@ -121,8 +118,6 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 	}
 	
 	public function actionTransfer() {
-		$this->_assertRegistrationRequired();
-		
 		$formData = array();
 		$link = XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/transfer');
 		
@@ -375,13 +370,96 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		}
 	}
 	
-	public function actionAttachmentManager() {
-		$this->_assertRegistrationRequired();
+	public function actionGetMore() {
+		$visitor = XenForo_Visitor::getInstance();
+		$bank = bdBank_Model_Bank::getInstance();
 		
+		if (!$visitor->hasPermission(bdBank_Model_Bank::PERM_GROUP, bdBank_Model_Bank::PERM_PURCHASE)) {
+			return $this->responseNoPermission();
+		}
+		
+		$prices = bdBank_Model_Bank::options('getMorePrices');
+		if (empty($prices)) {
+			return $this-responseError(new XenForo_Phrase('bdbank_get_more_no_purchase_available'));
+		}
+		
+		if (class_exists('bdPaygate_Processor_Abstract')) {
+			// currently only supports [bd] Paygates
+			return $this->_actionGetMore_bdPaygate($prices);
+		} else {
+			return $this->responseError(new XenForo_Phrase('bdbank_get_more_not_supported'));
+		}
+	}
+	
+	public function actionGetMoreComplete() {
+		$viewParams = array();
+
+		return $this->responseView('bdBank_ViewPublic_Bank_GetMoreComplete', 'bdbank_page_get_more_complete', $viewParams);
+	}
+	
+	protected function _actionGetMore_bdPaygate(array $prices) {
+		$visitor = XenForo_Visitor::getInstance();
+		$processorModel = $this->getModelFromCache('bdPaygate_Model_Processor');
+		$processorNames = $processorModel->getProcessorNames();
+		$processors = array();
+		foreach ($processorNames as $processorId => $processorClass)
+		{
+			$processors[$processorId] = bdPaygate_Processor_Abstract::create($processorClass);
+		}
+		
+		$packages = array();
+		foreach ($prices as $price) {
+			$amount = $price[0];
+			$cost = $price[1];
+			$currency = $price[2];
+			$itemName = new XenForo_Phrase('bdbank_purchase_x', array('item' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($amount))));
+			$itemId = $processorModel->generateItemId('bdbank_purchase', $visitor, array($amount));
+			
+			$forms = bdPaygate_Processor_Abstract::prepareForms(
+				$processors,
+				$cost, $currency,
+				$itemName, $itemId,
+				false, false, // recurring
+				array(
+					bdPaygate_Processor_Abstract::EXTRA_RETURN_URL => XenForo_Link::buildPublicLink('full:' . bdBank_Model_Bank::routePrefix() . '/get-more-complete'),
+				)
+			);
+			
+			if (isset($forms['bdbank'])) {
+				// disable using [bd] Banking to pay for internal money
+				// that will be silly... (and user may exploit it)
+				unset($forms['bdbank']);
+			}
+			
+			if (!empty($forms)) {
+				$packages[] = array(
+					'amount' => $amount,
+					'cost' => $cost,
+					'currency' => $currency,
+				
+					'title' => $itemName,
+					'cost_str' => sprintf("%d %s", $cost, utf8_strtoupper($currency)),
+					'forms' => $forms,
+				);
+			}
+		}
+		
+		$viewParams = array(
+			'packages' => $packages,
+		);
+		
+		return $this->responseView('bdBank_ViewPublic_Bank_GetMore', 'bdbank_page_get_more_bdpaygate', $viewParams);
+	}
+	
+	public function actionAttachmentManager() {
 		$visitor = XenForo_Visitor::getInstance();
 		$userId = $visitor->get('user_id');
 		$bank = bdBank_Model_Bank::getInstance();
 		$attachmentModel = $this->getModelFromCache('XenForo_Model_Attachment');
+		
+		if (!$visitor->hasPermission(self::PERM_GROUP, self::PERM_USE_ATTACHMENT_MANAGER)) {
+			return $this->responseNoPermission();
+		}
 		
 		// save operation
 		if ($this->_request->isPost()) {
@@ -436,5 +514,20 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 				'pagenavLink' => bdBank_Model_Bank::routePrefix() . '/attachment-manager',
 			)
 		);
+	}
+	
+	protected function _preDispatch($action) {
+		$this->_assertRegistrationRequired();
+		
+		return parent::_preDispatch($action);
+	}
+	
+	protected function _checkCsrf($action) {
+		if (strtolower($action) == 'getmorecomplete') {
+			// may be coming from external payment gateway
+			return;
+		}
+
+		parent::_checkCsrf($action);
 	}
 }

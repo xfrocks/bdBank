@@ -7,16 +7,17 @@ class bdBank_FileSums
 		return array (
   'library/bdBank/AlertHandler/Transaction.php' => '17a4e71e197a07c93bc23aa8ea6cca88',
   'library/bdBank/AntiCheating.php' => 'b45cfe1894a604063e54fbc288ac5194',
+  'library/bdBank/bdPaygate/Model/Processor.php' => '7c2d8ed6d1c697e02b142f0a112c2836',
   'library/bdBank/bdShop/Pricing.php' => 'b66bc727d1032e97e3704aadee6ee53f',
   'library/bdBank/CacheRebuilder/Bonuses.php' => '2a7c560caf20bde23c703c94adfc8d36',
   'library/bdBank/CacheRebuilder/User.php' => '10739275bbca89c2747a1d23ec6b9151',
   'library/bdBank/ControllerAdmin/Bank.php' => '5f573596669d884d52b8a38502fd84af',
-  'library/bdBank/ControllerPublic/Bank.php' => '65952817cc477a8d99b1eec84e67c348',
+  'library/bdBank/ControllerPublic/Bank.php' => '69843cdb5ad9737850bc8089572c5609',
   'library/bdBank/CronEntry/Stats.php' => 'c5ba0cd01569c0e5af6c081e5a6dbe2e',
   'library/bdBank/Exception.php' => 'f8aee5d4e4b6f3ef80aafe384ee3e081',
   'library/bdBank/Importer/vBulletin.php' => 'c56431ab6a0888aea52cbcb7479ac72e',
-  'library/bdBank/Listeners.php' => 'a1c84a1ae2faa732187f893d7ca6cb94',
-  'library/bdBank/Model/Bank.php' => '35d71e7f93d86d383e74aee8011d1acb',
+  'library/bdBank/Listeners.php' => '771973f33002430d1e1f5347f39c87a7',
+  'library/bdBank/Model/Bank.php' => 'a256c6b9d4fce172a9c26aa7dcf1513c',
   'library/bdBank/Model/Personal.php' => 'e2c4d7c0e92e197b4466a27add1e7c70',
   'library/bdBank/Model/Stats.php' => 'b730ebe211e778fd7c5f6d234e88c47d',
   'library/bdBank/Option/Field.php' => '36ca4424dc7f7b038310920f0e983ec6',
@@ -39,7 +40,8 @@ class bdBank_FileSums
   'library/bdBank/XenForo/Model/Like.php' => 'ef86e2bc58bdf02ee9b0377a94e73cf4',
   'library/bdBank/XenForo/Model/Log.php' => 'bc0110e0865e1092aafc2ed06fe0952a',
   'library/bdBank/XenForo/Model/Thread.php' => '55d05d74108bd01545bc0871f049eafb',
-  'js/bdBank/transfer.js' => 'dd3db694c9723f322f8e6826b2aa0165',
+  'js/bdBank/full/transfer.js' => 'dd3db694c9723f322f8e6826b2aa0165',
+  'js/bdBank/transfer.js' => 'bbe70ee6c1cd2caf7f5a52a36d7ed4a7',
 );
 	}
 }

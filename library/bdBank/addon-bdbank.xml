@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="0.11.2" version_id="14" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="15" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -270,6 +270,15 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="10000"/>
     </option>
+    <option option_id="bdbank_getMorePrices" edit_format="textbox" data_type="string" can_backup="1">
+      <default_value>100=5usd
+250=10usd
+750=25usd
+1500=50usd</default_value>
+      <edit_format_params>rows=5</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="9000"/>
+    </option>
     <option option_id="bdbank_gravatar" edit_format="textbox" data_type="string" can_backup="1">
       <default_value>bdbanking@xfrocks.com</default_value>
       <edit_format_params></edit_format_params>
@@ -326,6 +335,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
       <permission_group permission_group_id="bdbank"/>
     </permission_groups>
     <permissions>
+      <permission permission_group_id="bdbank" permission_id="bdbank_purchase" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="900"/>
       <permission permission_group_id="bdbank" permission_id="bdbank_use_attach_manager" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="1000"/>
     </permissions>
     <interface_groups>
@@ -359,11 +369,16 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_explain_comment_attachment_downloaded" version_id="3" version_string="beta 3"><![CDATA[Bonus attachment being downloaded]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_downloaded_paid" version_id="4" version_string="0.9.4"><![CDATA[Pay for download]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for uploading attachment]]></phrase>
+    <phrase title="bdbank_explain_comment_bdbank_purchase" version_id="14" version_string="0.11.2"><![CDATA[Purchase {amount}]]></phrase>
+    <phrase title="bdbank_explain_comment_bdbank_purchase_revert" version_id="14" version_string="0.11.2"><![CDATA[Revert purchasing {amount}]]></phrase>
     <phrase title="bdbank_explain_comment_liked_post" version_id="1" version_string="beta"><![CDATA[Bonus being liked in a post]]></phrase>
     <phrase title="bdbank_explain_comment_manually_edited_by_admin_x" version_id="12" version_string="0.11"><![CDATA[Manually edited by admin #{admin_id}]]></phrase>
     <phrase title="bdbank_explain_comment_post" version_id="1" version_string="beta"><![CDATA[Bonus posting]]></phrase>
     <phrase title="bdbank_explain_comment_unlike_post" version_id="1" version_string="beta"><![CDATA[Penalty for unliking a post]]></phrase>
     <phrase title="bdbank_field_x_not_found_in_y_and_explain" version_id="6" version_string="0.9.6"><![CDATA[Field {field} could not be found in {table}. You must use an existing field as money field for [bd] Banking. If you are integrating this add-on with another add-on, please make sure you fully understand what you are doing. Seeking advice from the other add-on's author is recommended.]]></phrase>
+    <phrase title="bdbank_get_more_not_supported" version_id="14" version_string="0.11.2"><![CDATA[Sorry, Get More is currently not supported yet.]]></phrase>
+    <phrase title="bdbank_get_more_no_purchase_available" version_id="14" version_string="0.11.2"><![CDATA[Sorry, no purchase package is available at the moment. Please try again later.]]></phrase>
+    <phrase title="bdbank_get_more_x" global_cache="1" version_id="14" version_string="0.11.2"><![CDATA[Get More {money}]]></phrase>
     <phrase title="bdbank_greater_than_or_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Greater than or equals to...]]></phrase>
     <phrase title="bdbank_history" global_cache="1" version_id="1" version_string="beta"><![CDATA[Transaction History]]></phrase>
     <phrase title="bdbank_home" global_cache="1" version_id="1" version_string="beta"><![CDATA[Home]]></phrase>
@@ -374,6 +389,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_pay_tax_for_this_transfer" version_id="10" version_string="0.9.9.2"><![CDATA[Pay tax for this transfer.]]></phrase>
     <phrase title="bdbank_privacy" version_id="6" version_string="0.9.6"><![CDATA[Bank Privacy]]></phrase>
     <phrase title="bdbank_privacy_show_money" version_id="6" version_string="0.9.6"><![CDATA[Show {money_lowercase}]]></phrase>
+    <phrase title="bdbank_purchase_x" version_id="14" version_string="0.11.2"><![CDATA[Purchase {item}]]></phrase>
     <phrase title="bdbank_rebuild_bonuses" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Rebuild Bonuses]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_explain" version_id="10" version_string="0.9.9.2"><![CDATA[After rebuilding bonuses, you MUST rebuild user account information!]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_message" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Bonuses]]></phrase>
@@ -389,6 +405,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_showing_transactions_x_to_y_of_z" version_id="6" version_string="0.9.6"><![CDATA[Showing transactions {start} to {end} of {total}]]></phrase>
     <phrase title="bdbank_someone_sends_money_to_you" version_id="6" version_string="0.9.6"><![CDATA[Someone sends {money_lowercase} to you]]></phrase>
     <phrase title="bdbank_tax_for_this_is_x_y_only_receive_z" version_id="10" version_string="0.9.9.2"><![CDATA[Tax for this transaction is {tax}. {receiver} will only receive {amount}.]]></phrase>
+    <phrase title="bdbank_thank_you_for_purchasing" version_id="14" version_string="0.11.2"><![CDATA[Thank you for purchasing.]]></phrase>
     <phrase title="bdbank_there_no_attachments_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no attachments to display.]]></phrase>
     <phrase title="bdbank_there_no_transactions_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no transactions to display.]]></phrase>
     <phrase title="bdbank_this_will_allow_people_to_see_your_money" version_id="6" version_string="0.9.6"><![CDATA[This will allow people to see how much {money_lowercase} you have in various places like posts or your profile.]]></phrase>
@@ -423,6 +440,7 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="bdbank_user_x" global_cache="1" version_id="5" version_string="0.9.5"><![CDATA[User #{id}]]></phrase>
     <phrase title="bdbank_use_default_value_of_x" version_id="6" version_string="0.9.6"><![CDATA[Use default value of {value}]]></phrase>
     <phrase title="bdbank_use_forum_based_value_instead_of_default_x" version_id="6" version_string="0.9.6"><![CDATA[Use forum-based value instead of system-wide value (set at {value})]]></phrase>
+    <phrase title="bdbank_when_payment_has_been_approved_fund_will_be_transfered" version_id="14" version_string="0.11.2"><![CDATA[When the payment has been approved, the requested fund will be transfered to and made available for your account.]]></phrase>
     <phrase title="bdbank_your_accounts" version_id="1" version_string="beta"><![CDATA[Your Accounts]]></phrase>
     <phrase title="bdbank_your_balance" version_id="1" version_string="beta"><![CDATA[Your Balance]]></phrase>
     <phrase title="bdbank_you_can_input_negative_value" version_id="5" version_string="0.9.5"><![CDATA[You can input negative value.]]></phrase>
@@ -446,6 +464,8 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
     <phrase title="option_bdbank_daysOfHistory_explain" version_id="6" version_string="0.9.6"><![CDATA[The database table containing transactions will be cleaned up regularly to keep it from going too big. Old records will be moved to another table to archive. You can specify the maximum days to keep a transaction in the primary table here. This also means users will only be able to see history for this number of days. To disable this feature, enter 0.]]></phrase>
     <phrase title="option_bdbank_field" version_id="5" version_string="0.9.5"><![CDATA[Field]]></phrase>
     <phrase title="option_bdbank_field_explain" version_id="6" version_string="0.9.6"><![CDATA[If you want to integrate [bd] Banking with other add-ons, you can change the money field to any other field in `xf_user` table. If you are not sure about this option, it's likely that you shouldn't change it at all. The default value is "bdbank_money", change the value back if you run into problems.]]></phrase>
+    <phrase title="option_bdbank_getMorePrices" version_id="14" version_string="0.11.2"><![CDATA[Purchase Prices]]></phrase>
+    <phrase title="option_bdbank_getMorePrices_explain" version_id="14" version_string="0.11.2"><![CDATA[You can allow users to purchase money by real currencies. Each line must has the format {money}={amount}{currency}. Please note that this feature may require additional add-on and properly set user group permissions, consult the document for further information.]]></phrase>
     <phrase title="option_bdbank_gravatar" version_id="10" version_string="0.9.9.2"><![CDATA[Bank Account Avatar]]></phrase>
     <phrase title="option_bdbank_gravatar_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Sometimes the Bank account will show up with an avatar (mostly in transaction history). You can use any image you want by uploading to <a href="http://gravatar.com/">Gravatar</a> and enter the email address here.]]></phrase>
     <phrase title="option_bdbank_minimumTax" version_id="6" version_string="0.9.6"><![CDATA[Minimum Tax]]></phrase>
@@ -476,6 +496,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     <phrase title="option_bdbank_useTax_explain" version_id="6" version_string="0.9.6"><![CDATA[]]></phrase>
     <phrase title="option_group_bdbank" version_id="1" version_string="beta"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="option_group_bdbank_description" version_id="1" version_string="beta"><![CDATA[]]></phrase>
+    <phrase title="permission_bdbank_bdbank_purchase" version_id="14" version_string="0.11.2"><![CDATA[Purchase Money]]></phrase>
     <phrase title="permission_bdbank_bdbank_use_attach_manager" version_id="6" version_string="0.9.6"><![CDATA[Use Attachment Manager]]></phrase>
     <phrase title="permission_group_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="permission_interface_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
@@ -923,6 +944,42 @@ form.AttachmentManager {
 </form>
 
 <xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perpage}" total="{$totalAttachments}" />]]></template>
+    <template title="bdbank_page_get_more_bdpaygate" version_id="14" version_string="0.11.2"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
+
+<xen:require css="account_upgrades.css" />
+
+<xen:if is="{$packages}">
+	<div class="section">
+		<h3 class="subHeading">{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</h3>
+		<ul>
+		<xen:foreach loop="$packages" value="$package">
+			<li class="primaryContent">
+				<div class="upgrade">					
+					<div class="upgradeForm">
+						<xen:if hascontent="true">
+							<div class="cost">{$package.cost_str}</div>
+							<xen:contentcheck>
+								<xen:foreach loop="$package.forms" key="$processorId" value="$form">
+									<div id="{$processorId}">{xen:raw $form}</div>
+								</xen:foreach>
+							</xen:contentcheck>
+						</xen:if>
+					</div>	
+					
+					<div class="upgradeMain">
+						<h4 class="title">{$package.title}</h4>
+					</div>
+				</div>
+			</li>
+		</xen:foreach>
+		</ul>
+	</div>
+</xen:if>]]></template>
+    <template title="bdbank_page_get_more_complete" version_id="14" version_string="0.11.2"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
+
+<p>{xen:phrase bdbank_thank_you_for_purchasing}</p>
+
+<p>{xen:phrase bdbank_when_payment_has_been_approved_fund_will_be_transfered}</p>]]></template>
     <template title="bdbank_page_history" version_id="6" version_string="0.9.6"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_history}</xen:title>

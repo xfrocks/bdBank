@@ -1,6 +1,14 @@
 <?php
 
 class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Processor {
+	public function getProcessorNames() {
+		$names = parent::getProcessorNames();
+
+		$names['bdbank'] = 'bdBank_bdPaygate_Processor';
+
+		return $names;
+	}
+
 	protected function _processIntegratedAction($action, $user, $data, bdPaygate_Processor_Abstract $processor, $amount, $currency) {
 		if ($action == 'bdbank_purchase') {
 			$requestedAmount = intval($data[0]);

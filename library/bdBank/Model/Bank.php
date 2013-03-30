@@ -37,6 +37,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 	protected static $_reversedTransactions = array();
 	protected static $_taxRules = false;
 	protected static $_getMorePrices = false;
+	protected static $_exchangeRates = false;
 	
 	public function canRefund(array $transaction, array $viewingUser = null) {
 		$this->standardizeViewingUserReference($viewingUser);
@@ -608,6 +609,22 @@ class bdBank_Model_Bank extends XenForo_Model {
 					}
 				}
 				return self::$_getMorePrices;
+			case 'exchangeRates':
+				if (self::$_exchangeRates === false) {
+					$rates = XenForo_Application::get('options')->get('bdbank_exchangeRates');
+					$lines = explode("\n", $rates);
+					self::$_exchangeRates = array();
+					
+					foreach ($lines as $line) {
+						$parts = explode('=', utf8_strtolower(utf8_trim($line)));
+						if (count($parts) == 2
+							AND preg_match('/^([a-z]+)$/', $parts[0])
+							AND is_numeric($parts[1])) {
+							self::$_exchangeRates[$parts[0]] = doubleval($parts[1]);
+						}
+					}
+				}
+				return self::$_exchangeRates;
 		}
 		
 		return XenForo_Application::get('options')->get('bdbank_' . $optionId);

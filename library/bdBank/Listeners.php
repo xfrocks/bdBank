@@ -60,6 +60,7 @@ class bdBank_Listeners {
 		
 			'XenForo_ControllerAdmin_Forum',
 			'XenForo_ControllerAdmin_User',
+			'XenForo_ControllerAdmin_UserUpgrade',
 		
 			'XenForo_ControllerPublic_Account',
 			'XenForo_ControllerPublic_Attachment',
@@ -75,6 +76,7 @@ class bdBank_Listeners {
 			'XenForo_Model_Import',
 			'XenForo_Model_Like',
 			'XenForo_Model_Log',
+			'XenForo_Model_Option',
 			'XenForo_Model_Thread'
 		);
 		

@@ -198,7 +198,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 					);
 				} catch (bdBank_Exception $e) {
 					if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY) {
-						// this will never happen because we turned on REPLAY mode
+						// this will never happen because we turned on TEST mode
 						// just throw an exeption to save it to server error log
 						throw $e;
 					} else {
@@ -223,7 +223,8 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 				));
 			}
 			
-			$hash = md5(implode(',',array_keys($receivers)) . $formData['amount'] . $balanceAfter);
+			$globalSalt = XenForo_Application::getConfig()->get('globalSalt');
+			$hash = md5(implode(',',array_keys($receivers)) . $formData['amount'] . $balanceAfter . $globalSalt);
 			
 			if ($formData['hash'] != $hash) {
 				// display confirmation
@@ -449,6 +450,14 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		);
 		
 		return $this->responseView('bdBank_ViewPublic_Bank_GetMore', 'bdbank_page_get_more_bdpaygate', $viewParams);
+	}
+
+	public function actionPaygate() {
+		return $this->responseReroute('bdBank_ControllerPublic_Paygate', 'index');
+	}
+
+	public function actionPaygatePay() {
+		return $this->responseReroute('bdBank_ControllerPublic_Paygate', 'pay');
 	}
 	
 	public function actionAttachmentManager() {

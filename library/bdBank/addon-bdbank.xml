@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="15" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="16" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -443,11 +443,11 @@ eur=40</default_value>
     <phrase title="bdbank_transfer_confirm" version_id="1" version_string="beta"><![CDATA[Transfer Confirmation]]></phrase>
     <phrase title="bdbank_transfer_do" version_id="1" version_string="beta"><![CDATA[Proceed]]></phrase>
     <phrase title="bdbank_transfer_error_generic" version_id="4" version_string="0.9.4"><![CDATA[We can not authorize your transfer request. Please contact our staff to resolve your problem. You can specify this error code: {error}. Sorry for any inconveniences.]]></phrase>
-    <phrase title="bdbank_transfer_error_not_enough" version_id="1" version_string="beta"><![CDATA[Even the recession won't let any bank account get negative value. You only have {balance} but are trying to transfer an amount of {total}. That's unethical!]]></phrase>
-    <phrase title="bdbank_transfer_error_no_receivers" version_id="6" version_string="0.9.6"><![CDATA[Your {money} is going to be lost in the infinity space. Did you forget to put your folk's name into the receiver box?]]></phrase>
-    <phrase title="bdbank_transfer_error_receiver_not_found_x" version_id="1" version_string="beta"><![CDATA[Who is {username}? It's a total mystery with the system...]]></phrase>
-    <phrase title="bdbank_transfer_error_self" version_id="6" version_string="0.9.6"><![CDATA[Currently there is no protocol to transfer {money} from yourself to... yourself. Sorry, you will be notified when that feature is available.]]></phrase>
-    <phrase title="bdbank_transfer_error_zero_amount" version_id="1" version_string="beta"><![CDATA[The bank loves dealing with zeros but only when they are behind non-zero numbers. A zero amount is useless with us, sorry...]]></phrase>
+    <phrase title="bdbank_transfer_error_not_enough" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you cannot transfer {total} when you have only {balance}.]]></phrase>
+    <phrase title="bdbank_transfer_error_no_receivers" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you must specify receivers for the transaction.]]></phrase>
+    <phrase title="bdbank_transfer_error_receiver_not_found_x" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, the receiver {username} could not be identified.]]></phrase>
+    <phrase title="bdbank_transfer_error_self" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you cannot transfer to yourself.]]></phrase>
+    <phrase title="bdbank_transfer_error_zero_amount" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you cannot transfer zeros.]]></phrase>
     <phrase title="bdbank_transfer_receivers" version_id="1" version_string="beta"><![CDATA[Receivers]]></phrase>
     <phrase title="bdbank_transfer_total_x_you_have_y_left_z" version_id="1" version_string="beta"><![CDATA[Total amount is {total}. You currently have {balance}, you will have {balanceAfter} after this.]]></phrase>
     <phrase title="bdbank_transfer_trying_refund_to" version_id="11" version_string="0.10"><![CDATA[You are trying to refund to]]></phrase>
@@ -1101,6 +1101,7 @@ form.AttachmentManager {
 	<dl class="ctrlUnit submitUnit">
 		<dt></dt>
 		
+		<input type="hidden" name="client_id" value="{$clientId}" />
 		<input type="hidden" name="amount" value="{$amount}" />
 		<input type="hidden" name="currency" value="{$currency}" />
 		<input type="hidden" name="display_name" value="{$displayName}" />

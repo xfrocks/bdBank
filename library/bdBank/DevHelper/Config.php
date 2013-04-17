@@ -2,7 +2,8 @@
 class bdBank_DevHelper_Config extends DevHelper_Config_Base {
 	protected $_dataClasses = array();
 	protected $_dataPatches = array();
-	protected $_exportPath = '/Users/sondh/Working/XenForo/bdBank';
+	protected $_exportPath = '/Users/sondh/Dropbox/XenForo/bdBank';
+	protected $_exportIncludes = array();
 	
 	/**
 	 * Return false to trigger the upgrade!
@@ -24,6 +25,7 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base {
 					// 'required' => true,
 					// 'allowedValues' => array('value_1', 'value_2'), 
 					// 'default' => 0,
+					// 'autoIncrement' => true,
 				),
 				// other fields go here
 			),

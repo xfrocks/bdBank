@@ -39,6 +39,19 @@ class bdBank_Model_Bank extends XenForo_Model {
 	protected static $_getMorePrices = false;
 	protected static $_exchangeRates = false;
 	
+	public function generateClientVerifier($clientId, $amount, $currency, array $extra = array()) {
+		$extra['amount'] = $amount;
+		$extra['currency'] = $currency;
+		$extra['client_secret'] = $this->getClientSecret($clientId);
+		ksort($extra);
+		
+		return md5(implode('&', array_map(create_function('$key, $value', 'return "{$key}={$value}";'), array_keys($extra), $extra)));
+	}
+	
+	public function getClientSecret($clientId) {
+		return XenForo_Application::getConfig()->get('globalSalt');
+	}
+	
 	public function canRefund(array $transaction, array $viewingUser = null) {
 		$this->standardizeViewingUserReference($viewingUser);
 		

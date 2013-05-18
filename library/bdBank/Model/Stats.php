@@ -6,8 +6,6 @@ class bdBank_Model_Stats extends XenForo_Model {
 	const KEY_GENERAL = 'bdBank_general';
 	
 	const GENERAL_TOTAL_MONEY = 'total';
-	const GENERAL_TOTAL_BONUSES = 'totalBonuses';
-	const GENERAL_TRANSACTION_TAX = 'transactionTax';
 	
 	public function getGeneral() {
 		$data = $this->_load(self::KEY_GENERAL);
@@ -32,34 +30,6 @@ class bdBank_Model_Stats extends XenForo_Model {
 			SELECT SUM({$field})
 			FROM xf_user
 		");
-		
-		$transactionBonuses = $db->fetchOne('
-			SELECT SUM(amount)
-			FROM xf_bdbank_transaction
-			WHERE
-				from_user_id = 0
-				AND transaction_type = ?
-				AND reversed = 0
-		', array(bdBank_Model_Bank::TYPE_SYSTEM));
-		$archiveBonuses = $db->fetchOne('
-			SELECT SUM(amount)
-			FROM xf_bdbank_archive
-			WHERE
-				from_user_id = 0
-				AND transaction_type = ?
-		', array(bdBank_Model_Bank::TYPE_SYSTEM));
-		$data[self::GENERAL_TOTAL_BONUSES] = $transactionBonuses + $archiveBonuses;
-		
-		$transactionTax = $db->fetchOne('
-			SELECT SUM(tax_amount)
-			FROM xf_bdbank_transaction
-			WHERE reversed = 0
-		');
-		$archiveTax = $db->fetchOne('
-			SELECT SUM(tax_amount)
-			FROM xf_bdbank_archive
-		');
-		$data[self::GENERAL_TRANSACTION_TAX] = $transactionTax + $archiveTax;
 		
 		$this->_save(self::KEY_GENERAL, $data);
 		

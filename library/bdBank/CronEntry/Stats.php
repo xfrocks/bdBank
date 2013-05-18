@@ -6,6 +6,7 @@ class bdBank_CronEntry_Stats {
 		$bank = bdBank_Model_Bank::getInstance();
 		$stats = $bank->stats();
 		
+		$stats->rebuildGeneral();
 		$stats->rebuildRichest();
 	}
 }

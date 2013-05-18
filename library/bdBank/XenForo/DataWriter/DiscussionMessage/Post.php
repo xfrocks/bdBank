@@ -30,7 +30,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 				} else {
 					// we have to check for the thread 
 					// the result should be cached so no queries will be executed
-					$thread = $this->getModelFromCache('XenForo_Model_Thread')->getThreadById($this->get('thread_id'));
+					$thread = $this->getModelFromCache('XenForo_Model_Thread')->bdBank_getThreadById($this->get('thread_id'));
 	
 					if (empty($thread)) {
 						// oops, this shouldn't happen
@@ -86,7 +86,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 			$thread = $this->getExtraData(self::DATA_THREAD);
 			if (empty($thread)) {
 				// the thread info should be cached before (if we are coming from XenForo_ControllerPublic_Post::actionSave()
-				$thread = $this->getModelFromCache('XenForo_Model_Thread')->getThreadById($this->get('thread_id'));
+				$thread = $this->getModelFromCache('XenForo_Model_Thread')->bdBank_getThreadById($this->get('thread_id'));
 			}
 			
 			$isDFM = ($thread['first_post_id'] == $this->get('post_id'));

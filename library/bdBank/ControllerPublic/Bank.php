@@ -118,6 +118,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 	}
 
 	public function actionTransfer() {
+		if (!bdBank_Model_Bank::helperHasPermission(bdBank_Model_Bank::PERM_TRANSFER)) {
+			return $this->responseNoPermission();
+		}
+		
 		$formData = array();
 		$link = XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/transfer');
 
@@ -375,7 +379,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		$visitor = XenForo_Visitor::getInstance();
 		$bank = bdBank_Model_Bank::getInstance();
 
-		if (!$visitor->hasPermission(bdBank_Model_Bank::PERM_GROUP, bdBank_Model_Bank::PERM_PURCHASE)) {
+		if (!bdBank_Model_Bank::helperHasPermission(bdBank_Model_Bank::PERM_PURCHASE)) {
 			return $this->responseNoPermission();
 		}
 
@@ -466,7 +470,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract {
 		$bank = bdBank_Model_Bank::getInstance();
 		$attachmentModel = $this->getModelFromCache('XenForo_Model_Attachment');
 
-		if (!$visitor->hasPermission(self::PERM_GROUP, self::PERM_USE_ATTACHMENT_MANAGER)) {
+		if (!bdBank_Model_Bank::helperHasPermission(bdBank_Model_Bank::PERM_USE_ATTACHMENT_MANAGER)) {
 			return $this->responseNoPermission();
 		}
 

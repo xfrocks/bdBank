@@ -13,6 +13,7 @@ class bdBank_Listeners {
 		XenForo_Application::autoload('bdBank_Exception');
 		XenForo_Application::set('bdBank',XenForo_Model::create('bdBank_Model_Bank'));
 		
+		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_haspermission'] = array('bdBank_Model_Bank', 'helperHasPermission');
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_balance'] = array('bdBank_Model_Bank', 'balance');
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_balanceformat'] = array('bdBank_Model_Bank', 'helperBalanceFormat');
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_options'] = array('bdBank_Model_Bank', 'options');
@@ -45,11 +46,10 @@ class bdBank_Listeners {
 					'links' => array(
 						XenForo_Link::buildPublicLink("full:$routePrefix") => new XenForo_Phrase('bdbank_home'),
 						XenForo_Link::buildPublicLink("full:$routePrefix/history") => new XenForo_Phrase('bdbank_history'),
-						XenForo_Link::buildPublicLink("full:$routePrefix/transfer") => new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money'))),
 					),
 				);
 				
-				$bank->prepareNavigationTab($extraTabs, $tabId, $routePrefix, $visitor);
+				$bank->prepareNavigationTab($extraTabs, $tabId, $routePrefix);
 			}
 		}
 	}

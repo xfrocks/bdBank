@@ -346,6 +346,7 @@ eur=40</default_value>
     </permission_groups>
     <permissions>
       <permission permission_group_id="bdbank" permission_id="bdbank_purchase" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="900"/>
+      <permission permission_group_id="bdbank" permission_id="bdbank_transfer" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="100"/>
       <permission permission_group_id="bdbank" permission_id="bdbank_use_attach_manager" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="1000"/>
     </permissions>
     <interface_groups>
@@ -515,6 +516,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     <phrase title="option_group_bdbank" version_id="1" version_string="beta"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="option_group_bdbank_description" version_id="1" version_string="beta"><![CDATA[]]></phrase>
     <phrase title="permission_bdbank_bdbank_purchase" version_id="14" version_string="0.11.2"><![CDATA[Purchase Money]]></phrase>
+    <phrase title="permission_bdbank_bdbank_transfer" version_id="16" version_string="1.0-dev"><![CDATA[Transfer Money]]></phrase>
     <phrase title="permission_bdbank_bdbank_use_attach_manager" version_id="6" version_string="0.9.6"><![CDATA[Use Attachment Manager]]></phrase>
     <phrase title="permission_group_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="permission_interface_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
@@ -837,13 +839,13 @@ form.AttachmentManager {
 		</xen:if>
 	</dd>
 </xen:if>]]></template>
-    <template title="bdbank_message_user_info_extra" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
+    <template title="bdbank_message_user_info_extra" version_id="16" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
 	<xen:require js="js/bdBank/transfer.js" />
 
 	<dl class="pairsInline">
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
-			<xen:if is="{$user.user_id} != {$visitor.user_id}">
+			<xen:if is="{$user.user_id} != {$visitor.user_id} AND {xen:helper bdBank_hasPermission, transfer}">
 				<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
 			<xen:else />
 				<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>

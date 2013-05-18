@@ -18,6 +18,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 	const TRANSACTION_OPTION_USERS = 'opt_users';
 	
 	const PERM_GROUP = 'bdbank';
+	const PERM_TRANSFER = 'bdbank_transfer';
 	const PERM_PURCHASE = 'bdbank_purchase';
 	const PERM_USE_ATTACHMENT_MANAGER = 'bdbank_use_attach_manager';
 	
@@ -71,13 +72,15 @@ class bdBank_Model_Bank extends XenForo_Model {
 	 * @param array $extraTabs the full array of extra tabs
 	 * @param string $tabId tab id of [bd] Banking
 	 * @param string $routePrefix the primary route prefix for [bd] Banking controller (you should use it in links)
-	 * @param XenForo_Visitor $visitor the current visitor
 	 */
-	public function prepareNavigationTab(array &$extraTabs, $tabId, $routePrefix, XenForo_Visitor $visitor) {
-		if ($visitor->hasPermission(self::PERM_GROUP, self::PERM_PURCHASE)) {
+	public function prepareNavigationTab(array &$extraTabs, $tabId, $routePrefix) {
+		if (self::helperHasPermission(self::PERM_TRANSFER)) {
+			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/transfer")] = new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money')));
+		}
+		if (self::helperHasPermission(self::PERM_PURCHASE)) {
 			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/get-more")] = new XenForo_Phrase('bdbank_get_more_x', array('money' => new XenForo_Phrase('bdbank_money'))); 
 		}
-		if ($visitor->hasPermission(self::PERM_GROUP, self::PERM_USE_ATTACHMENT_MANAGER)) {
+		if (self::helperHasPermission(self::PERM_USE_ATTACHMENT_MANAGER)) {
 			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/attachment-manager")] = new XenForo_Phrase('bdbank_attachment_manager'); 
 		}
 	}
@@ -722,5 +725,13 @@ class bdBank_Model_Bank extends XenForo_Model {
 			. ((self::options('balanceFormat') == 'currency_first')
 				? ($currencyName . $valueFormatted)
 				: ($valueFormatted . $currencyName));
+	}
+	
+	public static function helperHasPermission($permission) {
+		if (strpos($permission, 'bdbank_') === false) {
+			$permission = 'bdbank_' . $permission;
+		}
+
+		return XenForo_Visitor::getInstance()->hasPermission(self::PERM_GROUP, $permission);
 	}
 }

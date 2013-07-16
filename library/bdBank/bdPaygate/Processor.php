@@ -45,19 +45,13 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 				'verifier' => XenForo_Input::STRING,
 		));
 
-		$transactionId = (!empty($filtered['txn_id']) ? ('bdbank_' . $filtered['transaction_id']) : '');
+		$transactionId = (!empty($filtered['transaction_id']) ? ('bdbank_' . $filtered['transaction_id']) : '');
 		$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_OTHER;
 		$transactionDetails = array_merge($_POST, $filtered);
 		$itemId = $filtered['data'];
 		$amount = $filtered['amount'];
 		$currency = $filtered['currency'];
 		$processorModel = $this->getModelFromCache('bdPaygate_Model_Processor');
-
-		$log = $processorModel->getLogByTransactionId($transactionId);
-		if (!empty($log)) {
-			$this->_setError("Transaction {$transactionId} has already been processed");
-			return false;
-		}
 
 		$verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier(
 				$filtered['client_id'],

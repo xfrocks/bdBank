@@ -190,7 +190,7 @@ class bdBank_Model_Bank extends XenForo_Model {
 		}
 		
 		$this->_getDb()->query('
-			INSERT INTO `xf_bdbank_archive`
+			INSERT IGNORE INTO `xf_bdbank_archive`
 			(transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered)
 			SELECT transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered
 			FROM `xf_bdbank_transaction`

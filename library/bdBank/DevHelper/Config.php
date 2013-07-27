@@ -2,7 +2,7 @@
 class bdBank_DevHelper_Config extends DevHelper_Config_Base {
 	protected $_dataClasses = array();
 	protected $_dataPatches = array();
-	protected $_exportPath = '/Users/sondh/Dropbox/XenForo/bdBank';
+	protected $_exportPath = '/Users/sondh/XenForo/bdBank';
 	protected $_exportIncludes = array();
 	
 	/**

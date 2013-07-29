@@ -835,15 +835,17 @@ form.AttachmentManager {
 	<li><a href="{$href}">{$title}</a></li>
 	</xen:foreach>
 </ul>]]></template>
-    <template title="bdbank_member_view_info_block" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{$user.bdbank_show_money}">
-	<dt>{xen:phrase bdbank_money}:</dt>
-	<dd>
-		<xen:if is="{$user.user_id} != {$visitor.user_id}">
-			<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
-		<xen:else />
-			<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>
-		</xen:if>
-	</dd>
+    <template title="bdbank_member_view_info_block" version_id="18" version_string="1.0-dev"><![CDATA[<xen:if is="{$user.bdbank_show_money}">
+	<xen:if is="{$xenAddOns}"><dl></xen:if>
+		<dt>{xen:phrase bdbank_money}:</dt>
+		<dd>
+			<xen:if is="{$user.user_id} != {$visitor.user_id}">
+				<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
+			<xen:else />
+				<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>
+			</xen:if>
+		</dd>
+	<xen:if is="{$xenAddOns}"></dl></xen:if>
 </xen:if>]]></template>
     <template title="bdbank_message_user_info_extra" version_id="16" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
 	<xen:require js="js/bdBank/transfer.js" />

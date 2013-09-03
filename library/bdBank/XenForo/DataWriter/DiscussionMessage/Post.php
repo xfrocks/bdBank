@@ -7,19 +7,19 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 	protected function _messagePostSave() {
 		$bank = bdBank_Model_Bank::getInstance();
 
-		if (!$this->isInsert()) {
-			// updating a post, first we will reverse the old transaction...
-			$bank->reverseSystemTransactionByComment($this->_bdBankComment());
-		}
-		
-		// process bonus money
-		if (bdBank_AntiCheating::checkPostQuality($this)) {
-			$userId = $this->get('user_id');
-			$forum = $this->getExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM);
-			
-			if (!empty($userId) AND !empty($forum)) {
+		$userId = $this->get('user_id');
+		$forum = $this->getExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM);
+
+		if (!empty($userId) AND !empty($forum)) {
+			if (!$this->isInsert()) {
+				// updating a post, first we will reverse the old transaction...
+				$bank->reverseSystemTransactionByComment($this->_bdBankComment());
+			}
+
+			// process bonus money
+			if (bdBank_AntiCheating::checkPostQuality($this)) {
 				$bonusType = 'post';
-				
+
 				if ($this->_bdBank_isDiscussionFirstMessage()) {
 					// inserting a thread, this post is the first one
 					$bonusType = 'thread';
@@ -31,7 +31,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 					// we have to check for the thread 
 					// the result should be cached so no queries will be executed
 					$thread = $this->getModelFromCache('XenForo_Model_Thread')->bdBank_getThreadById($this->get('thread_id'));
-	
+
 					if (empty($thread)) {
 						// oops, this shouldn't happen
 						$bonusType = 'thread';
@@ -43,14 +43,14 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 						}
 					}
 				}
-				
+
 				$point = $bank->getActionBonus($bonusType, array('forum' => $forum));
 				if ($point != 0) {
 					$bank->personal()->give($userId, $point, $this->_bdBankComment());
 				}
 			}
 		}
-		
+
 		return parent::_messagePostSave();
 	}
 	

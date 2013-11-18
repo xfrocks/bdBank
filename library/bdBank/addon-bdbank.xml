@@ -1096,7 +1096,7 @@ form.AttachmentManager {
     <template title="bdbank_page_index" version_id="1" version_string="beta"><![CDATA[<xen:title>{xen:phrase bdbank_bank}</xen:title>
 
 <xen:include template="bdbank_info" />]]></template>
-    <template title="bdbank_page_paygate" version_id="15" version_string="1.0-dev"><![CDATA[<xen:title>{xen:phrase bdbank_pay}: {$displayName}</xen:title>
+    <template title="bdbank_page_paygate" version_id="19" version_string="1.0-dev"><![CDATA[<xen:title>{xen:phrase bdbank_pay}: {$displayName}</xen:title>
 <xen:h1>{$displayName}</xen:h1>
 
 <form action="{xen:link '{xen:helper bdBank_routePrefix}/paygate-pay'}" method="post" class="xenForm AutoValidator formOverlay" data-redirect="1">
@@ -1104,7 +1104,7 @@ form.AttachmentManager {
 		<dt>{xen:phrase bdbank_pay_for}:</dt>
 		<dd><ol>
 			<li>{$displayName}</li>
-			<li>{$currency} {xen:number $amount, 2}</li>
+			<xen:if is="{$calculatedMoney} != {$amount}"><li>{$currency} {xen:number $amount, 2}</li></xen:if>
 		</ol></dd>
 	</dl>
 

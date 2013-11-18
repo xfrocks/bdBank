@@ -1,6 +1,16 @@
 <?php
 
 class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Processor {
+	
+	public function getCurrencies()
+	{
+		$currencies = parent::getCurrencies();
+		
+		$currencies[bdBank_bdPaygate_Processor::CURRENCY_BDBANK] = new XenForo_Phrase('bdbank_money');
+		
+		return $currencies;
+	}
+	
 	public function getProcessorNames() {
 		$names = parent::getProcessorNames();
 

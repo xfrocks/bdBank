@@ -1,6 +1,9 @@
 <?php
 
 class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
+
+	const CURRENCY_BDBANK = 'bdb';
+
 	public function isAvailable() {
 		if (!XenForo_Application::isRegistered('bdBank')) {
 			// the system is not working
@@ -14,7 +17,13 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 	public function getSupportedCurrencies() {
 		$exchangeRates = bdBank_Model_Bank::options('exchangeRates');
 
-		return array_keys($exchangeRates);
+		$currencies = array_keys($exchangeRates);
+
+		if (bdBank_Model_Bank::options('moneyAsCurrency')) {
+			$currencies[] = self::CURRENCY_BDBANK;
+		}
+
+		return $currencies;
 	}
 
 	public function isRecurringSupported() {

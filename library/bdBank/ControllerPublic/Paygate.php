@@ -39,6 +39,8 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract 
 		$exchangeRates = bdBank_Model_Bank::options('exchangeRates');
 		if (isset($exchangeRates[$this->_currencyLowercase])) {
 			$this->_calculatedMoney = ceil(floatval($this->_amount) * $exchangeRates[$this->_currencyLowercase]);
+		} elseif ($this->_currencyLowercase == bdBank_bdPaygate_Processor::CURRENCY_BDBANK) {
+			$this->_calculatedMoney = $this->_amount;
 		} else {
 			throw new XenForo_Exception(
 					new XenForo_Phrase(

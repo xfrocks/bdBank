@@ -304,6 +304,13 @@ eur=40</default_value>
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="15020"/>
     </option>
+    <option option_id="bdbank_moneyAsCurrency" edit_format="onoff" data_type="unsigned_integer" can_backup="1">
+      <default_value>1</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="9010"/>
+      <relation group_id="debug" display_order="210"/>
+    </option>
     <option option_id="bdbank_penalty_unlike" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
       <default_value>5</default_value>
       <edit_format_params></edit_format_params>
@@ -495,6 +502,8 @@ eur=40</default_value>
     <phrase title="option_bdbank_gravatar_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Sometimes the Bank account will show up with an avatar (mostly in transaction history). You can use any image you want by uploading to <a href="http://gravatar.com/">Gravatar</a> and enter the email address here.]]></phrase>
     <phrase title="option_bdbank_minimumTax" version_id="6" version_string="0.9.6"><![CDATA[Minimum Tax]]></phrase>
     <phrase title="option_bdbank_minimumTax_explain" version_id="6" version_string="0.9.6"><![CDATA[You can set a minimum tax amount for all transaction. If the tax calculated using tax rules are smaller than this value, it will be used as the transaction's tax.]]></phrase>
+    <phrase title="option_bdbank_moneyAsCurrency" version_id="19" version_string="1.0-dev"><![CDATA[Money As Currency]]></phrase>
+    <phrase title="option_bdbank_moneyAsCurrency_explain" version_id="19" version_string="1.0-dev"><![CDATA[You can let [bd] Bank act as a pay gate (with its money as a currency) and work with <a href="http://xenforo.com/community/resources/1606/" target="_blank" tabindex="-1">[bd] Paygates add-on</a> to purchase user group upgrades and other things.]]></phrase>
     <phrase title="option_bdbank_penalty_unlike" version_id="1" version_string="beta"><![CDATA[Penalty for Unliking Post]]></phrase>
     <phrase title="option_bdbank_penalty_unlike_explain" version_id="1" version_string="beta"><![CDATA[User will get this penalty (money taken away) if he/she unlikes a post.]]></phrase>
     <phrase title="option_bdbank_post_chars_threshold" version_id="6" version_string="0.9.6"><![CDATA[Post Character Threshold]]></phrase>

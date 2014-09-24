@@ -467,7 +467,6 @@ eur=40</default_value>
     <phrase title="bdbank_transfer_trying_transfer_to" version_id="1" version_string="beta"><![CDATA[You are trying to transfer to]]></phrase>
     <phrase title="bdbank_user_has_at_least_x_of_y" version_id="10" version_string="0.9.9.1"><![CDATA[User has at least X of {money_lowercase}]]></phrase>
     <phrase title="bdbank_user_x" global_cache="1" version_id="5" version_string="0.9.5"><![CDATA[User #{id}]]></phrase>
-    <phrase title="bdbank_use_default_value_of_x" version_id="6" version_string="0.9.6"><![CDATA[Use default value of {value}]]></phrase>
     <phrase title="bdbank_use_forum_based_value_instead_of_default_x" version_id="6" version_string="0.9.6"><![CDATA[Use forum-based value instead of system-wide value (set at {value})]]></phrase>
     <phrase title="bdbank_when_payment_has_been_approved_fund_will_be_transfered" version_id="14" version_string="0.11.2"><![CDATA[When the payment has been approved, the requested fund will be transfered to and made available for your account.]]></phrase>
     <phrase title="bdbank_your_accounts" version_id="1" version_string="beta"><![CDATA[Your Accounts]]></phrase>
@@ -475,7 +474,6 @@ eur=40</default_value>
     <phrase title="bdbank_you_can_input_negative_value" version_id="5" version_string="0.9.5"><![CDATA[You can input negative value.]]></phrase>
     <phrase title="bdbank_you_received_x_from_y" version_id="6" version_string="0.9.6"><![CDATA[You received {amount} from {sender}.]]></phrase>
     <phrase title="bdbank_you_sent_x_to_y" version_id="6" version_string="0.9.6"><![CDATA[You sent {amount} to {receiver}.]]></phrase>
-    <phrase title="bdguard_enter_password_to_access" version_id="1" version_string="beta"><![CDATA[Enter password to access this content.]]></phrase>
     <phrase title="cron_entry_bdbank_statsRichest" version_id="12" version_string="0.11"><![CDATA[[bd] Banking - Rebuild richest data]]></phrase>
     <phrase title="cron_entry_bdbank_transactionArchive" version_id="16" version_string="1.0-dev"><![CDATA[[bd] Banking - Archive old transaction]]></phrase>
     <phrase title="option_bdbank_balanceFormat" version_id="10" version_string="0.9.9.2"><![CDATA[Balance Format]]></phrase>
@@ -1210,7 +1208,7 @@ form.AttachmentManager {
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 	<input type="hidden" name="rtn" value="{$formData.rtn}" />
 </form>]]></template>
-    <template title="bdbank_page_transfer_confirm" version_id="10" version_string="0.9.9.2"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+    <template title="bdbank_page_transfer_confirm" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
 
 <xen:title>{xen:phrase bdbank_transfer_confirm}</xen:title>
 
@@ -1234,7 +1232,7 @@ form.AttachmentManager {
 		<dd>
 			<input type="text" value="{$formData.amount}" class="textCtrl" disabled="disabled"/>
 			<input type="hidden" name="amount" value="{$formData.amount}"/>
-			<p class="explain">{xen:phrase bdbank_transfer_total_x_you_have_y_left_z, 'total={$total}', 'balance={$balance}', 'balanceAfter={$balanceAfter}'}</p>
+			<p class="explain">{xen:phrase bdbank_transfer_total_x_you_have_y_left_z, 'total={xen:helper bdBank_balanceFormat, $total}', 'balance={xen:helper bdBank_balanceFormat, $balance}', 'balanceAfter={xen:helper bdBank_balanceFormat, $balanceAfter}'}</p>
 		</dd>
 	</dl>
 
@@ -1345,4 +1343,5 @@ form.AttachmentManager {
   </templates>
   <public_template_modifications/>
   <bb_code_media_sites/>
+  <bb_codes/>
 </addon>

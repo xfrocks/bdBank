@@ -1,24 +1,28 @@
 <?php
 
-class bdBank_XenForo_ControllerPublic_Account extends XFCP_bdBank_XenForo_ControllerPublic_Account {
-	
+class bdBank_XenForo_ControllerPublic_Account extends XFCP_bdBank_XenForo_ControllerPublic_Account
+{
+
 	protected $_isPrivacySave = false;
-	
-	public function actionPrivacySave() {
+
+	public function actionPrivacySave()
+	{
 		$this->_isPrivacySave = true;
-		
+
 		return parent::actionPrivacySave();
 	}
-	
-	protected function _saveVisitorSettings($settings, &$errors, $extras = array()) {
-		if ($this->_isPrivacySave) {
+
+	protected function _saveVisitorSettings($settings, &$errors, $extras = array())
+	{
+		if ($this->_isPrivacySave)
+		{
 			$tmp = $this->_input->filter(array(
 				// user_option
-				'bdbank_show_money' => XenForo_Input::UINT,
-			));
+				'bdbank_show_money' => XenForo_Input::UINT, ));
 			$settings = array_merge($settings, $tmp);
 		}
-		
+
 		return parent::_saveVisitorSettings($settings, $errors, $extras);
 	}
+
 }

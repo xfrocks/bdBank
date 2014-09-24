@@ -15,6 +15,7 @@ class bdBank_XenForo_DataWriter_Discussion_Thread_Base extends XFCP_bdBank_XenFo
 
 		$bank->reverseSystemTransactionByComment($comments);
 	}
+
 }
 
 if (XenForo_Application::$versionId < 1020000)
@@ -29,7 +30,9 @@ if (XenForo_Application::$versionId < 1020000)
 
 			return parent::_discussionPostDelete($messages);
 		}
+
 	}
+
 }
 else
 {
@@ -39,7 +42,8 @@ else
 
 		protected function _discussionPostDelete()
 		{
-			$messages = $this->_getDiscussionMessages(false); // do not panic, this method caches its results
+			$messages = $this->_getDiscussionMessages(false);
+			// do not panic, this method caches its results
 			if (!$messages)
 			{
 				return;
@@ -48,5 +52,7 @@ else
 
 			return parent::_discussionPostDelete();
 		}
+
 	}
+
 }

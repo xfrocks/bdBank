@@ -1,11 +1,14 @@
 <?php
 
-class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
+class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
+{
 
 	const CURRENCY_BDBANK = 'bdb';
 
-	public function isAvailable() {
-		if (!XenForo_Application::isRegistered('bdBank')) {
+	public function isAvailable()
+	{
+		if (!XenForo_Application::isRegistered('bdBank'))
+		{
 			// the system is not working
 			return false;
 		}
@@ -14,19 +17,22 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 		return !empty($supportedCurrencies);
 	}
 
-	public function getSupportedCurrencies() {
+	public function getSupportedCurrencies()
+	{
 		$exchangeRates = bdBank_Model_Bank::options('exchangeRates');
 
 		$currencies = array_keys($exchangeRates);
 
-		if (bdBank_Model_Bank::options('moneyAsCurrency')) {
+		if (bdBank_Model_Bank::options('moneyAsCurrency'))
+		{
 			$currencies[] = self::CURRENCY_BDBANK;
 		}
 
 		return $currencies;
 	}
 
-	public function isRecurringSupported() {
+	public function isRecurringSupported()
+	{
 		return false;
 	}
 
@@ -42,16 +48,16 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 	{
 		$input = new XenForo_Input($request);
 		$filtered = $input->filter(array(
-				'client_id' => XenForo_Input::STRING,
-				'amount' => XenForo_Input::STRING,
-				'currency' => XenForo_Input::STRING,
-				'display_name' => XenForo_Input::STRING,
-				'data' => XenForo_Input::STRING,
+			'client_id' => XenForo_Input::STRING,
+			'amount' => XenForo_Input::STRING,
+			'currency' => XenForo_Input::STRING,
+			'display_name' => XenForo_Input::STRING,
+			'data' => XenForo_Input::STRING,
 
-				'transaction_id' => XenForo_Input::STRING,
-				'calculated_money' => XenForo_Input::STRING,
+			'transaction_id' => XenForo_Input::STRING,
+			'calculated_money' => XenForo_Input::STRING,
 
-				'verifier' => XenForo_Input::STRING,
+			'verifier' => XenForo_Input::STRING,
 		));
 
 		$transactionId = (!empty($filtered['transaction_id']) ? ('bdbank_' . $filtered['transaction_id']) : '');
@@ -62,13 +68,10 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 		$currency = $filtered['currency'];
 		$processorModel = $this->getModelFromCache('bdPaygate_Model_Processor');
 
-		$verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier(
-				$filtered['client_id'],
-				$filtered['amount'],
-				$filtered['currency']
-		);
+		$verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier($filtered['client_id'], $filtered['amount'], $filtered['currency']);
 
-		if ($verifier != $filtered['verifier']) {
+		if ($verifier != $filtered['verifier'])
+		{
 			$this->_setError('Cannot verify `verifier`');
 			return false;
 		}
@@ -77,7 +80,8 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 		return true;
 	}
 
-	public function generateFormData($amount, $currency, $itemName, $itemId, $recurringInterval = false, $recurringUnit = false, array $extraData = array()) {
+	public function generateFormData($amount, $currency, $itemName, $itemId, $recurringInterval = false, $recurringUnit = false, array $extraData = array())
+	{
 		$this->_assertAmount($amount);
 		$this->_assertCurrency($currency);
 		$this->_assertItem($itemName, $itemId);
@@ -86,19 +90,15 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract {
 		$returnUrl = $this->_generateReturnUrl($extraData);
 		$callbackUrl = $this->_generateCallbackUrl($extraData);
 
-		$formAction = XenForo_Link::buildPublicLink(
-				sprintf('full:%s/paygate', bdBank_Model_Bank::routePrefix()),
-				null,
-				array(
-						'amount' => $amount,
-						'currency' => $currency,
-						'display_name' => $itemName,
-						'callback' => $callbackUrl,
-						'data' => $itemId,
-						'redirect' => $returnUrl,
-				)
-		);
-		$callToAction = new XenForo_Phrase('bdbank_bdpaygate_call_to_action',array('money' => new XenForo_Phrase('bdbank_money')));
+		$formAction = XenForo_Link::buildPublicLink(sprintf('full:%s/paygate', bdBank_Model_Bank::routePrefix()), null, array(
+			'amount' => $amount,
+			'currency' => $currency,
+			'display_name' => $itemName,
+			'callback' => $callbackUrl,
+			'data' => $itemId,
+			'redirect' => $returnUrl,
+		));
+		$callToAction = new XenForo_Phrase('bdbank_bdpaygate_call_to_action', array('money' => new XenForo_Phrase('bdbank_money')));
 
 		$form = <<<EOF
 <a href="{$formAction}" class="OverlayTrigger button">{$callToAction}</a>
@@ -106,4 +106,5 @@ EOF;
 
 		return $form;
 	}
+
 }

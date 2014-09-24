@@ -10,8 +10,8 @@ class bdBank_Installer
 				`transaction_id` INT(10) UNSIGNED AUTO_INCREMENT
 				,`from_user_id` INT(10) UNSIGNED NOT NULL
 				,`to_user_id` INT(10) UNSIGNED NOT NULL
-				,`amount` INT(10) UNSIGNED NOT NULL
-				,`tax_amount` INT(10) UNSIGNED DEFAULT \'0\'
+				,`amount` DECIMAL(13,4) NOT NULL
+				,`tax_amount` DECIMAL(13,4) DEFAULT \'0\'
 				,`comment` VARCHAR(255)
 				,`transaction_type` INT(10) UNSIGNED DEFAULT \'0\'
 				,`transfered` INT(10) UNSIGNED NOT NULL
@@ -36,8 +36,8 @@ class bdBank_Installer
 				`transaction_id` INT(10) UNSIGNED NOT NULL
 				,`from_user_id` INT(10) UNSIGNED NOT NULL
 				,`to_user_id` INT(10) UNSIGNED NOT NULL
-				,`amount` INT(10) UNSIGNED NOT NULL
-				,`tax_amount` INT(10) UNSIGNED DEFAULT \'0\'
+				,`amount` DECIMAL(13,4) NOT NULL
+				,`tax_amount` DECIMAL(13,4) DEFAULT \'0\'
 				,`comment` VARCHAR(255)
 				,`transaction_type` INT(10) UNSIGNED DEFAULT \'0\'
 				,`transfered` INT(10) UNSIGNED NOT NULL
@@ -64,7 +64,7 @@ class bdBank_Installer
 			'field' => 'bdbank_money',
 			'showTablesQuery' => 'SHOW TABLES LIKE \'xf_user\'',
 			'showColumnsQuery' => 'SHOW COLUMNS FROM `xf_user` LIKE \'bdbank_money\'',
-			'alterTableAddColumnQuery' => 'ALTER TABLE `xf_user` ADD COLUMN `bdbank_money` INT(11)',
+			'alterTableAddColumnQuery' => 'ALTER TABLE `xf_user` ADD COLUMN `bdbank_money` DECIMAL(13,4) DEFAULT \'0\'',
 			'alterTableDropColumnQuery' => 'ALTER TABLE `xf_user` DROP COLUMN `bdbank_money`',
 		),
 		array(
@@ -72,7 +72,7 @@ class bdBank_Installer
 			'field' => 'bdbank_price',
 			'showTablesQuery' => 'SHOW TABLES LIKE \'xf_attachment\'',
 			'showColumnsQuery' => 'SHOW COLUMNS FROM `xf_attachment` LIKE \'bdbank_price\'',
-			'alterTableAddColumnQuery' => 'ALTER TABLE `xf_attachment` ADD COLUMN `bdbank_price` INT(10) UNSIGNED',
+			'alterTableAddColumnQuery' => 'ALTER TABLE `xf_attachment` ADD COLUMN `bdbank_price` DECIMAL(13,4) DEFAULT \'0\'',
 			'alterTableDropColumnQuery' => 'ALTER TABLE `xf_attachment` DROP COLUMN `bdbank_price`',
 		),
 		array(
@@ -116,7 +116,7 @@ class bdBank_Installer
 				$db->query($patch['alterTableAddColumnQuery']);
 			}
 		}
-
+		
 		self::installCustomized($existingAddOn, $addOnData);
 	}
 
@@ -156,7 +156,18 @@ class bdBank_Installer
 			throw new XenForo_Exception('[bd] Banking requires XenForo 1.2.0+');
 		}
 
+		$effectiveVersionId = 0;
+		if (!empty($existingAddOn))
+		{
+			$effectiveVersionId = intval($existingAddOn['version_id']);
+		}
+
 		$db = XenForo_Application::getDb();
+
+		if ($effectiveVersionId > 0 AND $effectiveVersionId < 21)
+		{
+			self::_changeMoneyColumns($db);
+		}
 
 		$db->query('REPLACE INTO `xf_content_type` (content_type, addon_id, fields) VALUES ("bdbank_transaction", "bdbank", "")');
 		$db->query('REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value) VALUES ("bdbank_transaction", "alert_handler_class", "bdBank_AlertHandler_Transaction")');
@@ -171,6 +182,35 @@ class bdBank_Installer
 		$db->query('DELETE FROM `xf_content_type` WHERE addon_id = "bdbank"');
 		$db->query('DELETE FROM `xf_content_type_field` WHERE content_type = "bdbank_transaction"');
 		XenForo_Model::create('XenForo_Model_ContentType')->rebuildContentTypeCache();
+	}
+
+	protected static function _changeMoneyColumns($db)
+	{
+		$moneyColumns = array(
+			'xf_bdbank_transaction' => array(
+				'amount' => true,
+				'tax_amount' => false,
+			),
+			'xf_bdbank_archive' => array(
+				'amount' => true,
+				'tax_amount' => false,
+			),
+			'xf_user' => array('bdbank_money' => false),
+			'xf_attachment' => array('bdbank_price' => false),
+		);
+
+		foreach ($moneyColumns as $table => $tableColumns)
+		{
+			foreach ($tableColumns as $column => $isRequired)
+			{
+				$db->query(call_user_func_array('sprintf', array(
+					'ALTER TABLE `%1$s` CHANGE %2$s %2$s DECIMAL(13,4) %3$s',
+					$table,
+					$column,
+					$isRequired ? 'NOT NULL' : 'DEFAULT 0',
+				)));
+			}
+		}
 	}
 
 }

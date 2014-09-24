@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="20" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="21" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -251,6 +251,14 @@ $2]]></replace>
   <email_template_modifications/>
   <optiongroups>
     <group group_id="bdbank" display_order="9999" debug_only="0"/>
+    <option option_id="bdbank_balanceDecimals" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params>min=0
+max=4
+step=1</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="20030"/>
+    </option>
     <option option_id="bdbank_balanceFormat" edit_format="radio" data_type="string" can_backup="1">
       <default_value>currency_first</default_value>
       <edit_format_params>currency_first = {xen:phrase bdbank_balance_format_currency_first}
@@ -265,25 +273,25 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="12"/>
     </option>
-    <option option_id="bdbank_bonus_attachment_post" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+    <option option_id="bdbank_bonus_attachment_post" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>10</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="11"/>
     </option>
-    <option option_id="bdbank_bonus_liked" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+    <option option_id="bdbank_bonus_liked" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>1</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="101"/>
     </option>
-    <option option_id="bdbank_bonus_post" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+    <option option_id="bdbank_bonus_post" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>5</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="2"/>
     </option>
-    <option option_id="bdbank_bonus_thread" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+    <option option_id="bdbank_bonus_thread" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>10</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
@@ -326,7 +334,7 @@ eur=40</default_value>
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="20010"/>
     </option>
-    <option option_id="bdbank_minimumTax" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+    <option option_id="bdbank_minimumTax" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>1</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
@@ -339,7 +347,7 @@ eur=40</default_value>
       <relation group_id="bdbank" display_order="9010"/>
       <relation group_id="debug" display_order="210"/>
     </option>
-    <option option_id="bdbank_penalty_unlike" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+    <option option_id="bdbank_penalty_unlike" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>5</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
@@ -504,6 +512,8 @@ eur=40</default_value>
     <phrase title="bdbank_you_sent_x_to_y" version_id="6" version_string="0.9.6"><![CDATA[You sent {amount} to {receiver}.]]></phrase>
     <phrase title="cron_entry_bdbank_statsRichest" version_id="12" version_string="0.11"><![CDATA[[bd] Banking - Rebuild richest data]]></phrase>
     <phrase title="cron_entry_bdbank_transactionArchive" version_id="16" version_string="1.0-dev"><![CDATA[[bd] Banking - Archive old transaction]]></phrase>
+    <phrase title="option_bdbank_balanceDecimals" version_id="21" version_string="1.0-dev"><![CDATA[Balance Decimal Digits]]></phrase>
+    <phrase title="option_bdbank_balanceDecimals_explain" version_id="21" version_string="1.0-dev"><![CDATA[Choose the number of decimal digits are used throughout the system.]]></phrase>
     <phrase title="option_bdbank_balanceFormat" version_id="10" version_string="0.9.9.2"><![CDATA[Balance Format]]></phrase>
     <phrase title="option_bdbank_balanceFormat_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Money will be formatted before output, you can specify the format here. In order to change the currency symbol, just edit the phrase "bdbank_currency_name". If you want to call money something else (for example: point), you will need to edit 2 phrases: "bdbank_money" and "bdbank_money_lowercase".]]></phrase>
     <phrase title="option_bdbank_bonus_attachment_downloaded" version_id="1" version_string="beta"><![CDATA[Bonus for Downloaded Attachment]]></phrase>
@@ -1095,7 +1105,7 @@ form.AttachmentManager {
 </div>
 
 <xen:pagenav link="{xen:link bank/history}" page="{$page}" perpage="{$perPage}" total="{$total}" />]]></template>
-    <template title="bdbank_page_history_popup" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_page_history_popup" version_id="21" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_history}</xen:title>
 
@@ -1116,7 +1126,7 @@ form.AttachmentManager {
 							<xen:if is="{$transaction.is_sending}">
 								{xen:phrase bdbank_you_sent_x_to_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, $transaction.amount}</a>', 'receiver={$transaction.other_user.username}'}
 							<xen:else />
-								{xen:phrase bdbank_you_received_x_from_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}</a>', 'sender={$transaction.other_user.username}'}
+								{xen:phrase bdbank_you_received_x_from_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, {xen:helper bdBank_number, sub, $transaction.amount, $transaction.tax_amount}}</a>', 'sender={$transaction.other_user.username}'}
 							</xen:if>
 						</h3>
 						<p class="muted">
@@ -1173,7 +1183,7 @@ form.AttachmentManager {
 
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 </form>]]></template>
-    <template title="bdbank_page_refund" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+    <template title="bdbank_page_refund" version_id="21" version_string="1.0-dev"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
 
 <xen:title>{xen:phrase bdbank_refund}</xen:title>
 
@@ -1185,7 +1195,7 @@ form.AttachmentManager {
 
 	<dl class="ctrlUnit">
 		<dt>{xen:phrase bdbank_refund_amount}:</dt>
-		<dd>{xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}</dd>
+		<dd>{xen:helper bdBank_balanceFormat, {xen:helper bdBank_number, sub, $transaction.amount, $transaction.tax_amount}}</dd>
 	</dl>
 
 	<dl class="ctrlUnit submitUnit">
@@ -1304,7 +1314,7 @@ form.AttachmentManager {
 		</dd>
 	</dl>
 </xen:if>]]></template>
-    <template title="bdbank_transaction_list_item" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_transaction_list_item" version_id="21" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <li id="transaction-{$transaction.transaction_id}" class="transactionListItem">
 	<div class="listBlock sender">
@@ -1329,12 +1339,16 @@ form.AttachmentManager {
 		<div class="titleText">
 			<xen:if is="{$transaction.reversed}"><s></xen:if>
 		
-            <xen:if is="{$transaction.tax_amount} > 0">
+			<xen:if is="{xen:helper bdBank_number, comp, $transaction.tax_amount, 0} === 1">
                 <xen:if is="{$transaction.is_sending}">
                     {xen:helper bdBank_balanceFormat, $transaction.amount}
-    				(<span title="{xen:phrase bdbank_tax_for_this_is_x_y_only_receive_z, 'tax={xen:helper bdBank_balanceFormat, $transaction.tax_amount}', 'receiver={$transaction.to_user.username}', 'amount={xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}'}" class="Tooltip">{xen:helper bdBank_balanceFormat, {xen:calc '-1 * {$transaction.tax_amount}'}}</span>)
+    				(<span title="{xen:phrase bdbank_tax_for_this_is_x_y_only_receive_z,
+								  'tax={xen:helper bdBank_balanceFormat, $transaction.tax_amount}',
+								  'receiver={$transaction.to_user.username}',
+								  'amount={xen:helper bdBank_balanceFormat, {xen:helper bdBank_number, sub, $transaction.amount, $transaction.tax_amount}}'
+								  }" class="Tooltip">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_number, mul, $transaction.tax_amount, -1}}</span>)
                 <xen:else />
-                    {xen:helper bdBank_balanceFormat, {xen:calc '{$transaction.amount} - {$transaction.tax_amount}'}}
+                    {xen:helper bdBank_balanceFormat, {xen:helper bdBank_number, sub, $transaction.amount, $transaction.tax_amount}}
 				</xen:if>
             <xen:else />
                 {xen:helper bdBank_balanceFormat, $transaction.amount}

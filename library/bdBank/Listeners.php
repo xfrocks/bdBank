@@ -23,6 +23,10 @@ class bdBank_Listeners
 			'bdBank_Model_Bank',
 			'options'
 		);
+		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_number'] = array(
+			'bdBank_Helper_Template',
+			'number'
+		);
 
 		XenForo_CacheRebuilder_Abstract::$builders['bdBank_Bonuses'] = 'bdBank_CacheRebuilder_Bonuses';
 		XenForo_CacheRebuilder_Abstract::$builders['bdBank_User'] = 'bdBank_CacheRebuilder_User';

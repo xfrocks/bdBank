@@ -125,7 +125,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
 		$formData = $this->_input->filter(array(
 			'receivers' => XenForo_Input::STRING,
-			'amount' => XenForo_Input::UINT,
+			'amount' => XenForo_Input::STRING,
 			'comment' => XenForo_Input::STRING,
 			'hash' => XenForo_Input::STRING,
 			'to' => XenForo_Input::STRING,
@@ -143,10 +143,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			// process transfer request
 			// please take time to update bdBank_ControllerAdmin_Bank::actionTransfer() if
 			// you change this
-
 			$currentUser = XenForo_Visitor::getInstance();
 			$currentUserId = $currentUser->get('user_id');
 			$senderPaysTax = $formData['sender_pays_tax'];
+
 			// since 0.10
 			$receiverUsernames = explode(',', $formData['receivers']);
 
@@ -158,7 +158,9 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			{
 				$username = trim($username);
 				if (empty($username))
+				{
 					continue;
+				}
 				$receiver = $userModel->getUserByName($username);
 				if (empty($receiver))
 				{
@@ -175,20 +177,23 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			{
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_no_receivers', array('money' => new XenForo_Phrase('bdbank_money'))));
 			}
-			if ($formData['amount'] == 0)
+
+			if (bdBank_Helper_Number::comp($formData['amount'], 0) !== 1)
 			{
-				// it shouldn't be negative because we used filter
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
 			}
 
 			// prepare data for transfer() calls
 			$personal = bdBank_Model_Bank::getInstance()->personal();
 
-			$taxMode = bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY;
 			// default
+			$taxMode = bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY;
+
 			if (!empty($senderPaysTax))
+			{
+				// switched
 				$taxMode = bdBank_Model_Bank::TAX_MODE_SENDER_PAY;
-			// switched!
+			}
 
 			$senderAndReceivers = array();
 			$senderAndReceivers[$currentUserId] = $currentUser->toArray();
@@ -228,8 +233,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			}
 
 			$balanceAfter = $optionsTest[bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE];
-			$total = $balance - $balanceAfter;
-			if ($balanceAfter < 0)
+			if (bdBank_Helper_Number::comp($balanceAfter, 0) === -1)
 			{
 				// oops
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough', array(
@@ -237,6 +241,8 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 					'total' => bdBank_Model_Bank::helperBalanceFormat($total),
 				)));
 			}
+
+			$total = bdBank_Helper_Number::sub($balance, $balanceAfter);
 
 			$globalSalt = XenForo_Application::getConfig()->get('globalSalt');
 			$hash = md5(implode(',', array_keys($receivers)) . $formData['amount'] . $balanceAfter . $globalSalt);
@@ -251,7 +257,9 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 					'balance' => $balance,
 					'balanceAfter' => $balanceAfter,
 					'hash' => $hash,
-					'senderPaysTax' => $senderPaysTax, // since 0.10
+
+					// since 0.10
+					'senderPaysTax' => $senderPaysTax,
 				));
 			}
 			else
@@ -326,9 +334,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			{
 				if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY)
 				{
+					$refundAmount = bdBank_Helper_Number::sub($transaction['amount'], $transaction['tax_amount']);
 					throw new XenForo_Exception(new XenForo_Phrase('bdbank_refund_error_not_enough_money', array(
 						'money_lowercase' => new XenForo_Phrase('bdbank_money_lowercase'),
-						'refund_amount' => bdBank_Model_Bank::helperBalanceFormat($transaction['amount'] - $transaction['tax_amount']),
+						'refund_amount' => bdBank_Model_Bank::helperBalanceFormat($refundAmount),
 						'balance' => bdBank_Model_Bank::helperBalanceFormat(bdBank_Model_Bank::balance()),
 					)), true);
 				}
@@ -361,7 +370,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 		$prices = bdBank_Model_Bank::options('getMorePrices');
 		if (empty($prices))
 		{
-			return $this - responseError(new XenForo_Phrase('bdbank_get_more_no_purchase_available'));
+			return $this->responseError(new XenForo_Phrase('bdbank_get_more_no_purchase_available'));
 		}
 
 		if (class_exists('bdPaygate_Processor_Abstract'))
@@ -468,17 +477,18 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 		if ($this->_request->isPost())
 		{
 			$db = XenForo_Application::get('db');
-			$price = $this->_input->filterSingle('price', array(
-				XenForo_Input::UINT,
+			$prices = $this->_input->filterSingle('price', array(
+				XenForo_Input::STRING,
 				'array' => true
 			));
-			$attachments = $attachmentModel->getAttachments(array('attachment_id' => array_keys($price)));
+			$attachments = $attachmentModel->getAttachments(array('attachment_id' => array_keys($prices)));
+
 			foreach ($attachments as $attachment)
 			{
 				if ($attachment['user_id'] == $userId)
 				{
 					// we have to check to make sure...
-					$db->update('xf_attachment', array('bdbank_price' => $price[$attachment['attachment_id']]), array('attachment_id = ?' => $attachment['attachment_id']));
+					$db->update('xf_attachment', array('bdbank_price' => $prices[$attachment['attachment_id']]), array('attachment_id = ?' => $attachment['attachment_id']));
 				}
 			}
 		}

@@ -33,7 +33,7 @@ class bdBank_XenForo_ControllerAdmin_User extends XFCP_bdBank_XenForo_Controller
 					}
 					else
 					{
-						$diff = $inputValue - $oldValue;
+						$diff = bdBank_Helper_Number::sub($inputValue, $oldValue);
 					}
 				}
 				else

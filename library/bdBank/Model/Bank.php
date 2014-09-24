@@ -70,8 +70,9 @@ class bdBank_Model_Bank extends XenForo_Model
 
 	public function getActionBonus($action, $extraData = array())
 	{
-		// I prefer a static method
-		// but just in case... someone wants to extend this class?
+		$points = 0;
+		$isPenalty = false;
+
 		switch($action)
 		{
 			case 'thread':
@@ -91,22 +92,23 @@ class bdBank_Model_Bank extends XenForo_Model
 						$tmpOptions = self::helperUnserialize($extraData['forum']['bdbank_options']);
 						if (isset($tmpOptions['bonus_' . $action]) AND $tmpOptions['bonus_' . $action] !== '')
 						{
-							$points = intval($tmpOptions['bonus_' . $action]);
+							$points = $tmpOptions['bonus_' . $action];
 						}
 					}
 				}
+				break;
 
-				return $points;
+			case 'liked':
+				$points = self::options('bonus_liked');
+				break;
+			case 'unlike':
+				$isPenalty = true;
+				$points = self::options('penalty_unlike');
+				break;
 
 			case 'attachment_post':
-				return self::options('bonus_attachment_post');
-			case 'liked':
-				return self::options('bonus_liked');
-
-			case 'unlike':
-				return -1 * self::options('penalty_unlike');
-			// it's kinda funny here, but I'm lazy
-
+				$points = self::options('bonus_attachment_post');
+				break;
 			case 'attachment_downloaded':
 				if (empty($extraData))
 				{
@@ -122,27 +124,36 @@ class bdBank_Model_Bank extends XenForo_Model
 						if (count($parts) == 2)
 						{
 							$extensions = explode(',', str_replace(' ', '', strtolower($parts[0])));
-							$point = intval($parts[1]);
+							$point = $parts[1];
 							if (count($extensions) == 1 AND $extensions[0] == '*')
 							{
 								// match all rule
-								return $point;
+								$points = $point;
+								break;
 							}
-							else
-							if (in_array($extension, $extensions))
+							elseif (in_array($extension, $extensions))
 							{
-								return $point;
+								$points = $point;
+								break;
 							}
 						}
 					}
 				}
-				return 0;
-				break;
-
-			default:
-				return 0;
 				break;
 		}
+
+		if (bdBank_Helper_Number::comp($points, 0) === -1)
+		{
+			// bonus never is less than 0
+			$points = 0;
+		}
+
+		if ($isPenalty)
+		{
+			$points = bdBank_Helper_Number::mul($points, -1);
+		}
+
+		return $points;
 	}
 
 	public function parseComment($comment)
@@ -285,7 +296,7 @@ class bdBank_Model_Bank extends XenForo_Model
 
 		// get back the fund from receiver account
 		// this may throw not_enough_money exception...
-		$personal->transfer($transaction['to_user_id'], 0, $transaction['amount'] - $transaction['tax_amount'], null, self::TYPE_SYSTEM, false);
+		$personal->transfer($transaction['to_user_id'], 0, bdBank_Helper_Number::sub($transaction['amount'], $transaction['tax_amount']), null, self::TYPE_SYSTEM, false);
 
 		// actual refund
 		$personal->give($transaction['from_user_id'], $transaction['amount'], null, self::TYPE_SYSTEM, false);
@@ -296,9 +307,13 @@ class bdBank_Model_Bank extends XenForo_Model
 	public function reverseSystemTransactionByComment($comments)
 	{
 		if (!is_array($comments))
+		{
 			$comments = array($comments);
+		}
 		if (empty($comments))
+		{
 			return;
+		}
 
 		$commentsQuoted = $this->_getDb()->quote($comments);
 		$reversed = array();
@@ -356,7 +371,7 @@ class bdBank_Model_Bank extends XenForo_Model
 		$totalReversed = 0;
 		foreach ($reversed as $amount)
 		{
-			$totalReversed += $amount;
+			$totalReversed = bdBank_Helper_Number::add($totalReversed, $amount);
 		}
 
 		return $totalReversed;
@@ -613,7 +628,7 @@ class bdBank_Model_Bank extends XenForo_Model
 			$point = $this->getActionBonus('attachment_' . $contentType);
 			if ($point != 0)
 			{
-				$this->personal()->give($userId, $point * $attachments, $this->comment('attachment_' . $contentType, $contentId));
+				$this->personal()->give($userId, bdBank_Helper_Number::mul($point, $attachments), $this->comment('attachment_' . $contentType, $contentId));
 			}
 		}
 	}
@@ -730,8 +745,8 @@ class bdBank_Model_Bank extends XenForo_Model
 						if (count($parts) == 2 AND is_numeric($parts[0]) AND preg_match('/^([0-9]+)([a-z]+)$/', $parts[1], $matches))
 						{
 							self::$_getMorePrices[] = array(
-								doubleval($parts[0]),
-								doubleval($matches[1]),
+								$parts[0],
+								$matches[1],
 								$matches[2]
 							);
 						}
@@ -750,7 +765,7 @@ class bdBank_Model_Bank extends XenForo_Model
 						$parts = explode('=', utf8_strtolower(utf8_trim($line)));
 						if (count($parts) == 2 AND preg_match('/^([a-z]+)$/', $parts[0]) AND is_numeric($parts[1]))
 						{
-							self::$_exchangeRates[$parts[0]] = doubleval($parts[1]);
+							self::$_exchangeRates[$parts[0]] = $parts[1];
 						}
 					}
 				}
@@ -843,12 +858,12 @@ class bdBank_Model_Bank extends XenForo_Model
 
 		if (is_numeric($value))
 		{
-			if ($value < 0)
+			if (bdBank_Helper_Number::comp($value, 0) === -1)
 			{
 				$negative = true;
-				$value *= -1;
+				$value = bdBank_Helper_Number::mul($value, -1);
 			}
-			$valueFormatted = XenForo_Template_Helper_Core::numberFormat($value, 0);
+			$valueFormatted = XenForo_Template_Helper_Core::numberFormat($value, bdBank_Model_Bank::options('balanceDecimals'));
 		}
 
 		// check for option to include the currency after the number instead?

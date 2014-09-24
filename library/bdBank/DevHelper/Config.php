@@ -12,8 +12,8 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
 				'transaction_id' => array('name' => 'transaction_id', 'type' => 'uint', 'autoIncrement' => true),
 				'from_user_id' => array('name' => 'from_user_id', 'type' => 'uint', 'required' => true),
 				'to_user_id' => array('name' => 'to_user_id', 'type' => 'uint', 'required' => true),
-				'amount' => array('name' => 'amount', 'type' => 'uint', 'required' => true),
-				'tax_amount' => array('name' => 'tax_amount', 'type' => 'uint', 'default' => 0),
+				'amount' => array('name' => 'amount', 'type' => 'money', 'required' => true),
+				'tax_amount' => array('name' => 'tax_amount', 'type' => 'money', 'default' => 0),
 				'comment' => array('name' => 'comment', 'type' => 'string', 'length' => 255),
 				'transaction_type' => array('name' => 'transaction_type', 'type' => 'uint', 'default' => 0),
 				'transfered' => array('name' => 'transfered', 'type' => 'uint', 'required' => true),
@@ -56,8 +56,8 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
 				'transaction_id' => array('name' => 'transaction_id', 'type' => 'uint', 'required' => true),
 				'from_user_id' => array('name' => 'from_user_id', 'type' => 'uint', 'required' => true),
 				'to_user_id' => array('name' => 'to_user_id', 'type' => 'uint', 'required' => true),
-				'amount' => array('name' => 'amount', 'type' => 'uint', 'required' => true),
-				'tax_amount' => array('name' => 'tax_amount', 'type' => 'uint', 'default' => 0),
+				'amount' => array('name' => 'amount', 'type' => 'money', 'required' => true),
+				'tax_amount' => array('name' => 'tax_amount', 'type' => 'money', 'default' => 0),
 				'comment' => array('name' => 'comment', 'type' => 'string', 'length' => 255),
 				'transaction_type' => array('name' => 'transaction_type', 'type' => 'uint', 'default' => 0),
 				'transfered' => array('name' => 'transfered', 'type' => 'uint', 'required' => true),
@@ -93,10 +93,10 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
 	);
 	protected $_dataPatches = array(
 		'xf_user' => array(
-			'bdbank_money' => array('name' => 'bdbank_money', 'type' => 'int'),
+			'bdbank_money' => array('name' => 'bdbank_money', 'type' => 'money', 'default' => 0.0),
 		),
 		'xf_attachment' => array(
-			'bdbank_price' => array('name' => 'bdbank_price', 'type' => 'uint'),
+			'bdbank_price' => array('name' => 'bdbank_price', 'type' => 'money', 'default' => 0.0),
 		),
 		'xf_forum' => array(
 			'bdbank_options' => array('name' => 'bdbank_options', 'type' => 'serialized'),

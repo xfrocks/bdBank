@@ -25,7 +25,7 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
 	{
 		if ($action == 'bdbank_purchase')
 		{
-			$requestedAmount = intval($data[0]);
+			$requestedAmount = $data[0];
 
 			if ($amount !== false AND $currency !== false)
 			{
@@ -35,11 +35,11 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
 				$verified = false;
 				foreach ($prices as $price)
 				{
-					$priceAmount = intval($price[0]);
+					$priceAmount = $price[0];
 					$priceCost = $price[1];
 					$priceCurrency = $price[2];
 
-					if ($priceAmount === $requestedAmount)
+					if (bdBank_Helper_Number::comp($priceAmount, $requestedAmount) === 0)
 					{
 						if ($this->_verifyPaymentAmount($processor, $amount, $currency, $priceCost, $priceCurrency))
 						{
@@ -74,7 +74,7 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
 		if ($action == 'bdbank_purchase')
 		{
 			$personal = bdBank_Model_Bank::getInstance()->personal();
-			$personal->give($user['user_id'], -1 * $data[0], 'bdbank_purchase_revert ' . $data[0]);
+			$personal->give($user['user_id'], bdBank_Helper_Number::mul($data[0], -1), 'bdbank_purchase_revert ' . $data[0]);
 
 			return 'Taken away ' . $data[0] . ' from user #' . $user['user_id'];
 		}

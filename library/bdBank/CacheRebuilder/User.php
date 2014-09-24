@@ -56,7 +56,7 @@ class bdBank_CacheRebuilder_User extends XenForo_CacheRebuilder_Abstract
 					$userId
 				));
 
-				$userDw->set($field, max(0, $userMoney + $userMoneyArchived));
+				$userDw->set($field, bdBank_Helper_Number::add($userMoney, $userMoneyArchived));
 
 				$userDw->save();
 			}

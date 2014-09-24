@@ -16,9 +16,8 @@ class bdBank_XenForo_ControllerPublic_Account extends XFCP_bdBank_XenForo_Contro
 	{
 		if ($this->_isPrivacySave)
 		{
-			$tmp = $this->_input->filter(array(
-				// user_option
-				'bdbank_show_money' => XenForo_Input::UINT, ));
+			// user_option
+			$tmp = $this->_input->filter(array('bdbank_show_money' => XenForo_Input::UINT));
 			$settings = array_merge($settings, $tmp);
 		}
 

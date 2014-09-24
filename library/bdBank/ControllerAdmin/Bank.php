@@ -88,7 +88,7 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 	{
 		$formData = $this->_input->filter(array(
 			'receivers' => XenForo_Input::STRING,
-			'amount' => XenForo_Input::INT,
+			'amount' => XenForo_Input::STRING,
 			'comment' => XenForo_Input::STRING,
 		));
 
@@ -96,7 +96,6 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 		{
 			// process the transfer request
 			// this code is very similar with bdBank_ControllerPublic_Bank::actionTransfer()
-
 			$receiverUsernames = explode(',', $formData['receivers']);
 			$userModel = $this->getModelFromCache('XenForo_Model_User');
 			$receivers = array();
@@ -104,7 +103,9 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 			{
 				$username = trim($username);
 				if (empty($username))
+				{
 					continue;
+				}
 				$receiver = $userModel->getUserByName($username);
 				if (empty($receiver))
 				{
@@ -116,7 +117,7 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 			{
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_no_receivers', array('money' => new XenForo_Phrase('bdbank_money'))));
 			}
-			if ($formData['amount'] == 0)
+			if (doubleval($formData['amount']) == 0)
 			{
 				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
 			}

@@ -50,34 +50,35 @@ class bdBank_Model_Personal extends XenForo_Model
 		{
 			if ($taxRule[0] != '*')
 			{
-				$tmp = min($remaining, $taxRule[0]);
+				$tmp = bdBank_Helper_Number::min_($remaining, $taxRule[0]);
 			}
 			else
 			{
 				$tmp = $remaining;
 			}
 
-			$tax += $tmp * $taxRule[1] / 100;
-			$remaining -= $tmp;
+			$tax = bdBank_Helper_Number::add($tax, bdBank_Helper_Number::mul($tmp, $taxRule[1] * 0.01));
+			$remaining = bdBank_Helper_Number::sub($remaining, $tmp);
 
-			if ($remaining <= 0)
+			if (bdBank_Helper_Number::comp($remaining, 0) !== 1)
+			{
+				// stop looping
 				break;
-			// stop looping
+			}
 		}
-		$tax = ceil($tax);
 
 		// take the minimum tax into account
 		$minimumTax = bdBank_Model_Bank::options('minimumTax');
-		$tax = max($tax, $minimumTax);
+		$tax = bdBank_Helper_Number::max_($tax, $minimumTax);
 
 		if ($taxMode == bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY)
 		{
-			$tax = min($tax, $amount);
 			// just to be logical...
+			$tax = bdBank_Helper_Number::min_($tax, $amount);
 		}
 
-		$tax = max(0, $tax);
 		// just to be safe...
+		$tax = bdBank_Helper_Number::max_($tax, 0);
 
 		return $tax;
 	}
@@ -87,7 +88,6 @@ class bdBank_Model_Personal extends XenForo_Model
 		$db = $this->_getDb();
 		$from = intval($from);
 		$to = intval($to);
-		$amount = intval($amount);
 
 		// merge specified options with the default options set
 		$defaultOptions = array(
@@ -120,19 +120,26 @@ class bdBank_Model_Personal extends XenForo_Model
 		/* @var $userModel XenForo_Model_User */
 		$userModel = $this->getModelFromCache('XenForo_Model_User');
 
-		if ($amount == 0 OR ($from == $to))
+		if ($from == $to)
 		{
 			throw new bdBank_Exception(bdBank_Exception::NOTHING_TO_DO);
 		}
 
-		if ($amount < 0)
+		$compWith0 = bdBank_Helper_Number::comp($amount, 0);
+		if ($compWith0 === 0)
 		{
+			// amount equals 0
+			throw new bdBank_Exception(bdBank_Exception::NOTHING_TO_DO);
+		}
+
+		if (bdBank_Helper_Number::comp($amount, 0) === -1)
+		{
+			// amount is less than 0
 			$tmp = $from;
 			$from = $to;
 			$to = $tmp;
-			// damn it, I forgot the magic swap trick
-			// which doesn't need a temporary variable
-			$amount *= -1;
+
+			$amount = bdBank_Helper_Number::mul($amount, -1);
 		}
 
 		// get user records
@@ -179,21 +186,21 @@ class bdBank_Model_Personal extends XenForo_Model
 		}
 
 		// calculate amount for each party
-		$fromAmount = -1 * $amount;
+		$fromAmount = bdBank_Helper_Number::mul($amount, -1);
 		$fromBalance = 0;
 		$fromBalanceAfter = 0;
 		$toAmount = $amount;
 		$taxAmount = $this->calculateTax($from, $to, $amount, $type, $options[bdBank_Model_Bank::TAX_MODE_KEY]);
 
-		if ($taxAmount > 0)
+		if (bdBank_Helper_Number::comp($taxAmount, 0) === 1)
 		{
 			switch ($options[bdBank_Model_Bank::TAX_MODE_KEY])
 			{
 				case bdBank_Model_Bank::TAX_MODE_RECEIVER_PAY:
-					$toAmount -= $taxAmount;
+					$toAmount = bdBank_Helper_Number::sub($toAmount, $taxAmount);
 					break;
 				case bdBank_Model_Bank::TAX_MODE_SENDER_PAY:
-					$fromAmount -= $taxAmount;
+					$fromAmount = bdBank_Helper_Number::sub($fromAmount, $taxAmount);
 					break;
 			}
 		}
@@ -202,14 +209,16 @@ class bdBank_Model_Personal extends XenForo_Model
 		if ($from > 0)
 		{
 			$fromBalance = $userFrom[self::field()];
+
 			// use the fromBalance from options if it exists
 			if ($options[bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE] !== false)
 			{
 				$fromBalance = $options[bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE];
 			}
-			$fromBalanceAfter = $fromBalance + $fromAmount;
 
-			if ($fromBalanceAfter < 0)
+			$fromBalanceAfter = bdBank_Helper_Number::add($fromBalance, $fromAmount);
+
+			if (bdBank_Helper_Number::comp($fromBalanceAfter, 0) === -1)
 			{
 				if ($isTesting OR $isReplaying)
 				{
@@ -236,9 +245,9 @@ class bdBank_Model_Personal extends XenForo_Model
 				$transaction = array(
 					'from_user_id' => $from,
 					'to_user_id' => $to,
-					'amount' => $toAmount + $taxAmount,
+					'amount' => bdBank_Helper_Number::add($toAmount, $taxAmount),
 					'tax_amount' => $taxAmount,
-					'comment' => (string)$comment,
+					'comment' => strval($comment),
 					'transaction_type' => $type,
 				);
 				$this->_bank->saveTransaction($transaction);

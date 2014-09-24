@@ -21,7 +21,7 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 
 		$input = $this->_input->filter(array(
 			'client_id' => XenForo_Input::STRING,
-			'amount' => XenForo_Input::FLOAT,
+			'amount' => XenForo_Input::STRING,
 			'currency' => XenForo_Input::STRING,
 			'display_name' => XenForo_Input::STRING,
 			'callback' => XenForo_Input::STRING,
@@ -30,7 +30,7 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 		));
 
 		$this->_clientId = $input['client_id'];
-		$this->_amount = strval($input['amount']);
+		$this->_amount = $input['amount'];
 		$this->_currencyUppercase = utf8_strtoupper($input['currency']);
 		$this->_currencyLowercase = utf8_strtolower($input['currency']);
 		$this->_displayName = $input['display_name'];
@@ -41,7 +41,7 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 		$exchangeRates = bdBank_Model_Bank::options('exchangeRates');
 		if (isset($exchangeRates[$this->_currencyLowercase]))
 		{
-			$this->_calculatedMoney = ceil(floatval($this->_amount) * $exchangeRates[$this->_currencyLowercase]);
+			$this->_calculatedMoney = bdBank_Helper_Number::mul($this->_amount, $exchangeRates[$this->_currencyLowercase]);
 		}
 		elseif ($this->_currencyLowercase == bdBank_bdPaygate_Processor::CURRENCY_BDBANK)
 		{
@@ -59,6 +59,7 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 			bdBank_Model_Bank::TRANSACTION_OPTION_TEST => true,
 			bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE => $balance,
 		);
+
 		try
 		{
 			$result = $personal->transfer($currentUserId, 0, $this->_calculatedMoney, $this->_displayName, bdBank_Model_Bank::TYPE_PERSONAL, true, $options);
@@ -77,8 +78,9 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 				throw $this->responseException($this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())), 503));
 			}
 		}
+
 		$this->_balanceAfter = $result['from_balance_after'];
-		if ($this->_balanceAfter < 0)
+		if (bdBank_Helper_Number::comp($this->_balanceAfter, 0) === -1)
 		{
 			// oops
 			throw $this->responseException($this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough', array(

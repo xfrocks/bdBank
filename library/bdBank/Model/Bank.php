@@ -26,8 +26,6 @@ class bdBank_Model_Bank extends XenForo_Model
 
 	const BALANCE_NOT_AVAILABLE = 'N/A';
 
-	const ROUTE_PREFIX_NOT_FOUND = 'no-route-for-bank-found';
-
 	const FETCH_USER = 0x01;
 
 	/**
@@ -75,22 +73,27 @@ class bdBank_Model_Bank extends XenForo_Model
 	 *
 	 * @param array $extraTabs the full array of extra tabs
 	 * @param string $tabId tab id of [bd] Banking
-	 * @param string $routePrefix the primary route prefix for [bd] Banking
 	 * controller (you should use it in links)
 	 */
-	public function prepareNavigationTab(array &$extraTabs, $tabId, $routePrefix)
+	public function prepareNavigationTab(array &$extraTabs, $tabId)
 	{
 		if (self::helperHasPermission(self::PERM_TRANSFER))
 		{
-			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/transfer")] = new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money')));
+			$href = XenForo_Link::buildPublicLink("full:bank/transfer");
+			$label = new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money')));
+			$extraTabs[$tabId]['links'][$href] = $label;
 		}
 		if (self::helperHasPermission(self::PERM_PURCHASE))
 		{
-			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/get-more")] = new XenForo_Phrase('bdbank_get_more_x', array('money' => new XenForo_Phrase('bdbank_money')));
+			$href = XenForo_Link::buildPublicLink("full:bank/get-more");
+			$label = new XenForo_Phrase('bdbank_get_more_x', array('money' => new XenForo_Phrase('bdbank_money')));
+			$extraTabs[$tabId]['links'][$href] = $label;
 		}
 		if (self::helperHasPermission(self::PERM_USE_ATTACHMENT_MANAGER))
 		{
-			$extraTabs[$tabId]['links'][XenForo_Link::buildPublicLink("full:$routePrefix/attachment-manager")] = new XenForo_Phrase('bdbank_attachment_manager');
+			$href = XenForo_Link::buildPublicLink("full:bank/attachment-manager");
+			$label = new XenForo_Phrase('bdbank_attachment_manager');
+			$extraTabs[$tabId]['links'][$href] = $label;
 		}
 	}
 
@@ -207,11 +210,7 @@ class bdBank_Model_Bank extends XenForo_Model
 					// new XenForo_Phrase('bdbank_explain_comment_bdbank_purchase');
 					// new XenForo_Phrase('bdbank_explain_comment_bdbank_purchase_revert');
 					$comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0], array('amount' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($parts[1]))));
-					$routePrefix = bdBank_Model_Bank::routePrefix();
-					if ($routePrefix != self::ROUTE_PREFIX_NOT_FOUND)
-					{
-						$link = XenForo_Link::buildPublicLink($routePrefix . '/get-more');
-					}
+					$link = XenForo_Link::buildPublicLink('bank/get-more');
 					break;
 			}
 		}
@@ -788,11 +787,6 @@ class bdBank_Model_Bank extends XenForo_Model
 		}
 
 		return XenForo_Application::get('options')->get('bdbank_' . $optionId);
-	}
-
-	public static function routePrefix()
-	{
-		return defined('BDBANK_PREFIX') ? BDBANK_PREFIX : self::ROUTE_PREFIX_NOT_FOUND;
 	}
 
 	/**

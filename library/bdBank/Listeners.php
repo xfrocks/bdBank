@@ -4,17 +4,6 @@ class bdBank_Listeners
 {
 	public static function init_dependencies(XenForo_Dependencies_Abstract $dependencies, array $data)
 	{
-		if ($dependencies instanceof XenForo_Dependencies_Public)
-		{
-			foreach ($data['routesPublic'] as $prefix => $route)
-			{
-				if ($route['route_class'] == 'bdBank_Route_Prefix_Public')
-				{
-					define('BDBANK_PREFIX', $prefix);
-				}
-			}
-		}
-
 		XenForo_Application::autoload('bdBank_Exception');
 		XenForo_Application::set('bdBank', XenForo_Model::create('bdBank_Model_Bank'));
 
@@ -33,10 +22,6 @@ class bdBank_Listeners
 		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_options'] = array(
 			'bdBank_Model_Bank',
 			'options'
-		);
-		XenForo_Template_Helper_Core::$helperCallbacks['bdbank_routeprefix'] = array(
-			'bdBank_Model_Bank',
-			'routePrefix'
 		);
 
 		XenForo_CacheRebuilder_Abstract::$builders['bdBank_Bonuses'] = 'bdBank_CacheRebuilder_Bonuses';
@@ -60,20 +45,18 @@ class bdBank_Listeners
 			if (XenForo_Template_Helper_Core::styleProperty('bdbank_navigationInsertNavtab') OR $selectedTabId == $tabId)
 			{
 				// only display the tab if it's enabled globally or user is accessing our pages
-				$routePrefix = bdBank_Model_Bank::routePrefix();
-
 				$extraTabs[$tabId] = array(
-					'href' => XenForo_Link::buildPublicLink("full:$routePrefix"),
+					'href' => XenForo_Link::buildPublicLink('full:bank'),
 					'title' => new XenForo_phrase('bdbank_bank'),
 					'linksTemplate' => 'bdbank_links',
 					'selected' => ($selectedTabId == $tabId),
 					'links' => array(
-						XenForo_Link::buildPublicLink("full:$routePrefix") => new XenForo_Phrase('bdbank_home'),
-						XenForo_Link::buildPublicLink("full:$routePrefix/history") => new XenForo_Phrase('bdbank_history'),
+						XenForo_Link::buildPublicLink("full:bank") => new XenForo_Phrase('bdbank_home'),
+						XenForo_Link::buildPublicLink("full:bank/history") => new XenForo_Phrase('bdbank_history'),
 					),
 				);
 
-				$bank->prepareNavigationTab($extraTabs, $tabId, $routePrefix);
+				$bank->prepareNavigationTab($extraTabs, $tabId);
 			}
 		}
 	}

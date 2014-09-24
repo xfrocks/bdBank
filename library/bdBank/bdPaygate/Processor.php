@@ -90,7 +90,7 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
 		$returnUrl = $this->_generateReturnUrl($extraData);
 		$callbackUrl = $this->_generateCallbackUrl($extraData);
 
-		$formAction = XenForo_Link::buildPublicLink(sprintf('full:%s/paygate', bdBank_Model_Bank::routePrefix()), null, array(
+		$formAction = XenForo_Link::buildPublicLink('full:bank/paygate', null, array(
 			'amount' => $amount,
 			'currency' => $currency,
 			'display_name' => $itemName,

@@ -7,7 +7,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 	{
 		// index has nothing
 		// temporary redirect to history page
-		return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/history'));
+		return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildPublicLink('bank/history'));
 
 		$viewParams = array();
 
@@ -84,7 +84,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
 			$page = ceil(($count + 1) / $transactionPerPage);
 
-			return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/history', null, array('page' => $page)) . '#transaction-' . $transaction['transaction_id']);
+			return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildPublicLink('bank/history', null, array('page' => $page)) . '#transaction-' . $transaction['transaction_id']);
 		}
 
 		$transactions = $bank->getTransactions($conditions, $fetchOptions);
@@ -97,7 +97,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
 		$viewParams = array(
 			'breadCrumbs' => array('history' => array(
-					'href' => XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/history'),
+					'href' => XenForo_Link::buildPublicLink('bank/history'),
 					'value' => new XenForo_Phrase('bdbank_history'),
 					'node_id' => 'history',
 				)),
@@ -108,7 +108,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			'transactionStartOffset' => ($page - 1) * $transactionPerPage + 1,
 			'transactionEndOffset' => ($page - 1) * $transactionPerPage + count($transactions),
 			'total' => $totalTransactions,
-			'pagenavLink' => bdBank_Model_Bank::routePrefix() . '/history',
+			'pagenavLink' => 'bank/history',
 		);
 
 		return $this->responseView('bdBank_ViewPublic_Bank_History', $isPopup ? 'bdbank_page_history_popup' : 'bdbank_page_history', $viewParams);
@@ -127,7 +127,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 		}
 
 		$formData = array();
-		$link = XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/transfer');
+		$link = XenForo_Link::buildPublicLink('bank/transfer');
 
 		$formData = $this->_input->filter(array(
 			'receivers' => XenForo_Input::STRING,
@@ -367,7 +367,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 				}
 			}
 
-			return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/history', '', array('transaction_id' => $transaction['transaction_id'])));
+			return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildPublicLink('bank/history', '', array('transaction_id' => $transaction['transaction_id'])));
 		}
 		else
 		{
@@ -431,9 +431,19 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			$itemName = new XenForo_Phrase('bdbank_purchase_x', array('item' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($amount))));
 			$itemId = $processorModel->generateItemId('bdbank_purchase', $visitor, array($amount));
 
-			$forms = bdPaygate_Processor_Abstract::prepareForms($processors, $cost, $currency, $itemName, $itemId, false, false,
-			// // recurring
-			array(bdPaygate_Processor_Abstract::EXTRA_RETURN_URL => XenForo_Link::buildPublicLink('full:' . bdBank_Model_Bank::routePrefix() . '/get-more-complete'), ));
+			$forms = call_user_func_array(array(
+				'bdPaygate_Processor_Abstract',
+				'prepareForms'
+			), array(
+				$processors,
+				$cost,
+				$currency,
+				$itemName,
+				$itemId,
+				false,
+				false,
+				array(bdPaygate_Processor_Abstract::EXTRA_RETURN_URL => XenForo_Link::buildPublicLink('full:bank/get-more-complete'))
+			));
 
 			if (isset($forms['bdbank']))
 			{
@@ -520,7 +530,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
 		return $this->responseView('bdBank_ViewPublic_Bank_AttachmentManager', 'bdbank_page_attachment_manager', array(
 			'breadCrumbs' => array('attachment_manager' => array(
-					'href' => XenForo_Link::buildPublicLink(bdBank_Model_Bank::routePrefix() . '/attachment-manager'),
+					'href' => 'bank/attachment-manager',
 					'value' => new XenForo_Phrase('bdbank_attachment_manager'),
 					'node_id' => 'attachment_manager',
 				)),
@@ -533,7 +543,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 			'attachmentStartOffset' => ($page - 1) * $attachmentPerPage + 1,
 			'attachmentEndOffset' => ($page - 1) * $attachmentPerPage + count($attachments),
 			'totalAttachments' => $totalAttachments,
-			'pagenavLink' => bdBank_Model_Bank::routePrefix() . '/attachment-manager',
+			'pagenavLink' => 'bank/attachment-manager',
 		));
 	}
 

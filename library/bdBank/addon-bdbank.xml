@@ -827,9 +827,9 @@ form.AttachmentManager {
 		</ul>
 	</dd>
 </dl>]]></template>
-    <template title="bdbank_alert_transaction_transfer" version_id="6" version_string="0.9.6"><![CDATA[{xen:phrase bdbank_alert_transaction_transfer,
+    <template title="bdbank_alert_transaction_transfer" version_id="20" version_string="1.0-dev"><![CDATA[{xen:phrase bdbank_alert_transaction_transfer,
 	'username={xen:helper username, $user, 'subject'}',
-	'amount=<a href="{xen:link '{xen:helper bdBank_routePrefix}/history', '', 'transaction_id={$content.transaction_id}'}" class="PopupItemLink">{xen:helper bdBank_balanceFormat, $content.amount}</a>'}]]></template>
+	'amount=<a href="{xen:link 'bank/history', '', 'transaction_id={$content.transaction_id}'}" class="PopupItemLink">{xen:helper bdBank_balanceFormat, $content.amount}</a>'}]]></template>
     <template title="bdbank_info" version_id="6" version_string="0.9.6"><![CDATA[<div class="sectionMain">
 <dl class="pairsInline">
 	<dt>{xen:phrase bdbank_your_balance}:</dt>
@@ -842,57 +842,57 @@ form.AttachmentManager {
 	<li><a href="{$href}">{$title}</a></li>
 	</xen:foreach>
 </ul>]]></template>
-    <template title="bdbank_member_view_info_block" version_id="18" version_string="1.0-dev"><![CDATA[<xen:if is="{$user.bdbank_show_money}">
+    <template title="bdbank_member_view_info_block" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{$user.bdbank_show_money}">
 	<xen:if is="{$xenAddOns}"><dl></xen:if>
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
 			<xen:if is="{$user.user_id} != {$visitor.user_id}">
-				<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
+				<a href="{xen:link 'bank/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
 			<xen:else />
 				<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>
 			</xen:if>
 		</dd>
 	<xen:if is="{$xenAddOns}"></dl></xen:if>
 </xen:if>]]></template>
-    <template title="bdbank_message_user_info_extra" version_id="16" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
+    <template title="bdbank_message_user_info_extra" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
 	<xen:require js="js/bdBank/transfer.js" />
 
 	<dl class="pairsInline">
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
 			<xen:if is="{$user.user_id} != {$visitor.user_id} AND {xen:helper bdBank_hasPermission, transfer}">
-				<a href="{xen:link '{xen:helper bdBank_routePrefix}/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
+				<a href="{xen:link 'bank/transfer', '', 'to={$user.username}', 'rtn=ref'}" title="{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}" class="Tooltip OverlayTrigger bdBank_Balance" data-cacheOverlay="no" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</a>
 			<xen:else />
 				<span class="bdBank_Balance" data-userid="{$user.user_id}" data-balance="{xen:helper bdBank_balance, $user}">{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $user}}</span>
 			</xen:if>
 		</dd>
 	</dl>
 </xen:if>]]></template>
-    <template title="bdbank_navigation_visitor_tabs_end" version_id="6" version_string="0.9.6"><![CDATA[<xen:if is="{xen:property bdbank_navigationShowMoney}">
+    <template title="bdbank_navigation_visitor_tabs_end" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_navigationShowMoney}">
 	<xen:require js="js/bdBank/transfer.js" />
 
 	<li class="navTab bdBank_NavigationBalance Popup PopupControl PopupClosed">						
-		<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}" rel="Menu" class="navLink NoPopupGadget">{xen:phrase bdbank_money}:
+		<a href="{xen:link 'bank/history'}" rel="Menu" class="navLink NoPopupGadget">{xen:phrase bdbank_money}:
 			<span class="bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
 				{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $visitor}}
 			</span>
 		</a>
 		
 		<div class="Menu JsOnly navPopup" id="bdBank_NavigationBalanceMenu"
-			data-contentSrc="{xen:link '{xen:helper bdBank_routePrefix}/history-popup'}"
+			data-contentSrc="{xen:link 'bank/history-popup'}"
 			data-contentDest="#bdBank_NavigationBalanceMenu .listPlaceholder">
 			
 			<div class="menuHeader primaryContent">
 				<h3>
 					<span class="Progress InProgress"></span>
-					<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}" class="concealed">{xen:phrase bdbank_history}</a>
+					<a href="{xen:link 'bank/history'}" class="concealed">{xen:phrase bdbank_history}</a>
 				</h3>
 			</div>
 			
 			<div class="listPlaceholder"></div>
 			
 			<div class="sectionFooter">
-				<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}">{xen:phrase show_all}...</a>
+				<a href="{xen:link 'bank/history'}">{xen:phrase show_all}...</a>
 			</div>
 		</div>
 	</li>
@@ -1055,7 +1055,7 @@ form.AttachmentManager {
 </div>
 
 <xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perPage}" total="{$total}" />]]></template>
-    <template title="bdbank_page_history_popup" version_id="11" version_string="0.10"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_page_history_popup" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_history}</xen:title>
 
@@ -1072,7 +1072,7 @@ form.AttachmentManager {
 
 					<div class="listItemText">
 						<h3 class="title">
-							<xen:set var="$aTagOpen"><a href="{xen:if '{$transaction.comment_link}', '{$transaction.comment_link}', '{xen:link '{xen:helper bdBank_routePrefix}/history', '', 'transaction_id={$transaction.transaction_id}'}'}" class="PopupItemLink"></xen:set>
+							<xen:set var="$aTagOpen"><a href="{xen:if '{$transaction.comment_link}', '{$transaction.comment_link}', '{xen:link 'bank/history', '', 'transaction_id={$transaction.transaction_id}'}'}" class="PopupItemLink"></xen:set>
 							<xen:if is="{$transaction.is_sending}">
 								{xen:phrase bdbank_you_sent_x_to_y, 'amount={xen:raw $aTagOpen}{xen:helper bdBank_balanceFormat, $transaction.amount}</a>', 'receiver={$transaction.other_user.username}'}
 							<xen:else />
@@ -1094,10 +1094,10 @@ form.AttachmentManager {
     <template title="bdbank_page_index" version_id="1" version_string="beta"><![CDATA[<xen:title>{xen:phrase bdbank_bank}</xen:title>
 
 <xen:include template="bdbank_info" />]]></template>
-    <template title="bdbank_page_paygate" version_id="19" version_string="1.0-dev"><![CDATA[<xen:title>{xen:phrase bdbank_pay}: {$displayName}</xen:title>
+    <template title="bdbank_page_paygate" version_id="20" version_string="1.0-dev"><![CDATA[<xen:title>{xen:phrase bdbank_pay}: {$displayName}</xen:title>
 <xen:h1>{$displayName}</xen:h1>
 
-<form action="{xen:link '{xen:helper bdBank_routePrefix}/paygate-pay'}" method="post" class="xenForm AutoValidator formOverlay" data-redirect="1">
+<form action="{xen:link 'bank/paygate-pay'}" method="post" class="xenForm AutoValidator formOverlay" data-redirect="1">
 	<dl class="ctrlUnit">
 		<dt>{xen:phrase bdbank_pay_for}:</dt>
 		<dd><ol>
@@ -1133,11 +1133,11 @@ form.AttachmentManager {
 
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 </form>]]></template>
-    <template title="bdbank_page_refund" version_id="11" version_string="0.10"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+    <template title="bdbank_page_refund" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
 
 <xen:title>{xen:phrase bdbank_refund}</xen:title>
 
-<form action="{xen:link '{xen:helper bdBank_routePrefix}/refund'}" method="post" class="xenForm AutoValidator formOverlay" data-redirect="1">
+<form action="{xen:link 'bank/refund'}" method="post" class="xenForm AutoValidator formOverlay" data-redirect="1">
 	<dl class="ctrlUnit">
 		<dt>{xen:phrase bdbank_transfer_trying_refund_to}:</dt>
 		<dd>{$transaction.from_user.username}</dd>
@@ -1256,19 +1256,19 @@ form.AttachmentManager {
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 	<input type="hidden" name="rtn" value="{$formData.rtn}" />
 </form>]]></template>
-    <template title="bdbank_sidebar_visitor_panel_stats" version_id="17" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_visitorPanelShowMoney}">
+    <template title="bdbank_sidebar_visitor_panel_stats" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_visitorPanelShowMoney}">
 	<xen:require js="js/bdBank/transfer.js" />
 
 	<dl class="pairsJustified">
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
-			<a href="{xen:link '{xen:helper bdBank_routePrefix}/history'}" title="{xen:phrase bdbank_history}" class="Tooltip bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
+			<a href="{xen:link 'bank/history'}" title="{xen:phrase bdbank_history}" class="Tooltip bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
 				{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $visitor}}
 			</a>
 		</dd>
 	</dl>
 </xen:if>]]></template>
-    <template title="bdbank_transaction_list_item" version_id="11" version_string="0.10"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_transaction_list_item" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <li id="transaction-{$transaction.transaction_id}" class="transactionListItem">
 	<div class="listBlock sender">
@@ -1322,7 +1322,7 @@ form.AttachmentManager {
 				<a href="{$transaction.comment_link}" target="_blank">{xen:phrase bdbank_comment_goto}</a>
 			</xen:if>
             <xen:if is="{$transaction.canRefund}">
-                <a href="{xen:link '{xen:helper bdBank_routePrefix}/refund', '', 'transaction_id={$transaction.transaction_id}'}" class="OverlayTrigger">{xen:phrase bdbank_refund}</a>
+                <a href="{xen:link 'bank/refund', '', 'transaction_id={$transaction.transaction_id}'}" class="OverlayTrigger">{xen:phrase bdbank_refund}</a>
             </xen:if>
 		</div>
 	</div>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="20" url="" install_callback_class="bdBank_Setup" install_callback_method="Install" uninstall_callback_class="bdBank_Setup" uninstall_callback_method="Uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0-dev" version_id="20" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -10,35 +10,37 @@
   </admin_permissions>
   <admin_style_properties/>
   <admin_templates>
-    <template title="bdbank_admin_forum_edit_panes"><![CDATA[<li><xen:hook name="bdbank_admin_forum_edit_panes">
-	<xen:controlunit label="{xen:phrase option_bdbank_bonus_thread}" explain="{xen:phrase option_bdbank_bonus_thread_explain}">
-		<xen:checkbox>
-			<xen:option
-				name="_bdbank_options[bonus_thread]"
-				value=""
-				label="{xen:phrase bdbank_use_forum_based_value_instead_of_default_x, 'value={$xenOptions.bdbank_bonus_thread}'}"
-				selected="isset({$bdBankOptions.bonus_thread}) AND {$bdBankOptions.bonus_thread} !== ''"
-				inputclass="Disabler" id="bdbank_bonus_thread" />
-		</xen:checkbox>
-		<div id="bdbank_bonus_thread_Disabler">
-			<xen:textbox name="bdbank_options[bonus_thread]" value="{$bdBankOptions.bonus_thread}" />
-		</div>
-	</xen:controlunit>
-	
-	<xen:controlunit label="{xen:phrase option_bdbank_bonus_post}" explain="{xen:phrase option_bdbank_bonus_post_explain}">
-		<xen:checkbox>
-			<xen:option
-				name="_bdbank_options[bonus_post]"
-				value=""
-				label="{xen:phrase bdbank_use_forum_based_value_instead_of_default_x, 'value={$xenOptions.bdbank_bonus_post}'}"
-				selected="isset({$bdBankOptions.bonus_post}) AND {$bdBankOptions.bonus_post} !== ''"
-				inputclass="Disabler" id="bdbank_bonus_post" />
-		</xen:checkbox>
-		<div id="bdbank_bonus_post_Disabler">
-			<xen:textbox name="bdbank_options[bonus_post]" value="{$bdBankOptions.bonus_post}" />
-		</div>
-	</xen:controlunit>
-</xen:hook></li>]]></template>
+    <template title="bdbank_admin_forum_edit_panes"><![CDATA[<li>
+	<xen:hook name="bdbank_admin_forum_edit_panes">
+		<xen:controlunit label="{xen:phrase option_bdbank_bonus_thread}" explain="{xen:phrase option_bdbank_bonus_thread_explain}">
+			<xen:checkbox>
+				<xen:option
+					name="_bdbank_options[bonus_thread]"
+					value=""
+					label="{xen:phrase bdbank_use_forum_based_value_instead_of_default_x, 'value={$xenOptions.bdbank_bonus_thread}'}"
+					selected="isset({$bdBankOptions.bonus_thread}) AND {$bdBankOptions.bonus_thread} !== ''"
+					inputclass="Disabler" id="bdbank_bonus_thread" />
+			</xen:checkbox>
+			<div id="bdbank_bonus_thread_Disabler">
+				<xen:textbox name="bdbank_options[bonus_thread]" value="{$bdBankOptions.bonus_thread}" />
+			</div>
+		</xen:controlunit>
+
+		<xen:controlunit label="{xen:phrase option_bdbank_bonus_post}" explain="{xen:phrase option_bdbank_bonus_post_explain}">
+			<xen:checkbox>
+				<xen:option
+					name="_bdbank_options[bonus_post]"
+					value=""
+					label="{xen:phrase bdbank_use_forum_based_value_instead_of_default_x, 'value={$xenOptions.bdbank_bonus_post}'}"
+					selected="isset({$bdBankOptions.bonus_post}) AND {$bdBankOptions.bonus_post} !== ''"
+					inputclass="Disabler" id="bdbank_bonus_post" />
+			</xen:checkbox>
+			<div id="bdbank_bonus_post_Disabler">
+				<xen:textbox name="bdbank_options[bonus_post]" value="{$bdBankOptions.bonus_post}" />
+			</div>
+		</xen:controlunit>
+	</xen:hook>
+</li>]]></template>
     <template title="bdbank_admin_forum_edit_tabs"><![CDATA[<li><a>{xen:phrase bdbank_bd_banking}</a></li>]]></template>
     <template title="bdbank_history"><![CDATA[<xen:if is="{$isArchive}">
 	<xen:navigation>
@@ -184,21 +186,51 @@
 	</li>]]></template>
     <template title="bdbank_user_edit_privacy"><![CDATA[<xen:checkboxunit label="&nbsp;">
 	<xen:option name="bdbank_show_money" selected="{$user.bdbank_show_money}">{xen:phrase bdbank_privacy_show_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</xen:option>
-</xen:checkboxunit>
-
-<!-- [bd] Banking / Mark -->
-<fieldset>
-<!-- [bd] Banking / Mark -->]]></template>
+</xen:checkboxunit>]]></template>
     <template title="bdbank_user_edit_profile_info"><![CDATA[<xen:if is="{xen:helper bdBank_options, field} == 'bdbank_money'">
 	<fieldset>
 		<xen:spinboxunit label="{xen:phrase bdbank_money}:" name="bdbank_money" value="{xen:helper bdBank_balance, $user}" min="0" />
 		<input type="hidden" name="bdbank_money_included" value="1" />
 	</fieldset>
-
-	<!-- [bd] Banking / Mark --></li><!-- [bd] Banking / Mark -->
 </xen:if>]]></template>
   </admin_templates>
-  <admin_template_modifications/>
+  <admin_template_modifications>
+    <modification template="forum_edit" modification_key="admin_forum_edit_panes" description="Insert pane in forum edit." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<!-- slot: after_available_prefixes_none -->.+?)(</ul>[^<]+<xen:submitunit)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_admin_forum_edit_panes" />
+$2]]></replace>
+    </modification>
+    <modification template="forum_edit" modification_key="bdbank_admin_forum_edit_tabs" description="Insert tab in forum edit." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="admin_forum_edit_tabs".+?)(</xen:hook>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_admin_forum_edit_tabs" />
+$2]]></replace>
+    </modification>
+    <modification template="tools_rebuild" modification_key="bdbank_tools_rebuild" description="Insert rebuild tools." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#^.+$#s]]></find>
+      <replace><![CDATA[$0
+<xen:include template="bdbank_tools_rebuild" />]]></replace>
+    </modification>
+    <modification template="helper_criteria_user" modification_key="bdbank_user_criteria_content" description="Insert money field in user criteria." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="user_criteria_content".+?)(</xen:hook>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_user_criteria_content" />
+$2]]></replace>
+    </modification>
+    <modification template="user_edit" modification_key="bdbank_user_edit_privacy" description="Insert user privacy fields." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="admin_user_edit_panes">.+?<!-- slot: pre_privacy -->.+?)(<fieldset>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_user_edit_privacy" />
+$2]]></replace>
+    </modification>
+    <modification template="user_edit" modification_key="bdbank_user_edit_profile_info" description="Insert user money field." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="admin_user_edit_panes">.+?<!-- slot: pre_profile_info -->.+?)(</li>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_user_edit_profile_info" />
+$2]]></replace>
+    </modification>
+  </admin_template_modifications>
   <code_events/>
   <code_event_listeners>
     <listener event_id="bdshop_register_pricing" execute_order="10" callback_class="bdBank_Listeners" callback_method="bdshop_register_pricing" active="1" hint="" description=""/>
@@ -210,10 +242,6 @@
     <listener event_id="load_class_importer" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class_importer" active="1" hint="" description=""/>
     <listener event_id="load_class_model" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" hint="" description=""/>
     <listener event_id="navigation_tabs" execute_order="10" callback_class="bdBank_Listeners" callback_method="navigation_tabs" active="1" hint="" description=""/>
-    <listener event_id="template_create" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_create" active="1" hint="" description=""/>
-    <listener event_id="template_hook" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_hook" active="1" hint="" description=""/>
-    <listener event_id="template_post_render" execute_order="10" callback_class="bdBank_Listeners" callback_method="template_post_render" active="1" hint="" description=""/>
-    <listener event_id="visitor_setup" execute_order="10" callback_class="bdBank_Listeners" callback_method="visitor_setup" active="1" hint="" description=""/>
   </code_event_listeners>
   <cron>
     <entry entry_id="bdbank_statsRichest" cron_class="bdBank_CronEntry_Stats" cron_method="rebuildRichest" active="1"><![CDATA[{"day_type":"dom","dom":["-1"],"hours":["-1"],"minutes":["0","30"]}]]></entry>
@@ -535,12 +563,14 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     <phrase title="permission_interface_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="style_property_bdbank_messageShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information.]]></phrase>
     <phrase title="style_property_bdbank_messageShowMoney_master" version_id="3" version_string="beta 3"><![CDATA[Show Author Money]]></phrase>
-    <phrase title="style_property_bdbank_navigationInsertNavtab_description_master" version_id="6" version_string="0.9.6"><![CDATA[Automatically insert a tab to the navigation bar to let users quickly access Banking functions (add-on: [bd] Banking).]]></phrase>
+    <phrase title="style_property_bdbank_navigationInsertNavtab_description_master" version_id="20" version_string="1.0-dev"><![CDATA[Insert a tab to the navigation bar.]]></phrase>
     <phrase title="style_property_bdbank_navigationInsertNavtab_master" version_id="6" version_string="0.9.6"><![CDATA[Insert "Bank" tab]]></phrase>
-    <phrase title="style_property_bdbank_navigationShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the logged in visitor in the visitor panel right next to Alerts on every page (add-on: [bd] Banking).]]></phrase>
-    <phrase title="style_property_bdbank_navigationShowMoney_master" version_id="6" version_string="0.9.6"><![CDATA[Show Visitor Money]]></phrase>
-    <phrase title="style_property_bdbank_visitorPanelShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the logged in visitor in the visitor panel at the top of sidebar on every page (add-on: [bd] Banking).]]></phrase>
-    <phrase title="style_property_bdbank_visitorPanelShowMoney_master" version_id="6" version_string="0.9.6"><![CDATA[Show Visitor Money]]></phrase>
+    <phrase title="style_property_bdbank_navigationShowMoney_description_master" version_id="20" version_string="1.0-dev"><![CDATA[Insert a tab next to the Alerts tab. The tab will display user balance and allow quick access to transaction history.]]></phrase>
+    <phrase title="style_property_bdbank_navigationShowMoney_master" version_id="20" version_string="1.0-dev"><![CDATA[Insert "Money" tab]]></phrase>
+    <phrase title="style_property_bdbank_visitorPanelShowMoney_description_master" version_id="20" version_string="1.0-dev"><![CDATA[Display user balance in the visitor panel at the top of sidebar.]]></phrase>
+    <phrase title="style_property_bdbank_visitorPanelShowMoney_master" version_id="20" version_string="1.0-dev"><![CDATA[Show money in Visitor Panel]]></phrase>
+    <phrase title="style_property_group_bdBank_master" version_id="20" version_string="1.0-dev"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="style_property_group_bdBank_master_desc" version_id="20" version_string="1.0-dev"><![CDATA[Style properties for bank elements]]></phrase>
   </phrases>
   <route_prefixes>
     <route_type type="admin">
@@ -552,9 +582,13 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
   </route_prefixes>
   <style_properties>
     <property property_name="bdbank_messageShowMoney" property_type="scalar" definition="1" group_name="message" title="Show Author Money" description="Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information." css_components="" scalar_type="boolean" scalar_parameters="" display_order="9999" sub_group="User Info"><![CDATA[1]]></property>
-    <property property_name="bdbank_navigationInsertNavtab" property_type="scalar" definition="1" group_name="header" title="Insert &quot;Bank&quot; tab" description="Automatically insert a tab to the navigation bar to let users quickly access Banking functions (add-on: [bd] Banking)." css_components="" scalar_type="boolean" scalar_parameters="" display_order="1000" sub_group="bdbank"><![CDATA[1]]></property>
-    <property property_name="bdbank_visitorPanelShowMoney" property_type="scalar" definition="1" group_name="sidebar" title="Show Visitor Money" description="Display the amount of money of the logged in visitor in the visitor panel at the top of sidebar on every page (add-on: [bd] Banking)." css_components="" scalar_type="boolean" scalar_parameters="" display_order="9999" sub_group="Visitor Panel"><![CDATA[0]]></property>
-    <property property_name="bdbank_navigationShowMoney" property_type="scalar" definition="1" group_name="header" title="Show Visitor Money" description="Display the amount of money of the logged in visitor in the visitor panel right next to Alerts on every page (add-on: [bd] Banking)." css_components="" scalar_type="boolean" scalar_parameters="" display_order="2000" sub_group="bdbank"><![CDATA[1]]></property>
+    <property property_name="bdbank_navigationInsertNavtab" property_type="scalar" definition="1" group_name="bdBank" title="Insert &quot;Bank&quot; tab" description="Insert a tab to the navigation bar." css_components="" scalar_type="boolean" scalar_parameters="" display_order="10" sub_group="navigation"><![CDATA[1]]></property>
+    <property property_name="bdbank_visitorPanelShowMoney" property_type="scalar" definition="1" group_name="bdBank" title="Show money in Visitor Panel" description="Display user balance in the visitor panel at the top of sidebar." css_components="" scalar_type="boolean" scalar_parameters="" display_order="30" sub_group="sidebar"><![CDATA[1]]></property>
+    <property property_name="bdbank_navigationShowMoney" property_type="scalar" definition="1" group_name="bdBank" title="Insert &quot;Money&quot; tab" description="Insert a tab next to the Alerts tab. The tab will display user balance and allow quick access to transaction history." css_components="" scalar_type="boolean" scalar_parameters="" display_order="20" sub_group="navigation"><![CDATA[1]]></property>
+    <group group_name="bdBank" display_order="9999">
+      <title>[bd] Banking</title>
+      <description>Style properties for bank elements</description>
+    </group>
   </style_properties>
   <templates>
     <template title="bdbank.css" version_id="4" version_string="0.9.4"><![CDATA[/* TRANSACTION LIST */
@@ -782,7 +816,8 @@ form.AttachmentManager {
 	form.AttachmentManager .price .textCtrl {
 		width: 80%;
 	}]]></template>
-    <template title="bdbank_accounts" version_id="6" version_string="0.9.6"><![CDATA[<dl class="pairsInline">
+    <template title="bdbank_accounts" version_id="20" version_string="1.0-dev"><![CDATA[<xen:comment>
+<dl class="pairsInline">
 	<dt>{xen:phrase bdbank_your_accounts}:</dt>
 	<dd>
 	<xen:if hascontent="true">
@@ -797,7 +832,8 @@ form.AttachmentManager {
 	{xen:phrase bdbank_none}
 	</xen:if>
 	</dd>
-</dl>]]></template>
+</dl>
+</xen:comment>]]></template>
     <template title="bdbank_account_alerts_extra" version_id="6" version_string="0.9.6"><![CDATA[<h3 class="sectionHeader">{xen:phrase bdbank_bank}</h3>
 <dl class="ctrlUnit">
 	<dt>{xen:phrase receive_alert_when_someone}...</dt>
@@ -837,10 +873,22 @@ form.AttachmentManager {
 </dl>
 <xen:include template="bdbank_accounts" />
 </div>]]></template>
-    <template title="bdbank_links" version_id="1" version_string="beta"><![CDATA[<ul class="secondaryContent blockLinksList">
-	<xen:foreach loop="$links" key="$href" value="$title">
-	<li><a href="{$href}">{$title}</a></li>
-	</xen:foreach>
+    <template title="bdbank_links" version_id="20" version_string="1.0-dev"><![CDATA[<ul class="secondaryContent blockLinksList">
+	<xen:hook name="bdbank_links">
+	<li><a href="{xen:link full:bank/history}">{xen:phrase bdbank_history}</a></li>
+
+	<xen:if is="{xen:helper bdBank_hasPermission, bdbank_transfer}">
+		<li><a href="{xen:link full:bank/transfer}">{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</a></li>
+	</xen:if>
+
+	<xen:if is="{xen:helper bdBank_hasPermission, bdbank_purchase}">
+		<li><a href="{xen:link full:bank/get-more}">{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</a></li>
+	</xen:if>
+
+	<xen:if is="{xen:helper bdBank_hasPermission, bdbank_use_attach_manager}">
+		<li><a href="{xen:link full:bank/attachment-manager}">{xen:phrase bdbank_attachment_manager}</a></li>
+	</xen:if>
+	</xen:hook>
 </ul>]]></template>
     <template title="bdbank_member_view_info_block" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{$user.bdbank_show_money}">
 	<xen:if is="{$xenAddOns}"><dl></xen:if>
@@ -919,13 +967,9 @@ form.AttachmentManager {
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 	<input type="hidden" name="_xfConfirm" value="1" />
 </form>]]></template>
-    <template title="bdbank_page_attachment_manager" version_id="4" version_string="0.9.4"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_page_attachment_manager" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_attachment_manager}</xen:title>
-
-<xen:navigation>
-	<xen:breadcrumb source="$breadCrumbs" />
-</xen:navigation>
 
 <form method="post" class="AttachmentManager">
 <div class="attachmentList section sectionMain">
@@ -978,7 +1022,7 @@ form.AttachmentManager {
 </div>
 </form>
 
-<xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perpage}" total="{$totalAttachments}" />]]></template>
+<xen:pagenav link="{xen:link bank/attachment-manager}" page="{$page}" perpage="{$perpage}" total="{$totalAttachments}" />]]></template>
     <template title="bdbank_page_get_more_bdpaygate" version_id="14" version_string="0.11.2"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
 
 <xen:require css="account_upgrades.css" />
@@ -1015,13 +1059,9 @@ form.AttachmentManager {
 <p>{xen:phrase bdbank_thank_you_for_purchasing}</p>
 
 <p>{xen:phrase bdbank_when_payment_has_been_approved_fund_will_be_transfered}</p>]]></template>
-    <template title="bdbank_page_history" version_id="6" version_string="0.9.6"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_page_history" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_history}</xen:title>
-
-<xen:navigation>
-	<xen:breadcrumb source="$breadCrumbs" />
-</xen:navigation>
 
 <xen:include template="bdbank_info" />
 
@@ -1054,7 +1094,7 @@ form.AttachmentManager {
 	</xen:if>
 </div>
 
-<xen:pagenav link="{$pagenavLink}" page="{$page}" perpage="{$perPage}" total="{$total}" />]]></template>
+<xen:pagenav link="{xen:link bank/history}" page="{$page}" perpage="{$perPage}" total="{$total}" />]]></template>
     <template title="bdbank_page_history_popup" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
 
 <xen:title>{xen:phrase bdbank_history}</xen:title>
@@ -1157,15 +1197,11 @@ form.AttachmentManager {
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 	<input type="hidden" name="_xfConfirm" value="1" />
 </form>]]></template>
-    <template title="bdbank_page_transfer" version_id="11" version_string="0.10"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
+    <template title="bdbank_page_transfer" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require js="js/bdBank/transfer.js" />
 
 <xen:title>{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:title>
 
-<xen:navigation>
-	<xen:breadcrumb source="$breadCrumbs" />
-</xen:navigation>
-
-<form action="{$formAction}" method="post" class="xenForm AutoValidator formOverlay Transfer" data-redirect="yes">
+<form action="{xen:link bank/transfer}" method="post" class="xenForm AutoValidator formOverlay Transfer" data-redirect="yes">
 	<dl class="ctrlUnit">
 		<dt><label for="ctrl_receivers">{xen:phrase bdbank_transfer_receivers}:</label></dt>
 		<dd>
@@ -1213,10 +1249,10 @@ form.AttachmentManager {
 <xen:title>{xen:phrase bdbank_transfer_confirm}</xen:title>
 
 <xen:navigation>
-	<xen:breadcrumb source="$breadCrumbs" />
+	<xen:breadcrumb href="{xen:link bank/transfer}">{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:breadcrumb>
 </xen:navigation>
 
-<form action="{$formAction}" method="post" class="xenForm AutoValidator formOverlay TransferConfirm" data-redirect="1">
+<form action="{xen:link bank/transfer}" method="post" class="xenForm AutoValidator formOverlay TransferConfirm" data-redirect="1">
 	<dl class="ctrlUnit">
 		<dt>{xen:phrase bdbank_transfer_trying_transfer_to}:</dt>
 		<dd><ol>
@@ -1262,7 +1298,7 @@ form.AttachmentManager {
 	<dl class="pairsJustified">
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
-			<a href="{xen:link 'bank/history'}" title="{xen:phrase bdbank_history}" class="Tooltip bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
+			<a href="{xen:link 'bank/history'}" class="bdBank_Balance" data-userid="{$visitor.user_id}" data-balance="{xen:helper bdBank_balance, $visitor}">
 				{xen:helper bdBank_balanceFormat, {xen:helper bdBank_balance, $visitor}}
 			</a>
 		</dd>
@@ -1341,7 +1377,42 @@ form.AttachmentManager {
 	</div>
 </li>]]></template>
   </templates>
-  <public_template_modifications/>
+  <public_template_modifications>
+    <modification template="account_alert_preferences" modification_key="bdbank_account_alerts_extra" description="Insert alert opt-out checkboxes." execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[<xen:hook name="account_alerts_extra" />]]></find>
+      <replace><![CDATA[$0
+<xen:include template="bdbank_account_alerts_extra" />]]></replace>
+    </modification>
+    <modification template="account_privacy" modification_key="bdbank_account_privacy_top" description="Insert privacy options." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="account_privacy_top".+?)(</xen:hook>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_account_privacy_top" />
+$2]]></replace>
+    </modification>
+    <modification template="member_view" modification_key="bdbank_member_view_info_block" description="Show user balance in profile." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="member_view_info_block".+?)(</xen:hook>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_member_view_info_block" />
+$2]]></replace>
+    </modification>
+    <modification template="message_user_info" modification_key="bdbank_message_user_info_extra" description="Show user balance in messages." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="message_user_info_extra".+?)(</xen:hook>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_message_user_info_extra" />
+$2]]></replace>
+    </modification>
+    <modification template="navigation_visitor_tab" modification_key="bdbank_navigation_visitor_tabs_end" description="Insert &quot;Money&quot; tab." execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[<xen:hook name="navigation_visitor_tabs_end" />]]></find>
+      <replace><![CDATA[$0
+<xen:include template="bdbank_navigation_visitor_tabs_end" />]]></replace>
+    </modification>
+    <modification template="sidebar_visitor_panel" modification_key="bdbank_sidebar_visitor_panel_stats" description="Show user balance in visitor panel." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:hook name="sidebar_visitor_panel_stats".*?>)(.+?</xen:hook>)#s]]></find>
+      <replace><![CDATA[$1
+<xen:include template="bdbank_sidebar_visitor_panel_stats" />
+$2]]></replace>
+    </modification>
+  </public_template_modifications>
   <bb_code_media_sites/>
   <bb_codes/>
 </addon>

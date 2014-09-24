@@ -68,35 +68,6 @@ class bdBank_Model_Bank extends XenForo_Model
 		return false;
 	}
 
-	/**
-	 * Called from the listener to do extra stuff with the navigation tab
-	 *
-	 * @param array $extraTabs the full array of extra tabs
-	 * @param string $tabId tab id of [bd] Banking
-	 * controller (you should use it in links)
-	 */
-	public function prepareNavigationTab(array &$extraTabs, $tabId)
-	{
-		if (self::helperHasPermission(self::PERM_TRANSFER))
-		{
-			$href = XenForo_Link::buildPublicLink("full:bank/transfer");
-			$label = new XenForo_Phrase('bdbank_transfer', array('money' => new XenForo_Phrase('bdbank_money')));
-			$extraTabs[$tabId]['links'][$href] = $label;
-		}
-		if (self::helperHasPermission(self::PERM_PURCHASE))
-		{
-			$href = XenForo_Link::buildPublicLink("full:bank/get-more");
-			$label = new XenForo_Phrase('bdbank_get_more_x', array('money' => new XenForo_Phrase('bdbank_money')));
-			$extraTabs[$tabId]['links'][$href] = $label;
-		}
-		if (self::helperHasPermission(self::PERM_USE_ATTACHMENT_MANAGER))
-		{
-			$href = XenForo_Link::buildPublicLink("full:bank/attachment-manager");
-			$label = new XenForo_Phrase('bdbank_attachment_manager');
-			$extraTabs[$tabId]['links'][$href] = $label;
-		}
-	}
-
 	public function getActionBonus($action, $extraData = array())
 	{
 		// I prefer a static method

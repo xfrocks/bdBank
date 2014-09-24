@@ -28,17 +28,9 @@ class bdBank_Listeners
 		XenForo_CacheRebuilder_Abstract::$builders['bdBank_User'] = 'bdBank_CacheRebuilder_User';
 	}
 
-	public static function visitor_setup(XenForo_Visitor &$visitor)
-	{
-		// temporary do nothing
-	}
-
 	public static function navigation_tabs(array &$extraTabs, $selectedTabId)
 	{
-		$visitor = XenForo_Visitor::getInstance();
-		$bank = bdBank_Model_Bank::getInstance();
-
-		if ($visitor->get('user_id'))
+		if (XenForo_Visitor::getUserId() > 0)
 		{
 			$tabId = 'bdbank';
 
@@ -50,13 +42,7 @@ class bdBank_Listeners
 					'title' => new XenForo_phrase('bdbank_bank'),
 					'linksTemplate' => 'bdbank_links',
 					'selected' => ($selectedTabId == $tabId),
-					'links' => array(
-						XenForo_Link::buildPublicLink("full:bank") => new XenForo_Phrase('bdbank_home'),
-						XenForo_Link::buildPublicLink("full:bank/history") => new XenForo_Phrase('bdbank_history'),
-					),
 				);
-
-				$bank->prepareNavigationTab($extraTabs, $tabId);
 			}
 		}
 	}
@@ -102,129 +88,6 @@ class bdBank_Listeners
 		{
 			$extend[] = 'bdBank_Importer_vBulletin';
 			$extended = true;
-		}
-	}
-
-	public static function template_create($templateName, array &$params, XenForo_Template_Abstract $template)
-	{
-		if (!defined('BDBANK_CACHED_TEMPLATES'))
-		{
-			define('BDBANK_CACHED_TEMPLATES', true);
-			$template->preloadTemplate('bdbank_message_user_info_extra');
-			$template->preloadTemplate('bdbank_sidebar_visitor_panel_stats');
-			$template->preloadTemplate('bdbank_navigation_visitor_tabs_end');
-		}
-
-		switch ($templateName)
-		{
-			case 'forum_edit':
-				// AdminCP
-				$template->preloadTemplate('bdbank_admin_forum_edit_tabs');
-				$template->preloadTemplate('bdbank_admin_forum_edit_panes');
-				break;
-			case 'user_edit':
-				// AdminCP
-				$template->preloadTemplate('bdbank_user_edit_profile_info');
-				$template->preloadTemplate('bdbank_user_edit_privacy');
-				break;
-			case 'trophy_edit':
-				// AdminCP
-				$template->preloadTemplate('bdbank_user_criteria_content');
-				break;
-			case 'account_alert_preferences':
-				$template->preloadTemplate('bdbank_account_alerts_extra');
-				break;
-			case 'account_privacy':
-				$template->preloadTemplate('bdbank_account_privacy_top');
-				break;
-			case 'member_view':
-				$template->preloadTemplate('bdbank_member_view_info_block');
-
-			case 'tools_rebuild':
-				// AdminCP
-				$template->preloadTemplate('bdbank_' . $templateName);
-				break;
-		}
-	}
-
-	public static function template_post_render($templateName, &$content, array &$containerData, XenForo_Template_Abstract $template)
-	{
-		switch ($templateName)
-		{
-			case 'tools_rebuild':
-				// AdminCP
-				$ourTemplate = $template->create('bdbank_' . $templateName, $template->getParams());
-				$content .= $ourTemplate->render();
-				break;
-		}
-	}
-
-	public static function template_hook($hookName, &$contents, array $hookParams, XenForo_Template_Abstract $template)
-	{
-		switch ($hookName)
-		{
-			case 'admin_user_edit_panes':
-				// AdminCP
-				$profileInfoTemplate = $template->create('bdbank_user_edit_profile_info', $template->getParams());
-				self::inject($contents, $profileInfoTemplate->render(), strpos($contents, '<!-- slot: pre_profile_info -->'));
-
-				$privacyTemplate = $template->create('bdbank_user_edit_privacy', $template->getParams());
-				self::inject($contents, $privacyTemplate->render(), strpos($contents, '<!-- slot: pre_privacy -->'));
-				break;
-
-			case 'message_user_info_extra':
-				$ourTemplate = $template->create('bdbank_message_user_info_extra', $template->getParams());
-				$ourTemplate->setParams($hookParams);
-				$contents .= $ourTemplate->render();
-				break;
-
-			// below are hooks that insert to the top of the original contents
-			case 'sidebar_visitor_panel_stats':
-				$ourTemplate = $template->create('bdbank_' . $hookName, $template->getParams());
-				$contents = $ourTemplate->render() . $contents;
-				break;
-
-			// below are hooks that append the contents
-			case 'admin_forum_edit_tabs':
-			// AdminCP
-			case 'admin_forum_edit_panes':
-			// AdminCP
-			case 'user_criteria_content':
-			// AdminCP
-			case 'account_alerts_extra':
-			case 'account_privacy_top':
-			case 'member_view_info_block':
-			case 'navigation_visitor_tabs_end':
-				$ourTemplate = $template->create('bdbank_' . $hookName, $template->getParams());
-				$contents .= $ourTemplate->render();
-				break;
-		}
-	}
-
-	public static function inject(&$target, $html, $offset = 0, $mark = '<!-- [bd] Banking / Mark -->')
-	{
-		if ($offset === false)
-			return;
-		// do nothing if invalid offset is given
-
-		$startPos = strpos($html, $mark);
-		if ($startPos !== false)
-		{
-			$endPos = strpos($html, $mark, $startPos + 1);
-			if ($endPos !== false)
-			{
-				// found the two marks
-				$markLen = strlen($mark);
-				$marked = trim(substr($html, $startPos + $markLen, $endPos - $startPos - $markLen));
-
-				$markedPos = strpos($target, $marked, $offset);
-				if ($markedPos !== false)
-				{
-					// the marked text has been found
-					// start injecting our html in place
-					$target = substr_replace($target, $html, $markedPos, strlen($marked));
-				}
-			}
 		}
 	}
 

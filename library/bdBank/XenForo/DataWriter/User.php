@@ -37,7 +37,7 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
 		$fields = parent::_getFields();
 
 		$fields['xf_user']['bdbank_money'] = array(
-			'type' => self::TYPE_UINT,
+			'type' => self::TYPE_STRING,
 			'default' => 0
 		);
 		$fields['xf_user_option']['bdbank_show_money'] = array(

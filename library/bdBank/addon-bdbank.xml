@@ -207,6 +207,20 @@ $2]]></replace>
 <xen:include template="bdbank_admin_forum_edit_tabs" />
 $2]]></replace>
     </modification>
+    <modification template="option_template_registrationDefaults" modification_key="bdbank_option_template_registrationDefaults" description="Insert user registration defaults option." execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[</xen:checkbox>]]></find>
+      <replace><![CDATA[<xen:option name="{$fieldPrefix}[{$preparedOption.option_id}][bdbank_show_money]" selected="{xen:if 'isset({$value.bdbank_show_money})', $value.bdbank_show_money, 1}">
+	{xen:phrase bdbank_privacy_show_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}
+</xen:option>
+
+$0]]></replace>
+    </modification>
+    <modification template="option_template_registrationDefaults" modification_key="bdbank_option_template_registrationDefaults2" description="Insert default value for registration default option." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#^.+?$#s]]></find>
+      <replace><![CDATA[<input type="hidden" name="{$fieldPrefix}[{$preparedOption.option_id}][bdbank_show_money]" value="0" />
+
+$0]]></replace>
+    </modification>
     <modification template="tools_rebuild" modification_key="bdbank_tools_rebuild" description="Insert rebuild tools." execution_order="10" enabled="1" action="preg_replace">
       <find><![CDATA[#^.+$#s]]></find>
       <replace><![CDATA[$0

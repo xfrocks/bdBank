@@ -29,9 +29,15 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
             if ($like['content_type'] == 'post') {
                 // post only for now
                 $bank = bdBank_Model_Bank::getInstance();
-                $point = $bank->getActionBonus('unlike');
-                if ($point != 0) {
-                    $bank->personal()->give($like['like_user_id'], $point, $bank->comment('unlike_post', $like['content_id']));
+
+                $linkBonus = $bank->getActionBonus('liked');
+                if ($linkBonus > 0) {
+                    $bank->reverseSystemTransactionByComment($bank->comment('liked_post', $like['content_id']));
+                }
+
+                $unlikePenalty = $bank->getActionBonus('unlike');
+                if ($unlikePenalty > 0) {
+                    $bank->personal()->give($like['like_user_id'], $unlikePenalty, $bank->comment('unlike_post', $like['content_id']));
                 }
             }
         }

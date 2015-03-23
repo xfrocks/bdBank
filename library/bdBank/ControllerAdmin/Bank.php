@@ -2,144 +2,136 @@
 
 class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 {
-	public function actionIndex()
-	{
-		return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildAdminLink('bank/history'));
-	}
+    public function actionIndex()
+    {
+        return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildAdminLink('bank/history'));
+    }
 
-	public function actionHistory($isArchive = false)
-	{
-		// this code is very similar with bdBank_ControllerPublic_Bank::actionHistory()
-		// please update that method if needed
-		$bank = XenForo_Application::get('bdBank');
+    public function actionHistory($isArchive = false)
+    {
+        // this code is very similar with bdBank_ControllerPublic_Bank::actionHistory()
+        // please update that method if needed
+        $bank = XenForo_Application::get('bdBank');
 
-		$filters = $this->_input->filterSingle('filters', XenForo_Input::ARRAY_SIMPLE);
+        $filters = $this->_input->filterSingle('filters', XenForo_Input::ARRAY_SIMPLE);
 
-		$conditions = array('archive' => $isArchive, );
-		$fetchOptions = array(
-			'join' => bdBank_Model_Bank::FETCH_USER,
-			'order' => 'date',
-			'direction' => 'desc',
-		);
+        $conditions = array('archive' => $isArchive,);
+        $fetchOptions = array(
+            'join' => bdBank_Model_Bank::FETCH_USER,
+            'order' => 'date',
+            'direction' => 'desc',
+        );
 
-		$page = max(1, $this->_input->filterSingle('page', XenForo_Input::UINT));
-		$transactionPerPage = bdBank_Model_Bank::options('perPage');
-		$linkParams = array();
+        $page = max(1, $this->_input->filterSingle('page', XenForo_Input::UINT));
+        $transactionPerPage = bdBank_Model_Bank::options('perPage');
+        $linkParams = array();
 
-		// sets pagination fetch options
-		$fetchOptions['page'] = $page;
-		$fetchOptions['limit'] = $transactionPerPage;
+        // sets pagination fetch options
+        $fetchOptions['page'] = $page;
+        $fetchOptions['limit'] = $transactionPerPage;
 
-		// processes filters
-		if (!empty($filters['username']))
-		{
-			$user = $this->getModelFromCache('XenForo_Model_User')->getUserByName($filters['username']);
-			if (!empty($user))
-			{
-				$filters['username'] = $user['username'];
-				$conditions['user_id'] = $user['user_id'];
-				$linkParams['filters[username]'] = $user['username'];
-			}
-			else
-			{
-				throw new XenForo_Exception(new XenForo_Phrase('requested_user_not_found'), true);
-			}
-		}
-		if (!empty($filters['amount']) AND !empty($filters['amount_operator']))
-		{
-			$conditions['amount'] = array(
-				$filters['amount_operator'],
-				$filters['amount']
-			);
-			$linkParams['filters[amount]'] = $filters['amount'];
-			$linkParams['filters[amount_operator]'] = $filters['amount_operator'];
-		}
-		else
-		{
-			unset($filters['amount']);
-			unset($filters['amount_operator']);
-		}
+        // processes filters
+        if (!empty($filters['username'])) {
+            $user = $this->_getUserModel()->getUserByName($filters['username']);
+            if (!empty($user)) {
+                $filters['username'] = $user['username'];
+                $conditions['user_id'] = $user['user_id'];
+                $linkParams['filters[username]'] = $user['username'];
+            } else {
+                throw new XenForo_Exception(new XenForo_Phrase('requested_user_not_found'), true);
+            }
+        }
+        if (!empty($filters['amount']) AND !empty($filters['amount_operator'])) {
+            $conditions['amount'] = array(
+                $filters['amount_operator'],
+                $filters['amount']
+            );
+            $linkParams['filters[amount]'] = $filters['amount'];
+            $linkParams['filters[amount_operator]'] = $filters['amount_operator'];
+        } else {
+            unset($filters['amount']);
+            unset($filters['amount_operator']);
+        }
 
-		$transactions = $bank->getTransactions($conditions, $fetchOptions);
-		$totalTransactions = $bank->countTransactions($conditions, $fetchOptions);
+        $transactions = $bank->getTransactions($conditions, $fetchOptions);
+        $totalTransactions = $bank->countTransactions($conditions, $fetchOptions);
 
-		$viewParams = array(
-			'transactions' => $transactions,
+        $viewParams = array(
+            'transactions' => $transactions,
 
-			'page' => $page,
-			'perPage' => $transactionPerPage,
-			'total' => $totalTransactions,
-			'linkParams' => $linkParams,
+            'page' => $page,
+            'perPage' => $transactionPerPage,
+            'total' => $totalTransactions,
+            'linkParams' => $linkParams,
 
-			'filters' => $filters,
+            'filters' => $filters,
 
-			'isArchive' => $isArchive,
-		);
+            'isArchive' => $isArchive,
+        );
 
-		return $this->responseView('bdBank_ViewAdmin_History', 'bdbank_history', $viewParams);
-	}
+        return $this->responseView('bdBank_ViewAdmin_History', 'bdbank_history', $viewParams);
+    }
 
-	public function actionArchive()
-	{
-		return $this->actionHistory(true);
-	}
+    public function actionArchive()
+    {
+        return $this->actionHistory(true);
+    }
 
-	public function actionTransfer()
-	{
-		$formData = $this->_input->filter(array(
-			'receivers' => XenForo_Input::STRING,
-			'amount' => XenForo_Input::STRING,
-			'comment' => XenForo_Input::STRING,
-		));
+    public function actionTransfer()
+    {
+        $formData = $this->_input->filter(array(
+            'receivers' => XenForo_Input::STRING,
+            'amount' => XenForo_Input::STRING,
+            'comment' => XenForo_Input::STRING,
+        ));
 
-		if ($this->_request->isPost())
-		{
-			// process the transfer request
-			// this code is very similar with bdBank_ControllerPublic_Bank::actionTransfer()
-			$receiverUsernames = explode(',', $formData['receivers']);
-			$userModel = $this->getModelFromCache('XenForo_Model_User');
-			$receivers = array();
-			foreach ($receiverUsernames as $username)
-			{
-				$username = trim($username);
-				if (empty($username))
-				{
-					continue;
-				}
-				$receiver = $userModel->getUserByName($username);
-				if (empty($receiver))
-				{
-					return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_receiver_not_found_x', array('username' => $username)));
-				}
-				$receivers[$receiver['user_id']] = $receiver;
-			}
-			if (count($receivers) == 0)
-			{
-				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_no_receivers', array('money' => new XenForo_Phrase('bdbank_money'))));
-			}
-			if (doubleval($formData['amount']) == 0)
-			{
-				return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
-			}
+        if ($this->_request->isPost()) {
+            // process the transfer request
+            // this code is very similar with bdBank_ControllerPublic_Bank::actionTransfer()
+            $receiverUsernames = explode(',', $formData['receivers']);
 
-			$personal = bdBank_Model_Bank::getInstance()->personal();
+            $receivers = array();
+            foreach ($receiverUsernames as $username) {
+                $username = trim($username);
+                if (empty($username)) {
+                    continue;
+                }
+                $receiver = $this->_getUserModel()->getUserByName($username);
+                if (empty($receiver)) {
+                    return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_receiver_not_found_x', array('username' => $username)));
+                }
+                $receivers[$receiver['user_id']] = $receiver;
+            }
+            if (count($receivers) == 0) {
+                return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_no_receivers', array('money' => new XenForo_Phrase('bdbank_money'))));
+            }
+            if (doubleval($formData['amount']) == 0) {
+                return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
+            }
 
-			foreach ($receivers as $receiver)
-			{
-				$personal->give($receiver['user_id'], $formData['amount'], $formData['comment'], bdBank_Model_Bank::TYPE_ADMIN);
-			}
+            $personal = bdBank_Model_Bank::getInstance()->personal();
 
-			return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildAdminLink('bank/history'));
-		}
-		else
-		{
-			return $this->responseView('bdBank_ViewAdmin_Transfer', 'bdbank_transfer');
-		}
-	}
+            foreach ($receivers as $receiver) {
+                $personal->give($receiver['user_id'], $formData['amount'], $formData['comment'], bdBank_Model_Bank::TYPE_ADMIN);
+            }
 
-	protected function _preDispatch($action)
-	{
-		$this->assertAdminPermission('bdbank');
-	}
+            return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildAdminLink('bank/history'));
+        } else {
+            return $this->responseView('bdBank_ViewAdmin_Transfer', 'bdbank_transfer');
+        }
+    }
+
+    protected function _preDispatch($action)
+    {
+        $this->assertAdminPermission('bdbank');
+    }
+
+    /**
+     * @return XenForo_Model_User
+     */
+    protected function _getUserModel()
+    {
+        return $this->getModelFromCache('XenForo_Model_User');
+    }
 
 }

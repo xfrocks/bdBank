@@ -247,7 +247,6 @@ $2]]></replace>
   </admin_template_modifications>
   <code_events/>
   <code_event_listeners>
-    <listener event_id="bdshop_register_pricing" execute_order="10" callback_class="bdBank_Listeners" callback_method="bdshop_register_pricing" active="1" hint="" description=""/>
     <listener event_id="criteria_user" execute_order="10" callback_class="bdBank_Listeners" callback_method="criteria_user" active="1" hint="" description=""/>
     <listener event_id="file_health_check" execute_order="10" callback_class="bdBank_Listeners" callback_method="file_health_check" active="1" hint="" description=""/>
     <listener event_id="init_dependencies" execute_order="10" callback_class="bdBank_Listeners" callback_method="init_dependencies" active="1" hint="" description=""/>

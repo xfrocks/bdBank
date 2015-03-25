@@ -925,10 +925,10 @@ form.AttachmentManager {
 		</dd>
 	<xen:if is="{$xenAddOns}"></dl></xen:if>
 </xen:if>]]></template>
-    <template title="bdbank_message_user_info_extra" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
+    <template title="bdbank_message_user_info_extra" version_id="22" version_string="1.0.0-BETA"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
 	<xen:require js="js/bdBank/transfer.js" />
 
-	<dl class="pairsInline">
+	<dl class="{xen:if '{xen:helper bdBank_options, xfVersionId} < 1020000', pairsInline, pairsJustified}">
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
 			<xen:if is="{$user.user_id} != {$visitor.user_id} AND {xen:helper bdBank_hasPermission, transfer}">

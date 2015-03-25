@@ -594,6 +594,8 @@ class bdBank_Model_Bank extends XenForo_Model
     public static function options($optionId)
     {
         switch ($optionId) {
+            case 'xfVersionId':
+                return XenForo_Application::$versionId;
             case 'perPage':
                 return 50;
             case 'perPagePopup':

@@ -2,3 +2,4 @@
 *.devhelper
 library/bdBank/DevHelper/Generated/*
 library/bdBank/FileSums.php
+library/bdBank/DevHelper/XFCP

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0.0-BETA" version_id="22" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0.0-BETA" version_id="23" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
@@ -167,13 +167,23 @@
 </xen:form>]]></template>
     <template title="bdbank_transfer"><![CDATA[<xen:title>{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:title>
 
+<xen:if is="{$errorsString}"><div class="baseHtml">{xen:raw $errorsString}</div></xen:if>
+
 <xen:form action="{xen:adminlink 'bank/transfer'}">
 
-	<xen:textboxunit label="{xen:phrase bdbank_transfer_receivers}:" name="receivers" inputclass="AutoComplete" hint="{xen:phrase separate_names_with_comma}" />
+	<xen:textboxunit label="{xen:phrase bdbank_transfer_receivers}:"
+					 name="receivers" value="{$receivers}"
+					 inputclass="AutoComplete"
+					 hint="{xen:phrase separate_names_with_comma}" />
 	
-	<xen:textboxunit label="{xen:phrase bdbank_transfer_amount}:" name="amount" hint="{xen:phrase bdbank_you_can_input_negative_value}" />
+	<xen:textboxunit label="{xen:phrase bdbank_transfer_amount}:"
+					 name="amount" value="{$amount}"
+					 hint="{xen:phrase bdbank_you_can_input_negative_value}" />
 	
-	<xen:textboxunit label="{xen:phrase bdbank_transfer_comment}:" name="comment" rows="2" inputclass="Elastic" />
+	<xen:textboxunit label="{xen:phrase bdbank_transfer_comment}:"
+					 name="comment" value="{$comment}"
+					 rows="2"
+					 inputclass="Elastic" />
 	
 	<xen:submitunit save="{xen:phrase bdbank_transfer_do}" />
 </xen:form>]]></template>
@@ -437,6 +447,7 @@ eur=40</default_value>
     <phrase title="bdbank_currency_name" global_cache="1" version_id="6" version_string="0.9.6"><![CDATA[$]]></phrase>
     <phrase title="bdbank_days_of_history_is_x" version_id="6" version_string="0.9.6"><![CDATA[Only transactions made in the last {days} days are available.]]></phrase>
     <phrase title="bdbank_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Equals to...]]></phrase>
+    <phrase title="bdbank_error_user_not_enough_money" version_id="22" version_string="1.0.0-BETA"><![CDATA[{username} doesn't have enough {money_lowercase}. The current account balance is {balance}.]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_downloaded" version_id="3" version_string="beta 3"><![CDATA[Bonus attachment being downloaded]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_downloaded_paid" version_id="4" version_string="0.9.4"><![CDATA[Pay for download]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for uploading attachment]]></phrase>

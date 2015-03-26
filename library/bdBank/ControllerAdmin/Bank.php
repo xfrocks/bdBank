@@ -83,6 +83,7 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
             'receivers' => XenForo_Input::STRING,
             'amount' => XenForo_Input::STRING,
             'comment' => XenForo_Input::STRING,
+            'errors' => array(XenForo_Input::STRING, 'array' => true),
         ));
 
         if ($this->_request->isPost()) {
@@ -110,14 +111,54 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
             }
 
             $personal = bdBank_Model_Bank::getInstance()->personal();
+            $errors = array();
 
             foreach ($receivers as $receiver) {
-                $personal->give($receiver['user_id'], $formData['amount'], $formData['comment'], bdBank_Model_Bank::TYPE_ADMIN);
+                try {
+                    $personal->transfer(
+                        0,
+                        $receiver['user_id'],
+                        $formData['amount'],
+                        $formData['comment'],
+                        bdBank_Model_Bank::TYPE_ADMIN
+                    );
+                } catch (bdBank_Exception $e) {
+                    switch ($e->getMessage()) {
+                        case bdBank_Exception::NOT_ENOUGH_MONEY:
+                            $error = new XenForo_Phrase('bdbank_error_user_not_enough_money', array(
+                                'username' => $receiver['username'],
+                                'money_lowercase' => new XenForo_Phrase('bdbank_money_lowercase'),
+                                'balance' => bdBank_Model_Bank::helperBalanceFormat(bdBank_Model_Bank::balance($receiver)),
+                            ));
+                            break;
+                        default:
+                            $error = new XenForo_Phrase(
+                                'bdbank_transfer_error_generic',
+                                array('error' => $e->getMessage())
+                            );
+                    }
+
+                    $errors[$receiver['username']] = $error;
+                }
             }
 
-            return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildAdminLink('bank/history'));
+            if (!empty($errors)) {
+                return $this->responseRedirect(
+                    XenForo_ControllerResponse_Redirect::RESOURCE_UPDATED,
+                    XenForo_Link::buildAdminLink('bank/transfer', array(), array(
+                        'amount' => $formData['amount'],
+                        'comment' => $formData['comment'],
+                        'errors' => $errors,
+                    ))
+                );
+            } else {
+                return $this->responseRedirect(
+                    XenForo_ControllerResponse_Redirect::SUCCESS,
+                    XenForo_Link::buildAdminLink('bank/history')
+                );
+            }
         } else {
-            return $this->responseView('bdBank_ViewAdmin_Transfer', 'bdbank_transfer');
+            return $this->responseView('bdBank_ViewAdmin_Transfer', 'bdbank_transfer', $formData);
         }
     }
 

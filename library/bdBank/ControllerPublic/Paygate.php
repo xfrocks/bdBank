@@ -62,7 +62,7 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
         } catch (bdBank_Exception $e) {
             if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY) {
                 // this will never happen because we turned on TEST mode
-                // just throw an exeption to save it to server error log
+                // just throw an exception to save it to server error log
                 throw $e;
             } else {
                 // display a generic error message

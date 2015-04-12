@@ -36,10 +36,17 @@ class bdBank_Listeners
     {
         if (XenForo_Visitor::getUserId() > 0) {
             $tabId = 'bdbank';
+            $defaultPosition = 'middle';
+            $position = XenForo_Template_Helper_Core::styleProperty('bdbank_navigationInsertNavtab');
+            if ($position === '1') {
+                // legacy support
+                $position = $defaultPosition;
+            }
 
-            if (XenForo_Template_Helper_Core::styleProperty('bdbank_navigationInsertNavtab') OR $selectedTabId == $tabId) {
+            if ($position !== '0' || $selectedTabId == $tabId) {
                 // only display the tab if it's enabled globally or user is accessing our pages
                 $extraTabs[$tabId] = array(
+                    'position' => ($position !== '0' ? $position : $defaultPosition),
                     'href' => XenForo_Link::buildPublicLink('full:bank'),
                     'title' => new XenForo_phrase('bdbank_bank'),
                     'linksTemplate' => 'bdbank_links',

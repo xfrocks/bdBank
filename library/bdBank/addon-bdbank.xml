@@ -174,6 +174,16 @@
 		</li>
 	</xen:foreach>
 </ul>]]></template>
+    <template title="bdbank_style_property_nav_tab"><![CDATA[<input type="hidden" name="checkboxes[]" value="{$property.property_definition_id}" />
+<xen:radiounit name="properties[{$property.property_definition_id}]" value="{xen:if '{$property.propertyValueScalar} === "1"', 'middle', $property.propertyValueScalar}" label="{$property.title}">	
+	<xen:option value="home" label="Home" />
+	<xen:option value="middle" label="Middle" />
+	<xen:option value="end" label="End" />
+	<xen:option value="0" label="<s>{xen:phrase hidden}</s>" />
+
+	<xen:explain>{$property.description}</xen:explain>
+	<xen:html><xen:include template="style_property_unit_extra"><xen:set var="$reset">{xen:phrase reset}</xen:set></xen:include></xen:html>
+</xen:radiounit>]]></template>
     <template title="bdbank_tools_rebuild"><![CDATA[<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
 	<h2 class="subHeading">{xen:phrase bdbank_rebuild_bonuses}</h2>
 	<xen:selectunit name="options[bonus_type]" value="" label="{xen:phrase bdbank_rebuild_bonuses_type}:" explain="{xen:phrase bdbank_rebuild_bonuses_explain}">
@@ -481,6 +491,7 @@ eur=40</default_value>
     <phrase title="bdbank_balance_format_currency_first" version_id="10" version_string="0.9.9.2"><![CDATA[Currency first (example: $10)]]></phrase>
     <phrase title="bdbank_balance_format_value_first" version_id="10" version_string="0.9.9.2"><![CDATA[Value first (example: 10$)]]></phrase>
     <phrase title="bdbank_bank" global_cache="1" version_id="1" version_string="beta"><![CDATA[Bank]]></phrase>
+    <phrase title="bdbank_bank_nav_tab" version_id="23" version_string="1.0.0-BETA"><![CDATA[Bank]]></phrase>
     <phrase title="bdbank_bdpaygate_call_to_action" version_id="15" version_string="1.0-dev"><![CDATA[Pay with {money}]]></phrase>
     <phrase title="bdbank_bd_banking" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="bdbank_bonuses" version_id="23" version_string="1.0.0-BETA"><![CDATA[Bonuses]]></phrase>
@@ -639,8 +650,8 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     <phrase title="permission_interface_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="style_property_bdbank_messageShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information.]]></phrase>
     <phrase title="style_property_bdbank_messageShowMoney_master" version_id="3" version_string="beta 3"><![CDATA[Show Author Money]]></phrase>
-    <phrase title="style_property_bdbank_navigationInsertNavtab_description_master" version_id="20" version_string="1.0-dev"><![CDATA[Insert a tab to the navigation bar.]]></phrase>
-    <phrase title="style_property_bdbank_navigationInsertNavtab_master" version_id="6" version_string="0.9.6"><![CDATA[Insert "Bank" tab]]></phrase>
+    <phrase title="style_property_bdbank_navigationInsertNavtab_description_master" version_id="23" version_string="1.0.0-BETA"><![CDATA[Select position for the "Bank" tab in the navigation bar. To disable the tab, choose "Hidden". To change the text, edit the phrase "bdbank_bank_nav_tab".]]></phrase>
+    <phrase title="style_property_bdbank_navigationInsertNavtab_master" version_id="23" version_string="1.0.0-BETA"><![CDATA[Bank Tab Position]]></phrase>
     <phrase title="style_property_bdbank_navigationShowMoney_description_master" version_id="20" version_string="1.0-dev"><![CDATA[Insert a tab next to the Alerts tab. The tab will display user balance and allow quick access to transaction history.]]></phrase>
     <phrase title="style_property_bdbank_navigationShowMoney_master" version_id="20" version_string="1.0-dev"><![CDATA[Insert "Money" tab]]></phrase>
     <phrase title="style_property_bdbank_visitorPanelShowMoney_description_master" version_id="20" version_string="1.0-dev"><![CDATA[Display user balance in the visitor panel at the top of sidebar.]]></phrase>
@@ -658,7 +669,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
   </route_prefixes>
   <style_properties>
     <property property_name="bdbank_messageShowMoney" property_type="scalar" definition="1" group_name="message" title="Show Author Money" description="Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information." css_components="" scalar_type="boolean" scalar_parameters="" display_order="9999" sub_group="User Info"><![CDATA[1]]></property>
-    <property property_name="bdbank_navigationInsertNavtab" property_type="scalar" definition="1" group_name="bdBank" title="Insert &quot;Bank&quot; tab" description="Insert a tab to the navigation bar." css_components="" scalar_type="boolean" scalar_parameters="" display_order="10" sub_group="navigation"><![CDATA[1]]></property>
+    <property property_name="bdbank_navigationInsertNavtab" property_type="scalar" definition="1" group_name="bdBank" title="Bank Tab Position" description="Select position for the &quot;Bank&quot; tab in the navigation bar. To disable the tab, choose &quot;Hidden&quot;. To change the text, edit the phrase &quot;bdbank_bank_nav_tab&quot;." css_components="" scalar_type="template" scalar_parameters="bdbank_style_property_nav_tab" display_order="10" sub_group="navigation"><![CDATA[middle]]></property>
     <property property_name="bdbank_visitorPanelShowMoney" property_type="scalar" definition="1" group_name="bdBank" title="Show money in Visitor Panel" description="Display user balance in the visitor panel at the top of sidebar." css_components="" scalar_type="boolean" scalar_parameters="" display_order="30" sub_group="sidebar"><![CDATA[1]]></property>
     <property property_name="bdbank_navigationShowMoney" property_type="scalar" definition="1" group_name="bdBank" title="Insert &quot;Money&quot; tab" description="Insert a tab next to the Alerts tab. The tab will display user balance and allow quick access to transaction history." css_components="" scalar_type="boolean" scalar_parameters="" display_order="20" sub_group="navigation"><![CDATA[1]]></property>
     <group group_name="bdBank" display_order="9999">

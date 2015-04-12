@@ -146,6 +146,34 @@
 		</xen:if>
 	</xen:submitunit>
 </xen:form>]]></template>
+    <template title="bdbank_option_list"><![CDATA[<xen:edithint template="option_list" />
+<xen:edithint template="user_edit" />
+
+<ul class="tabs Tabs" data-panes="#optionTabs > li">
+	<xen:foreach loop="$bdBank_tabs" key="$tabId" value="$tab">
+		<li id="tab{$tabId}"><a>{$tab.name}</a></li>
+	</xen:foreach>
+</ul>
+
+<ul id="optionTabs">
+	<xen:foreach loop="$bdBank_tabs" value="$tab">
+		<li>
+			<xen:foreach loop="$tab.groupIds" value="$groupId">
+				<xen:foreach loop="$renderedOptions" key="$_groupId" value="$_group">
+					<xen:if is="{$_groupId} == {$groupId}">
+					<xen:if hascontent="true">
+					<fieldset class="optionList">
+						<xen:contentcheck>
+						<xen:foreach loop="$_group" key="$optionId" value="$renderedOption">{xen:raw $renderedOption}</xen:foreach>
+						</xen:contentcheck>
+					</fieldset>
+					</xen:if>
+					</xen:if>
+				</xen:foreach>
+			</xen:foreach>
+		</li>
+	</xen:foreach>
+</ul>]]></template>
     <template title="bdbank_tools_rebuild"><![CDATA[<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
 	<h2 class="subHeading">{xen:phrase bdbank_rebuild_bonuses}</h2>
 	<xen:selectunit name="options[bonus_type]" value="" label="{xen:phrase bdbank_rebuild_bonuses_type}:" explain="{xen:phrase bdbank_rebuild_bonuses_explain}">
@@ -217,6 +245,16 @@ $2]]></replace>
 <xen:include template="bdbank_admin_forum_edit_tabs" />
 $2]]></replace>
     </modification>
+    <modification template="option_list" modification_key="bdbank_option_list" description="Customize add-on option page." execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(<xen:foreach loop="\$renderedOptions".+?)(<xen:submitunit)#s]]></find>
+      <replace><![CDATA[<xen:if is="{$bdBank_tabs}">
+	<xen:include template="bdbank_option_list" />
+<xen:else />
+	$1
+</xen:if>
+
+$2]]></replace>
+    </modification>
     <modification template="option_template_registrationDefaults" modification_key="bdbank_option_template_registrationDefaults" description="Insert user registration defaults option." execution_order="10" enabled="1" action="str_replace">
       <find><![CDATA[</xen:checkbox>]]></find>
       <replace><![CDATA[<xen:option name="{$fieldPrefix}[{$preparedOption.option_id}][bdbank_show_money]" selected="{xen:if 'isset({$value.bdbank_show_money})', $value.bdbank_show_money, 1}">
@@ -264,6 +302,7 @@ $2]]></replace>
     <listener event_id="load_class_datawriter" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" hint="" description=""/>
     <listener event_id="load_class_importer" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class_importer" active="1" hint="" description=""/>
     <listener event_id="load_class_model" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" hint="" description=""/>
+    <listener event_id="load_class_view" execute_order="10" callback_class="bdBank_Listeners" callback_method="load_class" active="1" hint="" description=""/>
     <listener event_id="navigation_tabs" execute_order="10" callback_class="bdBank_Listeners" callback_method="navigation_tabs" active="1" hint="" description=""/>
   </code_event_listeners>
   <cron>
@@ -427,6 +466,7 @@ eur=40</default_value>
     <phrase title="admin_navigation_bdbank_history" version_id="5" version_string="0.9.5"><![CDATA[Transaction History]]></phrase>
     <phrase title="admin_navigation_bdbank_transfer" version_id="5" version_string="0.9.5"><![CDATA[Transfer Money]]></phrase>
     <phrase title="admin_permission_bdbank" version_id="5" version_string="0.9.5"><![CDATA[[bd] Banking - Manage money and stuff]]></phrase>
+    <phrase title="bdbank_advanced_options" version_id="23" version_string="1.0.0-BETA"><![CDATA[Advanced Options]]></phrase>
     <phrase title="bdbank_alert_transaction_transfer" version_id="6" version_string="0.9.6"><![CDATA[{username} sent you {amount}.]]></phrase>
     <phrase title="bdbank_archive" version_id="6" version_string="0.9.6"><![CDATA[Archive]]></phrase>
     <phrase title="bdbank_attachment_attach_date" version_id="3" version_string="beta 3"><![CDATA[Uploaded]]></phrase>
@@ -443,9 +483,11 @@ eur=40</default_value>
     <phrase title="bdbank_bank" global_cache="1" version_id="1" version_string="beta"><![CDATA[Bank]]></phrase>
     <phrase title="bdbank_bdpaygate_call_to_action" version_id="15" version_string="1.0-dev"><![CDATA[Pay with {money}]]></phrase>
     <phrase title="bdbank_bd_banking" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
+    <phrase title="bdbank_bonuses" version_id="23" version_string="1.0.0-BETA"><![CDATA[Bonuses]]></phrase>
     <phrase title="bdbank_comment_goto" version_id="1" version_string="beta"><![CDATA[view]]></phrase>
     <phrase title="bdbank_currency_name" global_cache="1" version_id="6" version_string="0.9.6"><![CDATA[$]]></phrase>
     <phrase title="bdbank_days_of_history_is_x" version_id="6" version_string="0.9.6"><![CDATA[Only transactions made in the last {days} days are available.]]></phrase>
+    <phrase title="bdbank_economics" version_id="23" version_string="1.0.0-BETA"><![CDATA[Economics]]></phrase>
     <phrase title="bdbank_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Equals to...]]></phrase>
     <phrase title="bdbank_error_user_not_enough_money" version_id="22" version_string="1.0.0-BETA"><![CDATA[{username} doesn't have enough {money_lowercase}. The current account balance is {balance}.]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_downloaded" version_id="3" version_string="beta 3"><![CDATA[Bonus attachment being downloaded]]></phrase>

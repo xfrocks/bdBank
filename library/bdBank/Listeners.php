@@ -70,7 +70,9 @@ class bdBank_Listeners
             'XenForo_Model_Attachment',
             'XenForo_Model_Import',
             'XenForo_Model_Like',
-            'XenForo_Model_Thread'
+            'XenForo_Model_Thread',
+
+            'XenForo_ViewAdmin_Option_ListOptions',
         );
 
         if (in_array($class, $classes)) {

@@ -3,6 +3,7 @@
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
+    <navigation navigation_id="bdbank_stats" parent_navigation_id="bdbank" display_order="9999" link="bank/stats" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_transfer" parent_navigation_id="bdbank" display_order="1000" link="bank/transfer" admin_permission_id="" debug_only="0" hide_no_children="0"/>
   </admin_navigation>
   <admin_permissions>
@@ -174,6 +175,15 @@
 		</li>
 	</xen:foreach>
 </ul>]]></template>
+    <template title="bdbank_stats_daily"><![CDATA[<xen:include template="stats_base">
+	<xen:set var="$statsFormUrl" value="{xen:adminlink bank/stats}" />
+</xen:include>
+
+<xen:title>{xen:phrase daily_statistics}: {xen:date $start, absolute} - {xen:date $end, absolute}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb href="{xen:adminlink bank/stats}">{xen:phrase statistics}</xen:breadcrumb>
+</xen:navigation>]]></template>
     <template title="bdbank_style_property_nav_tab"><![CDATA[<input type="hidden" name="checkboxes[]" value="{$property.property_definition_id}" />
 <xen:radiounit name="properties[{$property.property_definition_id}]" value="{xen:if '{$property.propertyValueScalar} === "1"', 'middle', $property.propertyValueScalar}" label="{$property.title}">	
 	<xen:option value="home" label="Home" />
@@ -474,6 +484,7 @@ eur=40</default_value>
   <phrases>
     <phrase title="admin_navigation_bdbank" version_id="5" version_string="0.9.5"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="admin_navigation_bdbank_history" version_id="5" version_string="0.9.5"><![CDATA[Transaction History]]></phrase>
+    <phrase title="admin_navigation_bdbank_stats" version_id="23" version_string="1.0.0-BETA"><![CDATA[Statistics]]></phrase>
     <phrase title="admin_navigation_bdbank_transfer" version_id="5" version_string="0.9.5"><![CDATA[Transfer Money]]></phrase>
     <phrase title="admin_permission_bdbank" version_id="5" version_string="0.9.5"><![CDATA[[bd] Banking - Manage money and stuff]]></phrase>
     <phrase title="bdbank_advanced_options" version_id="23" version_string="1.0.0-BETA"><![CDATA[Advanced Options]]></phrase>
@@ -546,6 +557,10 @@ eur=40</default_value>
     <phrase title="bdbank_someone_sends_money_to_you" version_id="6" version_string="0.9.6"><![CDATA[Someone sends {money_lowercase} to you]]></phrase>
     <phrase title="bdbank_stats_bank_in" version_id="16" version_string="1.0-dev"><![CDATA[Bank Income]]></phrase>
     <phrase title="bdbank_stats_bank_out" version_id="16" version_string="1.0-dev"><![CDATA[Bank Outcome]]></phrase>
+    <phrase title="bdbank_stats_richest_0" version_id="23" version_string="1.0.0-BETA"><![CDATA[Richest Balance]]></phrase>
+    <phrase title="bdbank_stats_richest_1" version_id="23" version_string="1.0.0-BETA"><![CDATA[Second Richest Balance]]></phrase>
+    <phrase title="bdbank_stats_richest_2" version_id="23" version_string="1.0.0-BETA"><![CDATA[Third Richest Balance]]></phrase>
+    <phrase title="bdbank_stats_total" version_id="23" version_string="1.0.0-BETA"><![CDATA[Economy Value]]></phrase>
     <phrase title="bdbank_tax_for_this_is_x_y_only_receive_z" version_id="10" version_string="0.9.9.2"><![CDATA[Tax for this transaction is {tax}. {receiver} will only receive {amount}.]]></phrase>
     <phrase title="bdbank_thank_you_for_purchasing" version_id="14" version_string="0.11.2"><![CDATA[Thank you for purchasing.]]></phrase>
     <phrase title="bdbank_there_no_attachments_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no attachments to display.]]></phrase>

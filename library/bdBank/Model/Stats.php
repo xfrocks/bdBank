@@ -1,12 +1,96 @@
 <?php
 
-class bdBank_Model_Stats extends XenForo_Model
+class bdBank_Model_Stats extends XenForo_Model_Stats
 {
 
     const KEY_RICHEST = 'bdBank_richest';
     const KEY_GENERAL = 'bdBank_general';
 
     const GENERAL_TOTAL_MONEY = 'total';
+
+    public function getStatsData($start, $end, array $statsTypes, $grouping = 'daily')
+    {
+        $db = $this->_getDb();
+
+        $data = $db->fetchAll('
+            SELECT *
+            FROM xf_bdbank_stats
+            WHERE rebuild_date BETWEEN ? AND ?
+            ORDER BY rebuild_date
+        ', array($start, $end));
+
+        $dataGrouped = array();
+
+        foreach ($data AS $stat) {
+            $value = unserialize($stat['stats_value']);
+            $date = intval(floor($stat['rebuild_date'] / 86400) * 86400);
+
+            switch ($stat['stats_key']) {
+                case 'bdBank_general':
+                    foreach ($value as $type => $typeValue) {
+                        $dataGrouped[$type][$date] = $typeValue;
+                    }
+                    break;
+                case 'bdBank_richest':
+                    $userIds = array_keys($value);
+                    for ($i = 0; $i < 3; $i++) {
+                        $type = 'richest_' . $i;
+                        if (in_array($type, $statsTypes, true)
+                            && isset($userIds[$i])
+                        ) {
+                            $dataGrouped[$type][$date] = $value[$userIds[$i]]['money'];
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return $dataGrouped;
+    }
+
+    public function getStatsTypeOptions(array $selected = array())
+    {
+        return array(
+            'general' => array(
+                array(
+                    'name' => "statsTypes[]",
+                    'value' => 'total',
+                    'label' => new XenForo_Phrase('bdbank_stats_total'),
+                    'selected' => in_array('total', $selected)
+                ),
+            ),
+            'richest' => array(
+                array(
+                    'name' => "statsTypes[]",
+                    'value' => 'richest_0',
+                    'label' => new XenForo_Phrase('bdbank_stats_richest_0'),
+                    'selected' => in_array('richest_0', $selected)
+                ),
+                array(
+                    'name' => "statsTypes[]",
+                    'value' => 'richest_1',
+                    'label' => new XenForo_Phrase('bdbank_stats_richest_1'),
+                    'selected' => in_array('richest_1', $selected)
+                ),
+                array(
+                    'name' => "statsTypes[]",
+                    'value' => 'richest_2',
+                    'label' => new XenForo_Phrase('bdbank_stats_richest_2'),
+                    'selected' => in_array('richest_2', $selected)
+                ),
+            )
+        );
+    }
+
+    public function getStatsTypePhrases(array $statsTypes)
+    {
+        return array(
+            self::GENERAL_TOTAL_MONEY => new XenForo_Phrase('bdbank_stats_total'),
+            'richest_0' => new XenForo_Phrase('bdbank_stats_richest_0'),
+            'richest_1' => new XenForo_Phrase('bdbank_stats_richest_1'),
+            'richest_2' => new XenForo_Phrase('bdbank_stats_richest_2'),
+        );
+    }
 
     public function getGeneral()
     {

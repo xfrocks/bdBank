@@ -8,11 +8,52 @@ class bdBank_Model_Stats extends XenForo_Model_Stats
 
     const GENERAL_TOTAL_MONEY = 'total';
 
+    public function getStatsByDate($date)
+    {
+        $data = $this->fetchAllKeyed('
+            SELECT *
+            FROM xf_bdbank_stats
+            WHERE rebuild_date = ?
+            ORDER BY rebuild_date
+        ', 'stats_key', $date);
+
+        foreach ($data as &$stat) {
+            $stat['stats_value'] = unserialize($stat['stats_value']);
+        }
+
+        if (!empty($data)) {
+            $first = reset($data);
+            $data['_first'] = $first;
+        }
+
+        return $data;
+    }
+
+    public function getPreviousStatsDate($date)
+    {
+        return $this->_getDb()->fetchOne('
+            SELECT rebuild_date
+            FROM xf_bdbank_stats
+            WHERE rebuild_date < ?
+            ORDER BY rebuild_date DESC
+            LIMIT 1
+        ', $date);
+    }
+
+    public function getNextStatsDate($date)
+    {
+        return $this->_getDb()->fetchOne('
+            SELECT rebuild_date
+            FROM xf_bdbank_stats
+            WHERE rebuild_date > ?
+            ORDER BY rebuild_date
+            LIMIT 1
+        ', $date);
+    }
+
     public function getStatsData($start, $end, array $statsTypes, $grouping = 'daily')
     {
-        $db = $this->_getDb();
-
-        $data = $db->fetchAll('
+        $data = $this->_getDb()->fetchAll('
             SELECT *
             FROM xf_bdbank_stats
             WHERE rebuild_date BETWEEN ? AND ?
@@ -28,7 +69,9 @@ class bdBank_Model_Stats extends XenForo_Model_Stats
             switch ($stat['stats_key']) {
                 case 'bdBank_general':
                     foreach ($value as $type => $typeValue) {
-                        $dataGrouped[$type][$date] = $typeValue;
+                        if (in_array($type, $statsTypes, true)) {
+                            $dataGrouped[$type][$date] = $typeValue;
+                        }
                     }
                     break;
                 case 'bdBank_richest':
@@ -54,7 +97,7 @@ class bdBank_Model_Stats extends XenForo_Model_Stats
             'general' => array(
                 array(
                     'name' => "statsTypes[]",
-                    'value' => 'total',
+                    'value' => self::GENERAL_TOTAL_MONEY,
                     'label' => new XenForo_Phrase('bdbank_stats_total'),
                     'selected' => in_array('total', $selected)
                 ),

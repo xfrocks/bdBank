@@ -11,6 +11,27 @@
   </admin_permissions>
   <admin_style_properties/>
   <admin_templates>
+    <template title="bdbank.css"><![CDATA[.bdBank_StatsDetails
+{
+	width: 100%;
+}
+
+.bdBank_StatsDetails th,
+.bdBank_StatsDetails td
+{
+	border: 1px solid black;
+	padding: 10px;
+}
+
+.bdBank_StatsDetails th
+{
+	font-weight: bold;
+}
+
+.bdBank_StatsDetails .richest .username
+{
+	text-align: right;
+}]]></template>
     <template title="bdbank_admin_forum_edit_panes"><![CDATA[<li>
 	<xen:hook name="bdbank_admin_forum_edit_panes">
 		<xen:controlunit label="{xen:phrase option_bdbank_bonus_thread}" explain="{xen:phrase option_bdbank_bonus_thread_explain}">
@@ -183,7 +204,105 @@
 
 <xen:navigation>
 	<xen:breadcrumb href="{xen:adminlink bank/stats}">{xen:phrase statistics}</xen:breadcrumb>
-</xen:navigation>]]></template>
+</xen:navigation>
+
+<xen:topctrl>
+	<a href="{xen:adminlink 'bank/stats/details'}" class="button">{xen:phrase details}</a>
+</xen:topctrl>]]></template>
+    <template title="bdbank_stats_details"><![CDATA[<xen:require css="bdbank.css" />
+
+<xen:title>{xen:phrase details}: {$dateStats._first.stats_date}</xen:title>
+
+<xen:navigation>
+	<xen:breadcrumb href="{xen:adminlink bank/stats}">{xen:phrase statistics}</xen:breadcrumb>
+</xen:navigation>
+
+<div>
+	<table class="bdBank_StatsDetails">
+		<tr>
+			<td>&nbsp;</td>
+			<xen:if is="{$prevStats}">
+			<th colspan="2" class="prev">
+				<a href="{xen:adminlink bank/stats/details, '', 'date={$prevStats._first.rebuild_date}'}">
+					{$prevStats._first.stats_date}
+				</a>
+			</th>
+			</xen:if>
+			<th colspan="2">{$dateStats._first.stats_date}</th>
+			<xen:if is="{$nextStats}">
+			<th colspan="2" class="next">
+				<a href="{xen:adminlink bank/stats/details, '', 'date={$nextStats._first.rebuild_date}'}">
+					{$nextStats._first.stats_date}
+				</a>
+			</th>
+			</xen:if>
+		</tr>
+
+		<xen:if is="{$dateStats.bdBank_general}">
+		<tr class="total">
+			<th>{xen:phrase bdbank_stats_total}</th>
+			<xen:if is="{$prevStats}">
+			<td colspan="2">{xen:helper bdBank_balanceFormat, $prevStats.bdBank_general.stats_value.total}</td>
+			</xen:if>
+			<td colspan="2">{xen:helper bdBank_balanceFormat, $dateStats.bdBank_general.stats_value.total}</td>
+			<xen:if is="{$nextStats}">
+			<td colspan="2">{xen:helper bdBank_balanceFormat, $nextStats.bdBank_general.stats_value.total}</td>
+			</xen:if>
+		</tr>
+		</xen:if>
+		
+		<xen:if is="{$dateStats.bdBank_richest}">
+		<xen:foreach loop="$dateStats.bdBank_richest.stats_value" i="$i" value="$user">
+			<tr class="richest richest-{$i}">
+				<xen:if is="{$i} == 1">
+					<th rowspan="{xen:count $dateStats.bdBank_richest.stats_value}">
+						{xen:phrase bdbank_stats_richest_balances}
+					</th>
+				</xen:if>
+
+				<xen:if is="{$prevStats}">
+				<xen:include template="bdbank_stats_details_richest">
+					<xen:map from="$prevStats.bdBank_richest" to="$stats" /> 
+					<xen:set var="$class">prev</xen:set>
+				</xen:include>
+				</xen:if>
+
+				<xen:include template="bdbank_stats_details_richest">
+					<xen:map from="$dateStats.bdBank_richest" to="$stats" /> 
+					<xen:set var="$class"></xen:set>
+				</xen:include>
+
+				<xen:if is="{$nextStats}">
+				<xen:include template="bdbank_stats_details_richest">
+					<xen:map from="$nextStats.bdBank_richest" to="$stats" /> 
+					<xen:set var="$class">next</xen:set>
+				</xen:include>
+				</xen:if>
+			</tr>
+		</xen:foreach>
+		</xen:if>
+	</table>
+</div>]]></template>
+    <template title="bdbank_stats_details_richest"><![CDATA[<xen:if is="{$stats.stats_value}">
+
+	<xen:if is="{xen:count $stats.stats_value} >= {$i}">
+	<xen:foreach loop="$stats.stats_value" i="$_i" value="$user">
+		<xen:if is="{$_i} == {$i}">
+		<td class="user-{$user.user_id} username {$class}">
+			<a href="{xen:adminlink bank/history, '', 'filters={xen:array 'username={$user.username}'}'}">
+				{$user.username}
+			</a>
+			- #{$_i}
+		</td>
+		<td class="user-{$user.user_id} money {$class}">{xen:helper bdBank_balanceFormat, $user.money}</td>
+		</xen:if>
+	</xen:foreach>
+	<xen:else />
+	<td class="username {$class}">#{$_i}</td>
+	<td class="money {$class}">{xen:helper bdBank_balanceFormat, 0}</td>
+	</xen:if>
+
+</xen:if>]]></template>
     <template title="bdbank_style_property_nav_tab"><![CDATA[<input type="hidden" name="checkboxes[]" value="{$property.property_definition_id}" />
 <xen:radiounit name="properties[{$property.property_definition_id}]" value="{xen:if '{$property.propertyValueScalar} === "1"', 'middle', $property.propertyValueScalar}" label="{$property.title}">	
 	<xen:option value="home" label="Home" />
@@ -557,9 +676,11 @@ eur=40</default_value>
     <phrase title="bdbank_someone_sends_money_to_you" version_id="6" version_string="0.9.6"><![CDATA[Someone sends {money_lowercase} to you]]></phrase>
     <phrase title="bdbank_stats_bank_in" version_id="16" version_string="1.0-dev"><![CDATA[Bank Income]]></phrase>
     <phrase title="bdbank_stats_bank_out" version_id="16" version_string="1.0-dev"><![CDATA[Bank Outcome]]></phrase>
+    <phrase title="bdbank_stats_details_no_data" version_id="23" version_string="1.0.0-BETA"><![CDATA[There is no statistics data available at the moment.]]></phrase>
     <phrase title="bdbank_stats_richest_0" version_id="23" version_string="1.0.0-BETA"><![CDATA[Richest Balance]]></phrase>
     <phrase title="bdbank_stats_richest_1" version_id="23" version_string="1.0.0-BETA"><![CDATA[Second Richest Balance]]></phrase>
     <phrase title="bdbank_stats_richest_2" version_id="23" version_string="1.0.0-BETA"><![CDATA[Third Richest Balance]]></phrase>
+    <phrase title="bdbank_stats_richest_balances" version_id="23" version_string="1.0.0-BETA"><![CDATA[Richest Balances]]></phrase>
     <phrase title="bdbank_stats_total" version_id="23" version_string="1.0.0-BETA"><![CDATA[Economy Value]]></phrase>
     <phrase title="bdbank_tax_for_this_is_x_y_only_receive_z" version_id="10" version_string="0.9.9.2"><![CDATA[Tax for this transaction is {tax}. {receiver} will only receive {amount}.]]></phrase>
     <phrase title="bdbank_thank_you_for_purchasing" version_id="14" version_string="0.11.2"><![CDATA[Thank you for purchasing.]]></phrase>

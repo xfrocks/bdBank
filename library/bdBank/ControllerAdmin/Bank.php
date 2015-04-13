@@ -167,6 +167,11 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
         return $this->responseReroute('bdBank_ControllerAdmin_Stats', 'index');
     }
 
+    public function actionStatsDetails()
+    {
+        return $this->responseReroute('bdBank_ControllerAdmin_Stats', 'details');
+    }
+
     protected function _preDispatch($action)
     {
         $this->assertAdminPermission('bdbank');

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <addon addon_id="bdbank" title="[bd] Banking" version_string="1.0.0-BETA" version_id="23" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
   <admin_navigation>
-    <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
-    <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="" debug_only="0" hide_no_children="0"/>
+    <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="" debug_only="0" hide_no_children="1"/>
+    <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
     <navigation navigation_id="bdbank_stats" parent_navigation_id="bdbank" display_order="9999" link="bank/stats" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
-    <navigation navigation_id="bdbank_transfer" parent_navigation_id="bdbank" display_order="1000" link="bank/transfer" admin_permission_id="" debug_only="0" hide_no_children="0"/>
+    <navigation navigation_id="bdbank_transfer" parent_navigation_id="bdbank" display_order="1000" link="bank/transfer" admin_permission_id="bdbank_transfer" debug_only="0" hide_no_children="0"/>
   </admin_navigation>
   <admin_permissions>
     <admin_permission admin_permission_id="bdbank" display_order="9999"/>
+    <admin_permission admin_permission_id="bdbank_transfer" display_order="9999"/>
   </admin_permissions>
   <admin_style_properties/>
   <admin_templates>
@@ -605,7 +606,8 @@ eur=40</default_value>
     <phrase title="admin_navigation_bdbank_history" version_id="5" version_string="0.9.5"><![CDATA[Transaction History]]></phrase>
     <phrase title="admin_navigation_bdbank_stats" version_id="23" version_string="1.0.0-BETA"><![CDATA[Statistics]]></phrase>
     <phrase title="admin_navigation_bdbank_transfer" version_id="5" version_string="0.9.5"><![CDATA[Transfer Money]]></phrase>
-    <phrase title="admin_permission_bdbank" version_id="5" version_string="0.9.5"><![CDATA[[bd] Banking - Manage money and stuff]]></phrase>
+    <phrase title="admin_permission_bdbank" version_id="23" version_string="1.0.0-BETA"><![CDATA[[bd] Banking: View History & Stats]]></phrase>
+    <phrase title="admin_permission_bdbank_transfer" version_id="23" version_string="1.0.0-BETA"><![CDATA[[bd] Banking: Transfer Money]]></phrase>
     <phrase title="bdbank_advanced_options" version_id="23" version_string="1.0.0-BETA"><![CDATA[Advanced Options]]></phrase>
     <phrase title="bdbank_alert_transaction_transfer" version_id="6" version_string="0.9.6"><![CDATA[{username} sent you {amount}.]]></phrase>
     <phrase title="bdbank_archive" version_id="6" version_string="0.9.6"><![CDATA[Archive]]></phrase>

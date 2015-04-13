@@ -66,6 +66,14 @@ class bdBank_ControllerAdmin_Stats extends XenForo_ControllerAdmin_Stats
         return $this->responseView('bdBank_ViewAdmin_Stats_Details', 'bdbank_stats_details', $viewParams);
     }
 
+    protected function _preDispatch($action)
+    {
+        $this->assertAdminPermission('bdbank');
+
+        parent::_preDispatch($action);
+    }
+
+
     /**
      * @return bdBank_Model_Stats
      */

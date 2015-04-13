@@ -79,6 +79,8 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 
     public function actionTransfer()
     {
+        $this->assertAdminPermission('bdbank_transfer');
+
         $formData = $this->_input->filter(array(
             'receivers' => XenForo_Input::STRING,
             'amount' => XenForo_Input::STRING,

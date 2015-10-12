@@ -4,7 +4,7 @@ class bdBank_Option_Field
 {
     public static function verifyOption(&$field, XenForo_DataWriter $dw, $fieldName)
     {
-        $db = XenForo_Application::get('db');
+        $db = XenForo_Application::getDb();
 
         $column = $db->fetchRow('SHOW COLUMNS FROM `xf_user` LIKE ' . $db->quote($field));
 

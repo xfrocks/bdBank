@@ -348,9 +348,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             $amount = $price[0];
             $cost = $price[1];
             $currency = $price[2];
-            $itemName = new XenForo_Phrase(
-                'bdbank_purchase_x',
-                array(
+            $itemName = new XenForo_Phrase('bdbank_purchase_x', array(
                     'item' => XenForo_Template_Helper_Core::callHelper(
                         strtolower('bdbank_balanceFormat'),
                         array($amount)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0.0-BETA" version_id="24" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
+<addon addon_id="bdbank" title="[bd] Banking" version_string="1.0.1" version_id="25" url="" install_callback_class="bdBank_Installer" install_callback_method="install" uninstall_callback_class="bdBank_Installer" uninstall_callback_method="uninstall">
   <admin_navigation>
     <navigation navigation_id="bdbank" parent_navigation_id="tools" display_order="9999" link="bank" admin_permission_id="" debug_only="0" hide_no_children="1"/>
     <navigation navigation_id="bdbank_history" parent_navigation_id="bdbank" display_order="100" link="bank/history" admin_permission_id="bdbank" debug_only="0" hide_no_children="0"/>
@@ -623,7 +623,6 @@ eur=40</default_value>
     <phrase title="bdbank_balance_format_currency_first" version_id="10" version_string="0.9.9.2"><![CDATA[Currency first (example: $10)]]></phrase>
     <phrase title="bdbank_balance_format_value_first" version_id="10" version_string="0.9.9.2"><![CDATA[Value first (example: 10$)]]></phrase>
     <phrase title="bdbank_bank" global_cache="1" version_id="1" version_string="beta"><![CDATA[Bank]]></phrase>
-    <phrase title="bdbank_bank_nav_tab" version_id="23" version_string="1.0.0-BETA"><![CDATA[Bank]]></phrase>
     <phrase title="bdbank_bdpaygate_call_to_action" version_id="15" version_string="1.0-dev"><![CDATA[Pay with {money}]]></phrase>
     <phrase title="bdbank_bd_banking" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="bdbank_bonuses" version_id="23" version_string="1.0.0-BETA"><![CDATA[Bonuses]]></phrase>
@@ -648,7 +647,6 @@ eur=40</default_value>
     <phrase title="bdbank_get_more_x" global_cache="1" version_id="14" version_string="0.11.2"><![CDATA[Get More {money}]]></phrase>
     <phrase title="bdbank_greater_than_or_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Greater than or equals to...]]></phrase>
     <phrase title="bdbank_history" global_cache="1" version_id="1" version_string="beta"><![CDATA[Transaction History]]></phrase>
-    <phrase title="bdbank_home" global_cache="1" version_id="1" version_string="beta"><![CDATA[Home]]></phrase>
     <phrase title="bdbank_less_than_or_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Less than or equals to...]]></phrase>
     <phrase title="bdbank_money" global_cache="1" version_id="3" version_string="beta 3"><![CDATA[Money]]></phrase>
     <phrase title="bdbank_money_lowercase" global_cache="1" version_id="6" version_string="0.9.6"><![CDATA[money]]></phrase>
@@ -1127,10 +1125,10 @@ form.AttachmentManager {
 		</dd>
 	<xen:if is="{$xenAddOns}"></dl></xen:if>
 </xen:if>]]></template>
-    <template title="bdbank_message_user_info_extra" version_id="22" version_string="1.0.0-BETA"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
+    <template title="bdbank_message_user_info_extra" version_id="24" version_string="1.0.0-BETA"><![CDATA[<xen:if is="{xen:property bdbank_messageShowMoney} AND {$user.bdbank_show_money}">
 	<xen:require js="js/bdBank/transfer.js" />
 
-	<dl class="{xen:if '{xen:helper bdBank_options, xfVersionId} < 1020000', pairsInline, pairsJustified}">
+	<dl class="pairsJustified">
 		<dt>{xen:phrase bdbank_money}:</dt>
 		<dd>
 			<xen:if is="{$user.user_id} != {$visitor.user_id} AND {xen:helper bdBank_hasPermission, transfer}">

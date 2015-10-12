@@ -2,7 +2,7 @@
 
 class bdBank_Model_Bank extends XenForo_Model
 {
-    // the type contants are used in bdBank_ControllerPublic_Bank::actionHistory() to
+    // the type constants are used in bdBank_ControllerPublic_Bank::actionHistory() to
     // filter non-system transactions
     // please update it if you add more types here...
     const TYPE_SYSTEM = 0;
@@ -155,14 +155,16 @@ class bdBank_Model_Bank extends XenForo_Model
                     // new XenForo_Phrase('bdbank_explain_comment_attachment_post');
                     // new XenForo_Phrase('bdbank_explain_comment_liked_post');
                     // new XenForo_Phrase('bdbank_explain_comment_unlike_post');
-                    $comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0]);
+                    $comment = new XenForo_Phrase(
+                        'bdbank_explain_comment_' . $parts[0]);
                     $link = XenForo_Link::buildPublicLink('posts', array('post_id' => $parts[1]));
                     break;
                 case 'attachment_downloaded':
                 case 'attachment_downloaded_paid':
                     // new XenForo_Phrase('bdbank_explain_comment_attachment_downloaded');
                     // new XenForo_Phrase('bdbank_explain_comment_attachment_downloaded_paid');
-                    $comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0]);
+                    $comment = new XenForo_Phrase(
+                        'bdbank_explain_comment_' . $parts[0]);
                     $link = XenForo_Link::buildPublicLink('attachments', array('attachment_id' => $parts[1]));
                     break;
                 case 'manually_edited':
@@ -172,7 +174,9 @@ class bdBank_Model_Bank extends XenForo_Model
                 case 'bdbank_purchase_revert':
                     // new XenForo_Phrase('bdbank_explain_comment_bdbank_purchase');
                     // new XenForo_Phrase('bdbank_explain_comment_bdbank_purchase_revert');
-                    $comment = new XenForo_Phrase('bdbank_explain_comment_' . $parts[0], array('amount' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($parts[1]))));
+                    $comment = new XenForo_Phrase(
+                        'bdbank_explain_comment_' . $parts[0], array(
+                        'amount' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($parts[1]))));
                     $link = XenForo_Link::buildPublicLink('bank/get-more');
                     break;
             }
@@ -544,7 +548,7 @@ class bdBank_Model_Bank extends XenForo_Model
 
     public function macro_bonusAttachment($contentType, $contentId, $userId)
     {
-        $db = XenForo_Application::get('db');
+        $db = XenForo_Application::getDb();
 
         $attachments = $db->fetchOne("SELECT COUNT(*) FROM `xf_attachment` WHERE content_type = ? AND content_id = ?", array(
             $contentType,
@@ -593,9 +597,9 @@ class bdBank_Model_Bank extends XenForo_Model
 
     public static function options($optionId)
     {
+        $xenOptions = XenForo_Application::getOptions();
+
         switch ($optionId) {
-            case 'xfVersionId':
-                return XenForo_Application::$versionId;
             case 'perPage':
                 return 50;
             case 'perPagePopup':
@@ -606,7 +610,7 @@ class bdBank_Model_Bank extends XenForo_Model
 
             case 'taxRules':
                 if (self::$_taxRules === false) {
-                    $taxRules = XenForo_Application::get('options')->get('bdbank_taxRules');
+                    $taxRules = $xenOptions->get('bdbank_taxRules');
                     $lines = explode("\n", $taxRules);
                     self::$_taxRules = array();
 
@@ -652,7 +656,7 @@ class bdBank_Model_Bank extends XenForo_Model
 
             case 'getMorePrices':
                 if (self::$_getMorePrices === false) {
-                    $prices = XenForo_Application::get('options')->get('bdbank_getMorePrices');
+                    $prices = $xenOptions->get('bdbank_getMorePrices');
                     $lines = explode("\n", $prices);
                     self::$_getMorePrices = array();
 
@@ -670,7 +674,7 @@ class bdBank_Model_Bank extends XenForo_Model
                 return self::$_getMorePrices;
             case 'exchangeRates':
                 if (self::$_exchangeRates === false) {
-                    $rates = XenForo_Application::get('options')->get('bdbank_exchangeRates');
+                    $rates = $xenOptions->get('bdbank_exchangeRates');
                     $lines = explode("\n", $rates);
                     self::$_exchangeRates = array();
 
@@ -684,7 +688,7 @@ class bdBank_Model_Bank extends XenForo_Model
                 return self::$_exchangeRates;
         }
 
-        return XenForo_Application::get('options')->get('bdbank_' . $optionId);
+        return $xenOptions->get('bdbank_' . $optionId);
     }
 
     /**
@@ -777,6 +781,13 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         if (strpos($permission, 'bdbank_') === false) {
             $permission = 'bdbank_' . $permission;
+        }
+
+        if ($permission === 'bdbank_purchase') {
+            $addOns = XenForo_Application::get('addOns');
+            if (empty($addOns['bdPaygate'])) {
+                return false;
+            }
         }
 
         return XenForo_Visitor::getInstance()->hasPermission(self::PERM_GROUP, $permission);

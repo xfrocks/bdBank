@@ -76,6 +76,9 @@ class bdBank_Model_Bank extends XenForo_Model
             case 'register':
                 $points = self::options('bonus_register');
                 break;
+            case 'login':
+                $points = self::options('bonus_login');
+                break;
             case 'thread':
             case 'post':
                 // get the points from system options
@@ -150,9 +153,12 @@ class bdBank_Model_Bank extends XenForo_Model
             // all default system comment have 2 parts only
             switch ($parts[0]) {
                 case 'register':
-                    // new XenForo_Phrase('bdbank_explain_comment_register');
-                    $comment = new XenForo_Phrase(
-                        'bdbank_explain_comment_' . $parts[0]);
+                    $comment = new XenForo_Phrase('bdbank_explain_comment_register');
+                    break;
+                case 'login':
+                    $comment = new XenForo_Phrase('bdbank_explain_comment_login', array(
+                        'date' => XenForo_Template_Helper_Core::date($parts[1] * 86400)
+                    ));
                     break;
                 case 'post':
                 case 'attachment_post':
@@ -588,7 +594,7 @@ class bdBank_Model_Bank extends XenForo_Model
 
         // sometimes the hook system is not setup properly
         // our global model won't be initialized at all
-        // check for it here and create a new instance if neccessary
+        // check for it here and create a new instance if necessary
         if (empty($bank)) {
             static $localBank = false;
 

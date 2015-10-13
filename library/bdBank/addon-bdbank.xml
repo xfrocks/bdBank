@@ -488,6 +488,12 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="210"/>
     </option>
+    <option option_id="bdbank_bonus_login" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params>min=0</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="20"/>
+    </option>
     <option option_id="bdbank_bonus_post" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>5</default_value>
       <edit_format_params></edit_format_params>
@@ -645,6 +651,7 @@ eur=40</default_value>
     <phrase title="bdbank_explain_comment_bdbank_purchase" version_id="14" version_string="0.11.2"><![CDATA[Purchase {amount}]]></phrase>
     <phrase title="bdbank_explain_comment_bdbank_purchase_revert" version_id="14" version_string="0.11.2"><![CDATA[Revert purchasing {amount}]]></phrase>
     <phrase title="bdbank_explain_comment_liked_post" version_id="1" version_string="beta"><![CDATA[Bonus being liked in a post]]></phrase>
+    <phrase title="bdbank_explain_comment_login" version_id="25" version_string="1.0.1"><![CDATA[Bonus for logging in daily ({date})]]></phrase>
     <phrase title="bdbank_explain_comment_manually_edited_by_admin_x" version_id="12" version_string="0.11"><![CDATA[Manually edited by admin #{admin_id}]]></phrase>
     <phrase title="bdbank_explain_comment_post" version_id="1" version_string="beta"><![CDATA[Bonus posting]]></phrase>
     <phrase title="bdbank_explain_comment_register" version_id="25" version_string="1.0.1"><![CDATA[Bonus for new registration]]></phrase>
@@ -744,6 +751,8 @@ eur=40</default_value>
     <phrase title="option_bdbank_bonus_attachment_post_explain" version_id="1" version_string="beta"><![CDATA[The bonus will be multiplied if multiple files are attached in a post. When the target post is hard deleted or the attachment is removed individually, the bonus will be taken away accordingly.]]></phrase>
     <phrase title="option_bdbank_bonus_liked" version_id="1" version_string="beta"><![CDATA[Bonus for Liked Post]]></phrase>
     <phrase title="option_bdbank_bonus_liked_explain" version_id="1" version_string="beta"><![CDATA[The poster will get this bonus when somebody likes his/her post. The bonus will be taken away only when the post is hard deleted.]]></phrase>
+    <phrase title="option_bdbank_bonus_login" version_id="25" version_string="1.0.1"><![CDATA[Bonus for Login]]></phrase>
+    <phrase title="option_bdbank_bonus_login_explain" version_id="25" version_string="1.0.1"><![CDATA[User will receive this bonus by logging in every day.]]></phrase>
     <phrase title="option_bdbank_bonus_post" version_id="1" version_string="beta"><![CDATA[Bonus for New Post]]></phrase>
     <phrase title="option_bdbank_bonus_post_explain" version_id="1" version_string="beta"><![CDATA[The first post of a thread won't get this bonus point. When the post is hard deleted, the bonus will be taken away.]]></phrase>
     <phrase title="option_bdbank_bonus_register" version_id="25" version_string="1.0.1"><![CDATA[Bonus for Registration]]></phrase>

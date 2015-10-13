@@ -76,6 +76,7 @@ class bdBank_Listeners
 
             'XenForo_Model_Attachment',
             'XenForo_Model_Import',
+            'XenForo_Model_Ip',
             'XenForo_Model_Like',
             'XenForo_Model_Thread',
 

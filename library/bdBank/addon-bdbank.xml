@@ -317,6 +317,7 @@
     <template title="bdbank_tools_rebuild"><![CDATA[<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
 	<h2 class="subHeading">{xen:phrase bdbank_rebuild_bonuses}</h2>
 	<xen:selectunit name="options[bonus_type]" value="" label="{xen:phrase bdbank_rebuild_bonuses_type}:" explain="{xen:phrase bdbank_rebuild_bonuses_explain}">
+		<xen:option value="register">{xen:phrase bdbank_rebuild_bonuses_type_register}</xen:option>
 		<xen:option value="post_and_thread">{xen:phrase bdbank_rebuild_bonuses_type_post_and_thread}</xen:option>
 		<xen:option value="post_like">{xen:phrase bdbank_rebuild_bonuses_type_post_like}</xen:option>
 	</xen:selectunit>
@@ -473,31 +474,37 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
 * = 10</default_value>
       <edit_format_params>rows=5</edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="12"/>
+      <relation group_id="bdbank" display_order="160"/>
     </option>
     <option option_id="bdbank_bonus_attachment_post" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>10</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="11"/>
+      <relation group_id="bdbank" display_order="150"/>
     </option>
     <option option_id="bdbank_bonus_liked" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>1</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="101"/>
+      <relation group_id="bdbank" display_order="210"/>
     </option>
     <option option_id="bdbank_bonus_post" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>5</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="2"/>
+      <relation group_id="bdbank" display_order="120"/>
+    </option>
+    <option option_id="bdbank_bonus_register" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
+      <default_value>0</default_value>
+      <edit_format_params>min=0</edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="bdbank" display_order="10"/>
     </option>
     <option option_id="bdbank_bonus_thread" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>10</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="1"/>
+      <relation group_id="bdbank" display_order="110"/>
     </option>
     <option option_id="bdbank_daysOfHistory" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
       <default_value>90</default_value>
@@ -553,13 +560,13 @@ eur=40</default_value>
       <default_value>5</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="102"/>
+      <relation group_id="bdbank" display_order="220"/>
     </option>
     <option option_id="bdbank_post_chars_threshold" edit_format="spinbox" data_type="unsigned_integer" can_backup="1">
       <default_value>20</default_value>
       <edit_format_params></edit_format_params>
       <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="5"/>
+      <relation group_id="bdbank" display_order="121"/>
     </option>
     <option option_id="bdbank_showSystemTransactions" edit_format="onoff" data_type="unsigned_integer" can_backup="1">
       <default_value>1</default_value>
@@ -640,6 +647,7 @@ eur=40</default_value>
     <phrase title="bdbank_explain_comment_liked_post" version_id="1" version_string="beta"><![CDATA[Bonus being liked in a post]]></phrase>
     <phrase title="bdbank_explain_comment_manually_edited_by_admin_x" version_id="12" version_string="0.11"><![CDATA[Manually edited by admin #{admin_id}]]></phrase>
     <phrase title="bdbank_explain_comment_post" version_id="1" version_string="beta"><![CDATA[Bonus posting]]></phrase>
+    <phrase title="bdbank_explain_comment_register" version_id="25" version_string="1.0.1"><![CDATA[Bonus for new registration]]></phrase>
     <phrase title="bdbank_explain_comment_unlike_post" version_id="1" version_string="beta"><![CDATA[Penalty for unliking a post]]></phrase>
     <phrase title="bdbank_field_x_not_found_in_y_and_explain" version_id="6" version_string="0.9.6"><![CDATA[Field {field} could not be found in {table}. You must use an existing field as money field for [bd] Banking. If you are integrating this add-on with another add-on, please make sure you fully understand what you are doing. Seeking advice from the other add-on's author is recommended.]]></phrase>
     <phrase title="bdbank_get_more_not_supported" version_id="14" version_string="0.11.2"><![CDATA[Sorry, Get More is currently not supported yet.]]></phrase>
@@ -666,6 +674,7 @@ eur=40</default_value>
     <phrase title="bdbank_rebuild_bonuses_type" version_id="10" version_string="0.9.9.2"><![CDATA[Bonus Type]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_type_post_and_thread" version_id="10" version_string="0.9.9.2"><![CDATA[Post and Thread]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_type_post_like" version_id="10" version_string="0.9.9.2"><![CDATA[Post's Like]]></phrase>
+    <phrase title="bdbank_rebuild_bonuses_type_register" version_id="25" version_string="1.0.1"><![CDATA[New Registration]]></phrase>
     <phrase title="bdbank_rebuild_user" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Rebuild User Account Information]]></phrase>
     <phrase title="bdbank_refund" version_id="11" version_string="0.10"><![CDATA[Refund]]></phrase>
     <phrase title="bdbank_refund_amount" version_id="11" version_string="0.10"><![CDATA[Refund Amount]]></phrase>
@@ -737,6 +746,8 @@ eur=40</default_value>
     <phrase title="option_bdbank_bonus_liked_explain" version_id="1" version_string="beta"><![CDATA[The poster will get this bonus when somebody likes his/her post. The bonus will be taken away only when the post is hard deleted.]]></phrase>
     <phrase title="option_bdbank_bonus_post" version_id="1" version_string="beta"><![CDATA[Bonus for New Post]]></phrase>
     <phrase title="option_bdbank_bonus_post_explain" version_id="1" version_string="beta"><![CDATA[The first post of a thread won't get this bonus point. When the post is hard deleted, the bonus will be taken away.]]></phrase>
+    <phrase title="option_bdbank_bonus_register" version_id="25" version_string="1.0.1"><![CDATA[Bonus for Registration]]></phrase>
+    <phrase title="option_bdbank_bonus_register_explain" version_id="25" version_string="1.0.1"><![CDATA[New account will receive this bonus. If you change this option, run the rebuild tool to update bonuses for existing users.]]></phrase>
     <phrase title="option_bdbank_bonus_thread" version_id="1" version_string="beta"><![CDATA[Bonus for New thread]]></phrase>
     <phrase title="option_bdbank_bonus_thread_explain" version_id="1" version_string="beta"><![CDATA[When the thread is hard deleted, the bonus will be taken away.]]></phrase>
     <phrase title="option_bdbank_daysOfHistory" version_id="6" version_string="0.9.6"><![CDATA[Days of History]]></phrase>

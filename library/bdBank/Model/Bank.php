@@ -73,6 +73,9 @@ class bdBank_Model_Bank extends XenForo_Model
         $isPenalty = false;
 
         switch ($action) {
+            case 'register':
+                $points = self::options('bonus_register');
+                break;
             case 'thread':
             case 'post':
                 // get the points from system options
@@ -141,12 +144,16 @@ class bdBank_Model_Bank extends XenForo_Model
 
     public function parseComment($comment)
     {
-        // just in case someone extends this
         $parts = explode(' ', $comment);
         $link = false;
         if (count($parts) == 2) {
-            // all default system commment have 2 parts only
+            // all default system comment have 2 parts only
             switch ($parts[0]) {
+                case 'register':
+                    // new XenForo_Phrase('bdbank_explain_comment_register');
+                    $comment = new XenForo_Phrase(
+                        'bdbank_explain_comment_' . $parts[0]);
+                    break;
                 case 'post':
                 case 'attachment_post':
                 case 'liked_post':

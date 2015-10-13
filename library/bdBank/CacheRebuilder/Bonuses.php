@@ -13,6 +13,10 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
         $options['batch'] = max(1, $options['batch']);
 
         switch ($options['bonus_type']) {
+            case 'register':
+                $position = $this->_rebuildRegister($position, $options);
+                $detailedMessage = XenForo_Locale::numberFormat($position);
+                return $position;
             case 'post_and_thread':
                 $position = $this->_rebuildPostAndThread($position, $options);
                 $detailedMessage = XenForo_Locale::numberFormat($position);
@@ -24,6 +28,36 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
             default:
                 return true;
         }
+    }
+
+    protected function _rebuildRegister($position, array &$options)
+    {
+        /* @var $userModel XenForo_Model_User */
+        $userModel = XenForo_Model::create('XenForo_Model_User');
+
+        $userIds = $userModel->getUserIdsInRange($position, $options['batch']);
+        if (sizeof($userIds) == 0) {
+            return true;
+        }
+
+        $bank = bdBank_Model_Bank::getInstance();
+        bdBank_Model_Bank::$isReplaying = true;
+
+        $bonusType = 'register';
+        $point = $bank->getActionBonus($bonusType);
+
+        foreach ($userIds AS $userId) {
+            $position = $userId;
+
+            $comment = $bank->comment($bonusType, $userId);
+            $bank->reverseSystemTransactionByComment($comment);
+
+            if ($point != 0) {
+                $bank->personal()->give($userId, $point, $comment);
+            }
+        }
+
+        return $position;
     }
 
     protected function _rebuildPostAndThread($position, array &$options)
@@ -39,8 +73,6 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
         }
 
         $forums = $forumModel->getForums();
-
-        XenForo_Db::beginTransaction();
         bdBank_Model_Bank::$isReplaying = true;
 
         foreach ($postIds AS $postId) {
@@ -59,8 +91,6 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
                 $dw->save();
             }
         }
-
-        XenForo_Db::commit();
 
         return $position;
     }
@@ -89,7 +119,6 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
 			WHERE like_id IN (' . $db->quote($likeIds) . ')
 		');
 
-        XenForo_Db::beginTransaction();
         bdBank_Model_Bank::$isReplaying = true;
 
         foreach ($likes AS $like) {
@@ -105,8 +134,6 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
                 $bank->personal()->give($like['content_user_id'], $point, $comment);
             }
         }
-
-        XenForo_Db::commit();
 
         return $position;
     }

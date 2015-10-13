@@ -12,22 +12,55 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
         $options['batch'] = isset($options['batch']) ? $options['batch'] : 500;
         $options['batch'] = max(1, $options['batch']);
 
-        switch ($options['bonus_type']) {
-            case 'register':
-                $position = $this->_rebuildRegister($position, $options);
-                $detailedMessage = XenForo_Locale::numberFormat($position);
-                return $position;
-            case 'post_and_thread':
-                $position = $this->_rebuildPostAndThread($position, $options);
-                $detailedMessage = XenForo_Locale::numberFormat($position);
-                return $position;
-            case 'post_like':
-                $position = $this->_rebuildPostLike($position, $options);
-                $detailedMessage = XenForo_Locale::numberFormat($position);
-                return $position;
-            default:
-                return true;
+        $rebuildEverything = false;
+        $bonusType = '';
+        if (empty($options['bonus_type'])) {
+            $rebuildEverything = true;
+            $bonusTypes = array(
+                'register',
+                'post_and_thread',
+                'post_like',
+            );
+
+            foreach ($bonusTypes as $_bonusType) {
+                if (empty($options['finishedBonusTypes'])
+                    || !in_array($_bonusType, $options['finishedBonusTypes'])
+                ) {
+                    $bonusType = $_bonusType;
+                    break;
+                }
+            }
+        } else {
+            $bonusType = $options['bonus_type'];
         }
+
+        $rebuilt = null;
+        if (!empty($bonusType)) {
+            $rebuilt = call_user_func(array($this, '_rebuild' .
+                str_replace(' ', '', ucwords(str_replace('_', ' ', $bonusType)))),
+                $position, $options);
+        }
+
+        if (is_numeric($rebuilt)) {
+            $detailedMessage = XenForo_Locale::numberFormat($rebuilt);
+            return $rebuilt;
+        }
+
+        if ($rebuilt === true) {
+            if ($rebuildEverything) {
+                if (empty($options['finishedBonusTypes'])) {
+                    $options['finishedBonusTypes'] = array();
+                }
+                $options['finishedBonusTypes'][] = $bonusType;
+
+                $detailedMessage = XenForo_Locale::numberFormat(0);
+                return 0;
+            } else {
+                return $rebuilt;
+            }
+        }
+
+        return true;
     }
 
     protected function _rebuildRegister($position, array &$options)

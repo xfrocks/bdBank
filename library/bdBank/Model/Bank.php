@@ -73,12 +73,6 @@ class bdBank_Model_Bank extends XenForo_Model
         $isPenalty = false;
 
         switch ($action) {
-            case 'register':
-                $points = self::options('bonus_register');
-                break;
-            case 'login':
-                $points = self::options('bonus_login');
-                break;
             case 'thread':
             case 'post':
                 // get the points from system options
@@ -97,17 +91,6 @@ class bdBank_Model_Bank extends XenForo_Model
                 }
                 break;
 
-            case 'liked':
-                $points = self::options('bonus_liked');
-                break;
-            case 'unlike':
-                $isPenalty = true;
-                $points = self::options('penalty_unlike');
-                break;
-
-            case 'attachment_post':
-                $points = self::options('bonus_attachment_post');
-                break;
             case 'attachment_downloaded':
                 if (empty($extraData)) {
                     throw new bdBank_Exception('attachment_downloaded_bonus_requires_file_extension_as_extra_data');
@@ -131,11 +114,14 @@ class bdBank_Model_Bank extends XenForo_Model
                     }
                 }
                 break;
-        }
 
-        if (bdBank_Helper_Number::comp($points, 0) === -1) {
-            // bonus never is less than 0
-            $points = 0;
+            case 'unlike':
+                $isPenalty = true;
+                $points = self::options('penalty_' . $action);
+                break;
+
+            default:
+                $points = self::options('bonus_' . $action);
         }
 
         if ($isPenalty) {
@@ -149,6 +135,7 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         $parts = explode(' ', $comment);
         $link = false;
+
         if (count($parts) == 2) {
             // all default system comment have 2 parts only
             switch ($parts[0]) {
@@ -192,6 +179,21 @@ class bdBank_Model_Bank extends XenForo_Model
                         'amount' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($parts[1]))));
                     $link = XenForo_Link::buildPublicLink('bank/get-more');
                     break;
+                case 'resource_update':
+                case 'liked_resource_update':
+                case 'unlike_resource_update':
+                    // new XenForo_Phrase('bdbank_explain_comment_resource_update');
+                    // new XenForo_Phrase('bdbank_explain_comment_liked_resource_update');
+                    // new XenForo_Phrase('bdbank_explain_comment_unlike_resource_update');
+                    $comment = new XenForo_Phrase(
+                        'bdbank_explain_comment_' . $parts[0]);
+                    $link = XenForo_Link::buildPublicLink('resources/update', null, array('resource_update_id' => $parts[1]));
+                    break;
+
+                default:
+                    if (substr($parts[0], 0, 6) === 'liked_') {
+                        $comment = new XenForo_Phrase('bdbank_explain_comment_liked');
+                    }
             }
         }
 

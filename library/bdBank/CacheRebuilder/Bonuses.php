@@ -19,7 +19,8 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
             $bonusTypes = array(
                 'register',
                 'post_and_thread',
-                'post_like',
+                'resource_update',
+                'like',
             );
 
             foreach ($bonusTypes as $_bonusType) {
@@ -113,7 +114,7 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
 
             $post = $postModel->getPostById($postId, array('join' => XenForo_Model_Post::FETCH_THREAD));
 
-            $dw = XenForo_DataWriter::create('XenForo_DataWriter_DiscussionMessage_Post', XenForo_DataWriter::ERROR_SILENT);
+            $dw = XenForo_DataWriter::create('XenForo_DataWriter_DiscussionMessage_Post');
             if ($dw->setExistingData($post, true)) {
                 $dw->setExtraData(bdBank_XenForo_DataWriter_DiscussionMessage_Post::DATA_THREAD, $post);
 
@@ -128,7 +129,31 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
         return $position;
     }
 
-    protected function _rebuildPostLike($position, array &$options)
+    protected function _rebuildResourceUpdate($position, array &$options)
+    {
+        /* @var $updateModel XenResource_Model_Update */
+        $updateModel = XenForo_Model::create('XenResource_Model_Update');
+
+        $updateIds = $updateModel->getUpdateIdsInRange($position, $options['batch']);
+        if (sizeof($updateIds) == 0) {
+            return true;
+        }
+
+        bdBank_Model_Bank::$isReplaying = true;
+
+        foreach ($updateIds AS $updateId) {
+            $position = $updateId;
+
+            $dw = XenForo_DataWriter::create('XenResource_DataWriter_Update');
+            if ($dw->setExistingData($updateId)) {
+                $dw->save();
+            }
+        }
+
+        return $position;
+    }
+
+    protected function _rebuildLike($position, array &$options)
     {
         /* @var $db Zend_Db_Adapter_Abstract */
         $db = XenForo_Application::get('db');
@@ -139,7 +164,6 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
 			SELECT like_id
 			FROM xf_liked_content
 			WHERE like_id > ?
-				AND content_type = "post"
 			ORDER BY like_id
 		', $options['batch']), $position);
         if (sizeof($likeIds) == 0) {
@@ -157,7 +181,7 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
         foreach ($likes AS $like) {
             $position = $like['like_id'];
 
-            $comment = $bank->comment('liked_post', $like['content_id']);
+            $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id']);
 
             // first we have to reverse any previous transactions
             $bank->reverseSystemTransactionByComment($comment);

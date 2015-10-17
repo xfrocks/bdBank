@@ -85,10 +85,10 @@ class bdBank_Importer_vBulletin extends XFCP_bdBank_Importer_vBulletin
         foreach ($records AS $record) {
             $next = $record['userid'];
             $newUserId = $this->_mapLookUp($userIdMap, $record['userid']);
-             if (empty($newUserId)) {
-                 // user not found?
-                 continue;
-             }
+            if (empty($newUserId)) {
+                // user not found?
+                continue;
+            }
 
             if (!empty($record['money'])) {
                 $personal->give($newUserId, $record['money'], 'Import');

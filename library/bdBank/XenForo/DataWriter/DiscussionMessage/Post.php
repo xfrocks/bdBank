@@ -32,7 +32,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
                     // the result should be cached so no queries will be executed
                     /** @var bdBank_XenForo_Model_Thread $threadModel */
                     $threadModel = $this->_getThreadModel();
-                    $thread =$threadModel->bdBank_getThreadById($this->get('thread_id'));
+                    $thread = $threadModel->bdBank_getThreadById($this->get('thread_id'));
 
                     if (empty($thread)) {
                         // oops, this shouldn't happen

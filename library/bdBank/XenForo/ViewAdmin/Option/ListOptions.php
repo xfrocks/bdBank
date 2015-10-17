@@ -26,6 +26,7 @@ class bdBank_XenForo_ViewAdmin_Option_ListOptions extends XFCP_bdBank_XenForo_Vi
                         'bdbank_bonus_register',
                         'bdbank_bonus_thread',
                         'bdbank_bonus_liked',
+                        'bdbank_bonus_resource',
                     ),
                 ),
                 'economic' => array(

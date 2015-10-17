@@ -20,8 +20,7 @@ class bdBank_ControllerAdmin_Stats extends XenForo_ControllerAdmin_Stats
     {
         $tz = new DateTimeZone('GMT');
 
-        if (!$date = $this->_input->filterSingle('date', XenForo_Input::DATE_TIME, array('timeZone' => $tz)))
-        {
+        if (!$date = $this->_input->filterSingle('date', XenForo_Input::DATE_TIME, array('timeZone' => $tz))) {
             $date = strtotime('today');
         }
 

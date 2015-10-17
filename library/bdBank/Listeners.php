@@ -85,6 +85,8 @@ class bdBank_Listeners
             'XenForo_Model_Thread',
 
             'XenForo_ViewAdmin_Option_ListOptions',
+
+            'XenResource_DataWriter_Update',
         );
 
         if (in_array($class, $classes)) {

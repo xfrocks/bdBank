@@ -745,6 +745,7 @@ eur=40</default_value>
     <phrase title="bdbank_transfer_error_no_receivers" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you must specify receivers for the transaction.]]></phrase>
     <phrase title="bdbank_transfer_error_receiver_not_found_x" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, the receiver {username} could not be identified.]]></phrase>
     <phrase title="bdbank_transfer_error_self" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you cannot transfer to yourself.]]></phrase>
+    <phrase title="bdbank_transfer_error_suggest_get_more" version_id="27" version_string="1.0.2b"><![CDATA[Consider getting more {money_lowercase}?]]></phrase>
     <phrase title="bdbank_transfer_error_zero_amount" version_id="15" version_string="1.0-dev"><![CDATA[Sorry, you cannot transfer zeros.]]></phrase>
     <phrase title="bdbank_transfer_receivers" version_id="1" version_string="beta"><![CDATA[Receivers]]></phrase>
     <phrase title="bdbank_transfer_total_x_you_have_y_left_z" version_id="1" version_string="beta"><![CDATA[Total amount is {total}. You currently have {balance}, you will have {balanceAfter} after this.]]></phrase>
@@ -858,7 +859,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     </group>
   </style_properties>
   <templates>
-    <template title="bdbank.css" version_id="4" version_string="0.9.4"><![CDATA[/* TRANSACTION LIST */
+    <template title="bdbank.css" version_id="27" version_string="1.0.2b"><![CDATA[/* TRANSACTION LIST */
 
 .transactionList {
 	position: relative;
@@ -965,6 +966,15 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
 		float: left;
 		display: block;
 	}
+
+/* TRANSFER */
+.transferError > .getMore > h3 {
+	display: none;
+}
+
+.transferError > .getMore .primaryContent {
+	background: none;
+}
 
 /* ATTACHMENT LIST */
 
@@ -1290,16 +1300,15 @@ form.AttachmentManager {
 </form>
 
 <xen:pagenav link="{xen:link bank/attachment-manager}" page="{$page}" perpage="{$perpage}" total="{$totalAttachments}" />]]></template>
-    <template title="bdbank_page_get_more_bdpaygate" version_id="14" version_string="0.11.2"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
+    <template title="bdbank_page_get_more_bdpaygate" version_id="27" version_string="1.0.2b"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
 
 <xen:require css="account_upgrades.css" />
 
 <xen:if is="{$packages}">
-	<div class="section">
 		<h3 class="subHeading">{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</h3>
-		<ul>
+		<ul class="getMorePackages">
 		<xen:foreach loop="$packages" value="$package">
-			<li class="primaryContent">
+			<li class="package primaryContent">
 				<div class="upgrade">					
 					<div class="upgradeForm">
 						<xen:if hascontent="true">
@@ -1319,7 +1328,6 @@ form.AttachmentManager {
 			</li>
 		</xen:foreach>
 		</ul>
-	</div>
 </xen:if>]]></template>
     <template title="bdbank_page_get_more_complete" version_id="14" version_string="0.11.2"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
 
@@ -1559,6 +1567,28 @@ form.AttachmentManager {
 	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
 	<input type="hidden" name="rtn" value="{$formData.rtn}" />
 </form>]]></template>
+    <template title="bdbank_page_transfer_error_suggest_get_more" version_id="27" version_string="1.0.2b"><![CDATA[<xen:require css="bdbank.css" />
+
+<xen:title>{xen:phrase error}</xen:title>
+<xen:h1>{$xenOptions.boardTitle} - {xen:phrase error}</xen:h1>
+
+<xen:container var="$head.robots"><meta name="robots" content="noindex" /></xen:container>
+
+<div class="transferError errorOverlay">
+	<a class="close OverlayCloser"></a>
+
+	<xen:if is="{$showHeading}"><h2 class="heading">{xen:phrase following_error_occurred}:</h2></xen:if>
+
+	<div class="baseHtml">
+		{xen:raw $error}
+		{xen:phrase bdbank_transfer_error_suggest_get_more,
+			'money_lowercase={xen:phrase bdbank_money_lowercase}'}
+	</div>
+	<div class="getMore">{xen:raw $_subView}</div>
+</div>
+
+<xen:edithint template="error" />
+<xen:edithint template="bdbank_page_get_more_bdpaygate" />]]></template>
     <template title="bdbank_sidebar_visitor_panel_stats" version_id="20" version_string="1.0-dev"><![CDATA[<xen:if is="{xen:property bdbank_visitorPanelShowMoney}">
 	<xen:require js="js/bdBank/transfer.js" />
 

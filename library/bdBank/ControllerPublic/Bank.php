@@ -206,11 +206,30 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             if (bdBank_Helper_Number::comp($balanceAfter, 0) === -1) {
                 // oops
                 $total = bdBank_Helper_Number::sub($balance, $balanceAfter);
-
-                return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough', array(
+                $error = new XenForo_Phrase('bdbank_transfer_error_not_enough', array(
                     'balance' => bdBank_Model_Bank::helperBalanceFormat($balance),
                     'total' => bdBank_Model_Bank::helperBalanceFormat($total),
-                )));
+                ));
+
+                if (bdBank_Model_Bank::helperHasPermission(bdBank_Model_Bank::PERM_PURCHASE)) {
+                    $viewParams = array(
+                        'formData' => $formData,
+                        'error' => $error,
+                    );
+
+                    $responseGetMore = $this->actionGetMore();
+                    if ($responseGetMore instanceof XenForo_ControllerResponse_View) {
+                        $viewParams['subView'] = $responseGetMore;
+                    }
+
+                    return $this->responseView(
+                        'bdBank_ViewPublic_Bank_TransferError',
+                        'bdbank_page_transfer_error_suggest_get_more',
+                        $viewParams
+                    );
+                }
+
+                return $this->responseError($error);
             }
 
             $total = bdBank_Helper_Number::sub($balance, $balanceAfter);
@@ -400,7 +419,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             }
         }
 
-        $viewParams = array('packages' => $packages,);
+        $viewParams = array('packages' => $packages);
 
         return $this->responseView('bdBank_ViewPublic_Bank_GetMore', 'bdbank_page_get_more_bdpaygate', $viewParams);
     }

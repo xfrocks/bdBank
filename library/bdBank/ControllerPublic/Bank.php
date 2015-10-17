@@ -337,7 +337,9 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
     {
         $visitor = XenForo_Visitor::getInstance();
 
-        $processorNames = $this->_getProcessorModel()->getProcessorNames();
+        /** @var bdPaygate_Model_Processor $processorModel */
+        $processorModel = $this->getModelFromCache('bdPaygate_Model_Processor');
+        $processorNames = $processorModel->getProcessorNames();
         $processors = array();
         foreach ($processorNames as $processorId => $processorClass) {
             $processors[$processorId] = bdPaygate_Processor_Abstract::create($processorClass);
@@ -355,7 +357,7 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
                     ),
                 )
             );
-            $itemId = $this->_getProcessorModel()->generateItemId('bdbank_purchase', $visitor, array($amount));
+            $itemId = $processorModel->generateItemId('bdbank_purchase', $visitor, array($amount));
 
             $forms = call_user_func_array(array(
                 'bdPaygate_Processor_Abstract',
@@ -380,13 +382,19 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             }
 
             if (!empty($forms)) {
+                $costStr = sprintf("%d %s", XenForo_Template_Helper_Core::numberFormat($cost, 2), utf8_strtoupper($currency));
+                $formatCostFunc = array($processorModel, 'formatCost');
+                if (is_callable($formatCostFunc)) {
+                    $costStr = call_user_func($formatCostFunc, $cost, $currency);
+                }
+
                 $packages[] = array(
                     'amount' => $amount,
                     'cost' => $cost,
                     'currency' => $currency,
 
                     'title' => $itemName,
-                    'cost_str' => sprintf("%d %s", $cost, utf8_strtoupper($currency)),
+                    'cost_str' => $costStr,
                     'forms' => $forms,
                 );
             }
@@ -488,13 +496,5 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
         }
 
         parent::_checkCsrf($action);
-    }
-
-    /**
-     * @return bdPaygate_Model_Processor
-     */
-    protected function _getProcessorModel()
-    {
-        return $this->getModelFromCache('bdPaygate_Model_Processor');
     }
 }

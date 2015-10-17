@@ -12,6 +12,15 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
         return $currencies;
     }
 
+    public function formatCost($amount, $currency)
+    {
+        if ($currency === bdBank_bdPaygate_Processor::CURRENCY_BDBANK) {
+            return bdBank_Model_Bank::helperBalanceFormat($amount);
+        }
+
+        return parent::formatCost($amount, $currency);
+    }
+
     public function getProcessorNames()
     {
         $names = parent::getProcessorNames();

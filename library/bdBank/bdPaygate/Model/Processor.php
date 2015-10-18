@@ -18,7 +18,18 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
             return bdBank_Model_Bank::helperBalanceFormat($amount);
         }
 
-        return parent::formatCost($amount, $currency);
+        $parentFunc = array('parent', 'formatCost');
+        if (is_callable($parentFunc)) {
+            return call_user_func($parentFunc, $amount, $currency);
+        }
+
+        // [bd] Paygates is out of date, we have to mimics it
+        $currencies = $this->getCurrencies();
+        if (!isset($currencies[$currency])) {
+            $currencies[$currency] = utf8_strtoupper($currency);
+        }
+
+        return sprintf('%s %s', XenForo_Locale::numberFormat($amount, 2), $currencies[$currency]);
     }
 
     public function getProcessorNames()

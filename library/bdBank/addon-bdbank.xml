@@ -366,13 +366,18 @@
 		</div>
 	</li>]]></template>
     <template title="bdbank_user_edit_privacy"><![CDATA[<xen:checkboxunit label="&nbsp;">
-	<xen:option name="bdbank_show_money" selected="{$user.bdbank_show_money}">{xen:phrase bdbank_privacy_show_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}</xen:option>
-</xen:checkboxunit>]]></template>
-    <template title="bdbank_user_edit_profile_info"><![CDATA[<xen:if is="{xen:helper bdBank_options, field} == 'bdbank_money'">
-	<fieldset>
-		<xen:spinboxunit label="{xen:phrase bdbank_money}:" name="bdbank_money" value="{xen:helper bdBank_balance, $user}" min="0" />
-		<input type="hidden" name="bdbank_money_included" value="1" />
-	</fieldset>
+	<xen:option name="bdbank_show_money" selected="{$user.bdbank_show_money}">
+		{xen:phrase bdbank_privacy_show_money, 'money_lowercase={xen:phrase bdbank_money_lowercase}'}
+	</xen:option>
+</xen:checkboxunit>
+<input type="hidden" name="bdbank_show_money_included" value="1" />]]></template>
+    <template title="bdbank_user_edit_profile_info"><![CDATA[<xen:if is="{xen:helper bdBank_options, field} == 'bdbank_money'
+	&& {xen:helper bdBank_hasPermission, admin, transfer}">
+<fieldset>
+	<xen:spinboxunit label="{xen:phrase bdbank_money}:" name="bdbank_money"
+		value="{xen:helper bdBank_balance, $user}" min="0" />
+	<input type="hidden" name="bdbank_money_included" value="1" />
+</fieldset>
 </xen:if>]]></template>
   </admin_templates>
   <admin_template_modifications>

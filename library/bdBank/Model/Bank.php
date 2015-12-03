@@ -792,20 +792,29 @@ class bdBank_Model_Bank extends XenForo_Model
         return ($negative ? '-' : '') . ((self::options('balanceFormat') == 'currency_first') ? ($currencyName . $valueFormatted) : ($valueFormatted . $currencyName));
     }
 
-    public static function helperHasPermission($permission)
+    public static function helperHasPermission($group, $permissionId = null)
     {
-        if (strpos($permission, 'bdbank_') === false) {
-            $permission = 'bdbank_' . $permission;
+        if (empty($permissionId)) {
+            $permissionId = $group;
+            $group = self::PERM_GROUP;
         }
 
-        if ($permission === 'bdbank_purchase') {
+        if (strpos($permissionId, 'bdbank_') === false) {
+            $permissionId = 'bdbank_' . $permissionId;
+        }
+
+        if ($group === 'admin') {
+            return XenForo_Visitor::getInstance()->hasAdminPermission($permissionId);
+        }
+
+        if ($permissionId === 'bdbank_purchase') {
             $addOns = XenForo_Application::get('addOns');
             if (empty($addOns['bdPaygate'])) {
                 return false;
             }
         }
 
-        return XenForo_Visitor::getInstance()->hasPermission(self::PERM_GROUP, $permission);
+        return XenForo_Visitor::getInstance()->hasPermission($group, $permissionId);
     }
 
 }

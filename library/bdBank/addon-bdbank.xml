@@ -718,6 +718,7 @@ eur=40</default_value>
     <phrase title="bdbank_stats_richest_2" version_id="23" version_string="1.0.0-BETA"><![CDATA[Third Richest Balance]]></phrase>
     <phrase title="bdbank_stats_richest_balances" version_id="23" version_string="1.0.0-BETA"><![CDATA[Richest Balances]]></phrase>
     <phrase title="bdbank_stats_total" version_id="23" version_string="1.0.0-BETA"><![CDATA[Economy Value]]></phrase>
+    <phrase title="bdbank_system_username" version_id="29" version_string="1.0.4"><![CDATA[Bank]]></phrase>
     <phrase title="bdbank_tax_for_this_is_x_y_only_receive_z" version_id="10" version_string="0.9.9.2"><![CDATA[Tax for this transaction is {tax}. {receiver} will only receive {amount}.]]></phrase>
     <phrase title="bdbank_thank_you_for_purchasing" version_id="14" version_string="0.11.2"><![CDATA[Thank you for purchasing.]]></phrase>
     <phrase title="bdbank_there_no_attachments_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no attachments to display.]]></phrase>
@@ -793,7 +794,7 @@ eur=40</default_value>
     <phrase title="option_bdbank_getMorePrices" version_id="14" version_string="0.11.2"><![CDATA[Purchase Prices]]></phrase>
     <phrase title="option_bdbank_getMorePrices_explain" version_id="15" version_string="1.0-dev"><![CDATA[You can allow users to purchase money by real currencies. Each line must has the format {money}={amount}{currency}. Please note that this feature requires additional add-on (e.g. <a href="http://xenforo.com/community/resources/1606/" target="_blank" tabindex="-1">[bd] Paygates add-on</a>) and properly set permissions, consult the document for further information. Leave this option blank to disable this feature.]]></phrase>
     <phrase title="option_bdbank_gravatar" version_id="10" version_string="0.9.9.2"><![CDATA[Bank Account Avatar]]></phrase>
-    <phrase title="option_bdbank_gravatar_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Sometimes the Bank account will show up with an avatar (mostly in transaction history). You can use any image you want by uploading to <a href="http://gravatar.com/">Gravatar</a> and enter the email address here.]]></phrase>
+    <phrase title="option_bdbank_gravatar_explain" version_id="29" version_string="1.0.4"><![CDATA[Sometimes the System account will show up with an avatar (mostly in transaction history). You can use any image you want by uploading to <a href="http://gravatar.com/">Gravatar</a> and enter the email address here. You may also translate the phrase "bdbank_system_username" to change its username.]]></phrase>
     <phrase title="option_bdbank_minimumTax" version_id="6" version_string="0.9.6"><![CDATA[Minimum Tax]]></phrase>
     <phrase title="option_bdbank_minimumTax_explain" version_id="6" version_string="0.9.6"><![CDATA[You can set a minimum tax amount for all transaction. If the tax calculated using tax rules are smaller than this value, it will be used as the transaction's tax.]]></phrase>
     <phrase title="option_bdbank_moneyAsCurrency" version_id="19" version_string="1.0-dev"><![CDATA[Money As Currency]]></phrase>
@@ -1601,12 +1602,12 @@ form.AttachmentManager {
 		</dd>
 	</dl>
 </xen:if>]]></template>
-    <template title="bdbank_transaction_list_item" version_id="21" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
+    <template title="bdbank_transaction_list_item" version_id="29" version_string="1.0.4"><![CDATA[<xen:require css="bdbank.css" />
 
 <li id="transaction-{$transaction.transaction_id}" class="transactionListItem">
 	<div class="listBlock sender">
 		<div class="titleText">
-			<xen:if is="{$transaction.from_user.user_id}">
+			<xen:if is="{$transaction.from_user.user_id} > 0">
 				<xen:username user="{$transaction.from_user}" rich="true" />
 			<xen:else />
 				{$transaction.from_user.username}
@@ -1615,7 +1616,7 @@ form.AttachmentManager {
 	</div>
 	<div class="listBlock receiver">
 		<div class="titleText">
-			<xen:if is="{$transaction.to_user.user_id}">
+			<xen:if is="{$transaction.to_user.user_id} > 0">
 				<xen:username user="{$transaction.to_user}" rich="true" />
 			<xen:else />
 				{$transaction.to_user.username}

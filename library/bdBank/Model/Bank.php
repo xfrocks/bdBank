@@ -427,7 +427,7 @@ class bdBank_Model_Bank extends XenForo_Model
             }
             $users['0'] = array(
                 'user_id' => 'hmm', // user_id can not be 0 or gravatar won't show up...
-                'username' => new XenForo_Phrase('bdbank_bank'),
+                'username' => new XenForo_Phrase('bdbank_system_username'),
                 'gravatar' => self::options('gravatar'),
             );
         }

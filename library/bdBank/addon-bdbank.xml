@@ -643,15 +643,6 @@ eur=40</default_value>
     <phrase title="bdbank_advanced_options" version_id="23" version_string="1.0.0-BETA"><![CDATA[Advanced Options]]></phrase>
     <phrase title="bdbank_alert_transaction_transfer" version_id="6" version_string="0.9.6"><![CDATA[{username} sent you {amount}.]]></phrase>
     <phrase title="bdbank_archive" version_id="6" version_string="0.9.6"><![CDATA[Archive]]></phrase>
-    <phrase title="bdbank_attachment_attach_date" version_id="3" version_string="beta 3"><![CDATA[Uploaded]]></phrase>
-    <phrase title="bdbank_attachment_download_confirm_to_pay" version_id="4" version_string="0.9.4"><![CDATA[Confirm to Pay for download]]></phrase>
-    <phrase title="bdbank_attachment_filename" version_id="3" version_string="beta 3"><![CDATA[Filename]]></phrase>
-    <phrase title="bdbank_attachment_manager" global_cache="1" version_id="3" version_string="beta 3"><![CDATA[Attachment Manager]]></phrase>
-    <phrase title="bdbank_attachment_pay_and_download" version_id="4" version_string="0.9.4"><![CDATA[Pay & Download]]></phrase>
-    <phrase title="bdbank_attachment_price" version_id="3" version_string="beta 3"><![CDATA[Price]]></phrase>
-    <phrase title="bdbank_attachment_trying_to_download" version_id="4" version_string="0.9.4"><![CDATA[You are trying to download]]></phrase>
-    <phrase title="bdbank_attachment_uploader_set_price" version_id="4" version_string="0.9.4"><![CDATA[The uploader set a price for this download. You have to pay before you can continue...]]></phrase>
-    <phrase title="bdbank_attachment_view_count" version_id="3" version_string="beta 3"><![CDATA[Downloaded]]></phrase>
     <phrase title="bdbank_balance_format_currency_first" version_id="10" version_string="0.9.9.2"><![CDATA[Currency first (example: $10)]]></phrase>
     <phrase title="bdbank_balance_format_value_first" version_id="10" version_string="0.9.9.2"><![CDATA[Value first (example: 10$)]]></phrase>
     <phrase title="bdbank_bank" global_cache="1" version_id="1" version_string="beta"><![CDATA[Bank]]></phrase>
@@ -665,7 +656,6 @@ eur=40</default_value>
     <phrase title="bdbank_equals_to" version_id="6" version_string="0.9.6"><![CDATA[Equals to...]]></phrase>
     <phrase title="bdbank_error_user_not_enough_money" version_id="22" version_string="1.0.0-BETA"><![CDATA[{username} doesn't have enough {money_lowercase}. The current account balance is {balance}.]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_downloaded" version_id="3" version_string="beta 3"><![CDATA[Bonus attachment being downloaded]]></phrase>
-    <phrase title="bdbank_explain_comment_attachment_downloaded_paid" version_id="4" version_string="0.9.4"><![CDATA[Pay for download]]></phrase>
     <phrase title="bdbank_explain_comment_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for uploading attachment]]></phrase>
     <phrase title="bdbank_explain_comment_bdbank_purchase" version_id="14" version_string="0.11.2"><![CDATA[Purchase {amount}]]></phrase>
     <phrase title="bdbank_explain_comment_bdbank_purchase_revert" version_id="14" version_string="0.11.2"><![CDATA[Revert purchasing {amount}]]></phrase>
@@ -712,7 +702,6 @@ eur=40</default_value>
     <phrase title="bdbank_refund_amount" version_id="11" version_string="0.10"><![CDATA[Refund Amount]]></phrase>
     <phrase title="bdbank_refund_error_not_enough_money" version_id="11" version_string="0.10"><![CDATA[You don't have enough {money_lowercase} in your account to issue refund for this transaction of {refund_amount}. Your current account balance is {balance}.]]></phrase>
     <phrase title="bdbank_requested_transaction_not_found" version_id="6" version_string="0.9.6"><![CDATA[The requested transaction could not be found.]]></phrase>
-    <phrase title="bdbank_showing_attachments_x_to_y_of_z" version_id="3" version_string="beta 3"><![CDATA[Showing attachments {start} to {end} of {total}]]></phrase>
     <phrase title="bdbank_showing_transactions_x_to_y_of_z" version_id="6" version_string="0.9.6"><![CDATA[Showing transactions {start} to {end} of {total}]]></phrase>
     <phrase title="bdbank_someone_sends_money_to_you" version_id="6" version_string="0.9.6"><![CDATA[Someone sends {money_lowercase} to you]]></phrase>
     <phrase title="bdbank_stats_bank_in" version_id="16" version_string="1.0-dev"><![CDATA[Bank Income]]></phrase>
@@ -726,7 +715,6 @@ eur=40</default_value>
     <phrase title="bdbank_system_username" version_id="29" version_string="1.0.4"><![CDATA[Bank]]></phrase>
     <phrase title="bdbank_tax_for_this_is_x_y_only_receive_z" version_id="10" version_string="0.9.9.2"><![CDATA[Tax for this transaction is {tax}. {receiver} will only receive {amount}.]]></phrase>
     <phrase title="bdbank_thank_you_for_purchasing" version_id="14" version_string="0.11.2"><![CDATA[Thank you for purchasing.]]></phrase>
-    <phrase title="bdbank_there_no_attachments_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no attachments to display.]]></phrase>
     <phrase title="bdbank_there_no_transactions_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no transactions to display.]]></phrase>
     <phrase title="bdbank_this_will_allow_people_to_see_your_money" version_id="6" version_string="0.9.6"><![CDATA[This will allow people to see how much {money_lowercase} you have in various places like posts or your profile.]]></phrase>
     <phrase title="bdbank_transaction_amount" version_id="1" version_string="beta"><![CDATA[Amount]]></phrase>
@@ -832,7 +820,6 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     <phrase title="option_group_bdbank_description" version_id="1" version_string="beta"><![CDATA[]]></phrase>
     <phrase title="permission_bdbank_bdbank_purchase" version_id="14" version_string="0.11.2"><![CDATA[Purchase Money]]></phrase>
     <phrase title="permission_bdbank_bdbank_transfer" version_id="16" version_string="1.0-dev"><![CDATA[Transfer Money]]></phrase>
-    <phrase title="permission_bdbank_bdbank_use_attach_manager" version_id="6" version_string="0.9.6"><![CDATA[Use Attachment Manager]]></phrase>
     <phrase title="permission_group_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="permission_interface_bdbank" version_id="6" version_string="0.9.6"><![CDATA[[bd] Banking]]></phrase>
     <phrase title="style_property_bdbank_messageShowMoney_description_master" version_id="6" version_string="0.9.6"><![CDATA[Display the amount of money of the message author (add-on: [bd] Banking). Please note that user can change policy settings to hide this information.]]></phrase>
@@ -865,7 +852,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
     </group>
   </style_properties>
   <templates>
-    <template title="bdbank.css" version_id="27" version_string="1.0.2b"><![CDATA[/* TRANSACTION LIST */
+    <template title="bdbank.css" version_id="1000500" version_string="1.0.5"><![CDATA[/* TRANSACTION LIST */
 
 .transactionList {
 	position: relative;
@@ -980,125 +967,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
 
 .transferError > .getMore .primaryContent {
 	background: none;
-}
-
-/* ATTACHMENT LIST */
-
-.attachmentList {
-	position: relative;
-	zoom: 1;
-}
-
-/** column style and width **/
-
-.attachmentList .sectionHeaders,
-.attachmentListItem {
-	display: table;
-	table-layout: fixed;
-	width: 100%;
-	word-wrap: normal;
-}
-
-	.attachmentList .sectionHeaders dt,
-	.attachmentList .sectionHeaders dd,
-	.attachmentListItem .listBlock {
-		display: table-cell;
-		vertical-align: middle;
-	}
-		.attachmentList .filename { width: auto; }
-		.attachmentList .attach_date { width: 150px; }
-		.attachmentList .view_count { width: 150px; }
-		.attachmentList .price { width: 150px; }
-
-/* column headers */
-
-.attachmentList .sectionHeaders {
-	{xen:property subHeading}
-	
-	padding: 0;
-}
-
-	.attachmentList .sectionHeaders a {
-		display: block;
-		color: {xen:property subHeading.color};
-		outline: none;
-	}
-	
-	.attachmentList .sectionHeaders a:hover {
-		text-decoration: none;
-	}
-			
-	.attachmentList .sectionHeaders a[href]:hover {
-		{xen:property subHeadingHover}
-	}
-
-	.attachmentList .sectionHeaders span {
-		display: block;
-		padding: 5px;
-	}
-		
-/** IE <8 **/
-.attachmentList .sectionHeaders,
-.attachmentListItem                { *display: block; _vertical-align: bottom; }
-.attachmentList .sectionHeaders dt,
-.attachmentList .sectionHeaders dd,
-.attachmentListItem .listBlock     { *display: block; *float: left; }
-.attachmentListItem .listBlock     { _height: 52px; *min-height: 52px; } /* todo: should be calculation */
-.attachmentList .filename          { *width: 39.97%; }
-.attachmentList .attach_date       { *width: 19.98%; }
-.attachmentList .view_count        { *width: 19.98%; }
-.attachmentList .price             { *width: 19.98%; }
-.attachmentList .sectionHeaders dt,
-.attachmentList .sectionHeaders dd { *padding: 5px 0; }
-
-/* items in list */
-
-.attachmentListItems {}
-	
-/** main **/
-
-.attachmentListItem {
-	{xen:property primaryContent.background}
-	
-	{xen:property primaryContent.border}
-}
-
-	.attachmentListItem .titleText {
-		padding: 5px;
-		overflow: hidden; zoom: 1;
-	}
-
-	.attachmentListItem .filename,
-	.attachmentListItem .view_count {
-		{xen:property secondaryContent.background}
-	}
-	
-	.attachmentListItem .price {
-	}
-
-/** bottom summary **/
-
-.attachmentList .sectionFooter {
-	overflow: hidden; zoom: 1;
-}
-
-	.attachmentList .sectionFooter .contentSummary {
-		float: left;
-		display: block;
-	}
-
-.attachmentList .FooterControls {
-	text-align: right;
-	padding-top: 5px;
-}
-	
-/* ATTACHMENT MANAGER FORM */
-form.AttachmentManager {
-}
-
-	form.AttachmentManager .price .textCtrl {
-		width: 80%;
-	}]]></template>
+}]]></template>
     <template title="bdbank_accounts" version_id="20" version_string="1.0-dev"><![CDATA[<xen:comment>
 <dl class="pairsInline">
 	<dt>{xen:phrase bdbank_your_accounts}:</dt>
@@ -1156,7 +1025,7 @@ form.AttachmentManager {
 </dl>
 <xen:include template="bdbank_accounts" />
 </div>]]></template>
-    <template title="bdbank_links" version_id="20" version_string="1.0-dev"><![CDATA[<ul class="secondaryContent blockLinksList">
+    <template title="bdbank_links" version_id="1000500" version_string="1.0.5"><![CDATA[<ul class="secondaryContent blockLinksList">
 	<xen:hook name="bdbank_links">
 	<li><a href="{xen:link full:bank/history}">{xen:phrase bdbank_history}</a></li>
 
@@ -1166,10 +1035,6 @@ form.AttachmentManager {
 
 	<xen:if is="{xen:helper bdBank_hasPermission, bdbank_purchase}">
 		<li><a href="{xen:link full:bank/get-more}">{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</a></li>
-	</xen:if>
-
-	<xen:if is="{xen:helper bdBank_hasPermission, bdbank_use_attach_manager}">
-		<li><a href="{xen:link full:bank/attachment-manager}">{xen:phrase bdbank_attachment_manager}</a></li>
 	</xen:if>
 	</xen:hook>
 </ul>]]></template>
@@ -1228,84 +1093,6 @@ form.AttachmentManager {
 		</div>
 	</li>
 </xen:if>]]></template>
-    <template title="bdbank_page_attachment_confirm_to_pay" version_id="6" version_string="0.9.6"><![CDATA[<xen:title>{xen:phrase bdbank_attachment_download_confirm_to_pay}</xen:title>
-
-<form method="post" class="xenForm">
-	<dl class="ctrlUnit">
-		<dt>{xen:phrase bdbank_attachment_trying_to_download}:</dt>
-		<dd>{$attachment.filename}</dd>
-	</dl>
-
-	<dl class="ctrlUnit">
-		<dt>{xen:phrase bdbank_attachment_price}:</dt>
-		<dd>{xen:helper bdBank_balanceFormat, {$attachment.bdbank_price}}<p class="explain">{xen:phrase bdbank_attachment_uploader_set_price}</p></dd>
-	</dl>
-
-	<dl class="ctrlUnit submitUnit">
-		<dt></dt>
-		<input type="hidden" name="hash" value="{$hash}" />
-		<dd><input type="submit" value="{xen:phrase bdbank_attachment_pay_and_download}" class="button primary" /></dd>
-	</dl>
-
-	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
-	<input type="hidden" name="_xfConfirm" value="1" />
-</form>]]></template>
-    <template title="bdbank_page_attachment_manager" version_id="20" version_string="1.0-dev"><![CDATA[<xen:require css="bdbank.css" />
-
-<xen:title>{xen:phrase bdbank_attachment_manager}</xen:title>
-
-<form method="post" class="AttachmentManager">
-<div class="attachmentList section sectionMain">
-	<dl class="sectionHeaders">
-		<dt class="filename"><span>{xen:phrase bdbank_attachment_filename}</span></dt>
-		<dt class="attach_date"><span>{xen:phrase bdbank_attachment_attach_date}</span></dt>
-		<dt class="view_count"><span>{xen:phrase bdbank_attachment_view_count}</span></dt>
-		<dd class="price"><span>{xen:phrase bdbank_attachment_price}</span></dd>
-	</dl>
-	<ol class="attachmentListItems">
-	<xen:if is="{$attachments}">
-		<xen:foreach loop="$attachments" value="$attachment">
-			<li id="attachment-{$attachment.attachment_id}" class="attachmentListItem">
-				<div class="listBlock filename">
-					<div class="titleText">
-						{$attachment.filename}
-					</div>
-				</div>
-				<div class="listBlock attach_date">
-					<div class="titleText">
-						<xen:datetime time="{$attachment.attach_date}" />
-					</div>
-				</div>
-				<div class="listBlock view_count">
-					<div class="titleText">
-						{xen:number {$attachment.view_count}}
-					</div>
-				</div>
-				<div class="listBlock price">
-					<div class="titleText">
-						<input type="text" name="price[{$attachment.attachment_id}]" value="{xen:if '{$attachment.bdBankBonusPoint} == 0', '--', {$attachment.bdbank_price}}" class="textCtrl" {xen:if '{$attachment.bdBankBonusPoint} == 0', 'disabled="disabled"'}/>
-					</div>
-				</div>
-			</li>
-		</xen:foreach>
-	<xen:else />
-		<li class="primaryContent">{xen:phrase bdbank_there_no_attachments_to_display}</li>
-	</xen:if>
-	</ol>
-	<xen:if is="{$totalAttachments}">
-		<div class="sectionFooter SelectionCountContainer">
-			<span class="contentSummary">{xen:phrase bdbank_showing_attachments_x_to_y_of_z, 'start={xen:number $attachmentStartOffset}', 'end={xen:number $attachmentEndOffset}', 'total={xen:number $totalAttachments}'}</span>
-		</div>
-	</xen:if>
-	
-	<div class="FooterControls">
-		<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
-		<input type="submit" value="{xen:phrase save}" class="button primary" />
-	</div>
-</div>
-</form>
-
-<xen:pagenav link="{xen:link bank/attachment-manager}" page="{$page}" perpage="{$perpage}" total="{$totalAttachments}" />]]></template>
     <template title="bdbank_page_get_more_bdpaygate" version_id="27" version_string="1.0.2b"><![CDATA[<xen:title>{xen:phrase bdbank_get_more_x, 'money={xen:phrase bdbank_money}'}</xen:title>
 
 <xen:require css="account_upgrades.css" />

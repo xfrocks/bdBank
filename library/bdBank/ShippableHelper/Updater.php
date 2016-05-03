@@ -1,10 +1,10 @@
 <?php
 
-// updated by DevHelper_Helper_ShippableHelper at 2015-12-03T08:26:17+00:00
+// updated by DevHelper_Helper_ShippableHelper at 2016-04-02T17:14:33+00:00
 
 /**
  * Class bdBank_ShippableHelper_Updater
- * @version 3
+ * @version 4
  * @see DevHelper_Helper_ShippableHelper_Updater
  */
 class bdBank_ShippableHelper_Updater
@@ -785,10 +785,16 @@ EOF;
         }
 
         $client = XenForo_Helper_Http::getClient($url);
-        $response = $client->request('GET');
 
-        $responseStatus = $response->getStatus();
-        $responseBody = $response->getBody();
+        try {
+            $response = $client->request('GET');
+
+            $responseStatus = $response->getStatus();
+            $responseBody = $response->getBody();
+        } catch (Exception $e) {
+            $responseStatus = 503;
+            $responseBody = $e->getMessage();
+        }
 
         $json = null;
         if ($responseStatus === 200) {

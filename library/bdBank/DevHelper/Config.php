@@ -96,9 +96,6 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
         'xf_user' => array(
             'bdbank_money' => array('name' => 'bdbank_money', 'type' => 'money', 'default' => 0),
         ),
-        'xf_attachment' => array(
-            'bdbank_price' => array('name' => 'bdbank_price', 'type' => 'money', 'default' => 0),
-        ),
         'xf_forum' => array(
             'bdbank_options' => array('name' => 'bdbank_options', 'type' => 'serialized'),
         ),

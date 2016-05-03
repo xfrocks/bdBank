@@ -22,7 +22,6 @@ class bdBank_Model_Bank extends XenForo_Model
     const PERM_GROUP = 'bdbank';
     const PERM_TRANSFER = 'bdbank_transfer';
     const PERM_PURCHASE = 'bdbank_purchase';
-    const PERM_USE_ATTACHMENT_MANAGER = 'bdbank_use_attach_manager';
 
     const BALANCE_NOT_AVAILABLE = 'N/A';
 
@@ -160,9 +159,7 @@ class bdBank_Model_Bank extends XenForo_Model
                     $link = XenForo_Link::buildPublicLink('posts', array('post_id' => $parts[1]));
                     break;
                 case 'attachment_downloaded':
-                case 'attachment_downloaded_paid':
                     // new XenForo_Phrase('bdbank_explain_comment_attachment_downloaded');
-                    // new XenForo_Phrase('bdbank_explain_comment_attachment_downloaded_paid');
                     $comment = new XenForo_Phrase(
                         'bdbank_explain_comment_' . $parts[0]);
                     $link = XenForo_Link::buildPublicLink('attachments', array('attachment_id' => $parts[1]));

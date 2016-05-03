@@ -1,19 +1,34 @@
 <?php
 
-// updated by DevHelper_Helper_ShippableHelper at 2015-10-17T03:28:25+00:00
+// updated by DevHelper_Helper_ShippableHelper at 2016-05-03T15:53:55+00:00
 
 /**
  * Class bdBank_ShippableHelper_TempFile
- * @version 2
+ * @version 4
  * @see DevHelper_Helper_ShippableHelper_TempFile
  */
 class bdBank_ShippableHelper_TempFile
 {
     protected static $_cached = array();
+    protected static $_registeredShutdownFunction = false;
 
     public static function cache($url, $tempFile)
     {
         self::$_cached[$url] = $tempFile;
+
+        if (!self::$_registeredShutdownFunction) {
+            register_shutdown_function(array(__CLASS__, 'deleteAllCached'));
+        }
+    }
+
+    public static function create($contents)
+    {
+        $tempFile = tempnam(XenForo_Helper_File::getTempDir(), self::_getPrefix());
+        self::cache(sprintf('%s::%s', __METHOD__, md5($tempFile)), $tempFile);
+
+        file_put_contents($tempFile, $contents);
+
+        return $tempFile;
     }
 
     public static function download($url)

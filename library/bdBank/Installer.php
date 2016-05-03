@@ -17,7 +17,7 @@ class bdBank_Installer
                 ,`transfered` INT(10) UNSIGNED NOT NULL
                 ,`reversed` INT(10) UNSIGNED DEFAULT \'0\'
                 , PRIMARY KEY (`transaction_id`)
-                , INDEX `comment` (`comment`)
+                ,INDEX `comment` (`comment`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_transaction`',
         ),
@@ -42,7 +42,7 @@ class bdBank_Installer
                 ,`transaction_type` INT(10) UNSIGNED DEFAULT \'0\'
                 ,`transfered` INT(10) UNSIGNED NOT NULL
                 , PRIMARY KEY (`transaction_id`)
-                , INDEX `comment` (`comment`)
+                ,INDEX `comment` (`comment`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_archive`',
         ),
@@ -61,35 +61,27 @@ class bdBank_Installer
     protected static $_patches = array(
         array(
             'table' => 'xf_user',
+            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_user\'',
             'field' => 'bdbank_money',
-            'showTablesQuery' => 'SHOW TABLES LIKE \'xf_user\'',
-            'showColumnsQuery' => 'SHOW COLUMNS FROM `xf_user` LIKE \'bdbank_money\'',
-            'alterTableAddColumnQuery' => 'ALTER TABLE `xf_user` ADD COLUMN `bdbank_money` DECIMAL(13,4) DEFAULT \'0\'',
-            'alterTableDropColumnQuery' => 'ALTER TABLE `xf_user` DROP COLUMN `bdbank_money`',
-        ),
-        array(
-            'table' => 'xf_attachment',
-            'field' => 'bdbank_price',
-            'showTablesQuery' => 'SHOW TABLES LIKE \'xf_attachment\'',
-            'showColumnsQuery' => 'SHOW COLUMNS FROM `xf_attachment` LIKE \'bdbank_price\'',
-            'alterTableAddColumnQuery' => 'ALTER TABLE `xf_attachment` ADD COLUMN `bdbank_price` DECIMAL(13,4) DEFAULT \'0\'',
-            'alterTableDropColumnQuery' => 'ALTER TABLE `xf_attachment` DROP COLUMN `bdbank_price`',
+            'checkQuery' => 'SHOW COLUMNS FROM `xf_user` LIKE \'bdbank_money\'',
+            'addQuery' => 'ALTER TABLE `xf_user` ADD COLUMN `bdbank_money` DECIMAL(13,4) DEFAULT \'0\'',
+            'dropQuery' => 'ALTER TABLE `xf_user` DROP COLUMN `bdbank_money`',
         ),
         array(
             'table' => 'xf_forum',
+            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_forum\'',
             'field' => 'bdbank_options',
-            'showTablesQuery' => 'SHOW TABLES LIKE \'xf_forum\'',
-            'showColumnsQuery' => 'SHOW COLUMNS FROM `xf_forum` LIKE \'bdbank_options\'',
-            'alterTableAddColumnQuery' => 'ALTER TABLE `xf_forum` ADD COLUMN `bdbank_options` MEDIUMBLOB',
-            'alterTableDropColumnQuery' => 'ALTER TABLE `xf_forum` DROP COLUMN `bdbank_options`',
+            'checkQuery' => 'SHOW COLUMNS FROM `xf_forum` LIKE \'bdbank_options\'',
+            'addQuery' => 'ALTER TABLE `xf_forum` ADD COLUMN `bdbank_options` MEDIUMBLOB',
+            'dropQuery' => 'ALTER TABLE `xf_forum` DROP COLUMN `bdbank_options`',
         ),
         array(
             'table' => 'xf_user_option',
+            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_user_option\'',
             'field' => 'bdbank_show_money',
-            'showTablesQuery' => 'SHOW TABLES LIKE \'xf_user_option\'',
-            'showColumnsQuery' => 'SHOW COLUMNS FROM `xf_user_option` LIKE \'bdbank_show_money\'',
-            'alterTableAddColumnQuery' => 'ALTER TABLE `xf_user_option` ADD COLUMN `bdbank_show_money` INT(10) UNSIGNED DEFAULT \'1\'',
-            'alterTableDropColumnQuery' => 'ALTER TABLE `xf_user_option` DROP COLUMN `bdbank_show_money`',
+            'checkQuery' => 'SHOW COLUMNS FROM `xf_user_option` LIKE \'bdbank_show_money\'',
+            'addQuery' => 'ALTER TABLE `xf_user_option` ADD COLUMN `bdbank_show_money` INT(10) UNSIGNED DEFAULT \'1\'',
+            'dropQuery' => 'ALTER TABLE `xf_user_option` DROP COLUMN `bdbank_show_money`',
         ),
     );
 
@@ -102,14 +94,14 @@ class bdBank_Installer
         }
 
         foreach (self::$_patches as $patch) {
-            $tableExisted = $db->fetchOne($patch['showTablesQuery']);
+            $tableExisted = $db->fetchOne($patch['tableCheckQuery']);
             if (empty($tableExisted)) {
                 continue;
             }
 
-            $existed = $db->fetchOne($patch['showColumnsQuery']);
+            $existed = $db->fetchOne($patch['checkQuery']);
             if (empty($existed)) {
-                $db->query($patch['alterTableAddColumnQuery']);
+                $db->query($patch['addQuery']);
             }
         }
 
@@ -121,14 +113,14 @@ class bdBank_Installer
         $db = XenForo_Application::get('db');
 
         foreach (self::$_patches as $patch) {
-            $tableExisted = $db->fetchOne($patch['showTablesQuery']);
+            $tableExisted = $db->fetchOne($patch['tableCheckQuery']);
             if (empty($tableExisted)) {
                 continue;
             }
 
-            $existed = $db->fetchOne($patch['showColumnsQuery']);
+            $existed = $db->fetchOne($patch['checkQuery']);
             if (!empty($existed)) {
-                $db->query($patch['alterTableDropColumnQuery']);
+                $db->query($patch['dropQuery']);
             }
         }
 

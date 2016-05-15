@@ -40,6 +40,8 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
             $rebuilt = call_user_func(array($this, '_rebuild' .
                 str_replace(' ', '', ucwords(str_replace('_', ' ', $bonusType)))),
                 $position, $options);
+
+            bdBank_Model_Bank::getInstance()->clearReversedTransactionsCache();
         }
 
         if (is_numeric($rebuilt)) {

@@ -352,6 +352,11 @@ class bdBank_Model_Bank extends XenForo_Model
         return $totalReversed;
     }
 
+    public function clearReversedTransactionsCache()
+    {
+        self::$_reversedTransactions = array();
+    }
+
     public function getTransactionByComment($comment, array $fetchOptions = array())
     {
         $fetchOptions['order'] = 'transaction_id';

@@ -627,7 +627,6 @@ eur=40</default_value>
     <permissions>
       <permission permission_group_id="bdbank" permission_id="bdbank_purchase" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="900"/>
       <permission permission_group_id="bdbank" permission_id="bdbank_transfer" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="100"/>
-      <permission permission_group_id="bdbank" permission_id="bdbank_use_attach_manager" permission_type="flag" default_value="unset" interface_group_id="bdbank" display_order="1000"/>
     </permissions>
     <interface_groups>
       <interface_group interface_group_id="bdbank" display_order="9999"/>

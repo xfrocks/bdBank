@@ -20,4 +20,9 @@ class bdBank_XenForo_Model_Thread extends XFCP_bdBank_XenForo_Model_Thread
         return self::$_threads[$threadId];
     }
 
+    public function bdBank_clearThreadsCache()
+    {
+        self::$_threads = array();
+    }
+
 }

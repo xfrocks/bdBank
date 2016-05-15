@@ -68,8 +68,9 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
 
     protected function _rebuildRegister($position, array &$options)
     {
+        $bank = bdBank_Model_Bank::getInstance();
         /* @var $userModel XenForo_Model_User */
-        $userModel = XenForo_Model::create('XenForo_Model_User');
+        $userModel = $bank->getModelFromCache('XenForo_Model_User');
 
         $userIds = $userModel->getUserIdsInRange($position, $options['batch']);
         if (sizeof($userIds) == 0) {
@@ -98,8 +99,11 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
 
     protected function _rebuildPostAndThread($position, array &$options)
     {
+        $bank = bdBank_Model_Bank::getInstance();
         /* @var $postModel XenForo_Model_Post */
-        $postModel = XenForo_Model::create('XenForo_Model_Post');
+        $postModel = $bank->getModelFromCache('XenForo_Model_Post');
+        /** @var bdBank_XenForo_Model_Thread $threadModel */
+        $threadModel = $postModel->getModelFromCache('XenForo_Model_Thread');
         /** @var XenForo_Model_Forum $forumModel */
         $forumModel = $postModel->getModelFromCache('XenForo_Model_Forum');
 
@@ -128,13 +132,16 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
             }
         }
 
+        $threadModel->bdBank_clearThreadsCache();
+
         return $position;
     }
 
     protected function _rebuildResourceUpdate($position, array &$options)
     {
+        $bank = bdBank_Model_Bank::getInstance();
         /* @var $updateModel XenResource_Model_Update */
-        $updateModel = XenForo_Model::create('XenResource_Model_Update');
+        $updateModel = $bank->getModelFromCache('XenResource_Model_Update');
 
         $updateIds = $updateModel->getUpdateIdsInRange($position, $options['batch']);
         if (sizeof($updateIds) == 0) {

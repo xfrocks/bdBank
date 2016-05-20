@@ -6,8 +6,9 @@ class bdBank_Listeners
 
     public static function init_dependencies(XenForo_Dependencies_Abstract $dependencies, array $data)
     {
-        XenForo_Application::autoload('bdBank_Exception');
-        XenForo_Application::set('bdBank', XenForo_Model::create('bdBank_Model_Bank'));
+        /** @var XenForo_Application $app */
+        $app = XenForo_Application::getInstance();
+        $app->addLazyLoader('bdBank', array(__CLASS__, 'createBankModel'));
 
         XenForo_Template_Helper_Core::$helperCallbacks['bdbank_haspermission'] = array(
             'bdBank_Model_Bank',
@@ -124,4 +125,8 @@ class bdBank_Listeners
         }
     }
 
+    public static function createBankModel()
+    {
+        return XenForo_Model::create('bdBank_Model_Bank');
+    }
 }

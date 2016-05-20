@@ -18,6 +18,8 @@ class bdBank_Installer
                 ,`reversed` INT(10) UNSIGNED DEFAULT \'0\'
                 , PRIMARY KEY (`transaction_id`)
                 ,INDEX `comment` (`comment`)
+                ,INDEX `from_user_id` (`from_user_id`)
+                ,INDEX `to_user_id` (`to_user_id`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_transaction`',
         ),
@@ -82,6 +84,22 @@ class bdBank_Installer
             'checkQuery' => 'SHOW COLUMNS FROM `xf_user_option` LIKE \'bdbank_show_money\'',
             'addQuery' => 'ALTER TABLE `xf_user_option` ADD COLUMN `bdbank_show_money` INT(10) UNSIGNED DEFAULT \'1\'',
             'dropQuery' => 'ALTER TABLE `xf_user_option` DROP COLUMN `bdbank_show_money`',
+        ),
+        array(
+            'table' => 'xf_bdbank_transaction',
+            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_bdbank_transaction\'',
+            'index' => 'from_user_id',
+            'checkQuery' => 'SHOW INDEXES FROM `xf_bdbank_transaction` WHERE Key_name LIKE \'from_user_id\'',
+            'addQuery' => 'ALTER TABLE `xf_bdbank_transaction` ADD INDEX `from_user_id` (`from_user_id`)',
+            'dropQuery' => 'ALTER TABLE `xf_bdbank_transaction` DROP INDEX `from_user_id`',
+        ),
+        array(
+            'table' => 'xf_bdbank_transaction',
+            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_bdbank_transaction\'',
+            'index' => 'to_user_id',
+            'checkQuery' => 'SHOW INDEXES FROM `xf_bdbank_transaction` WHERE Key_name LIKE \'to_user_id\'',
+            'addQuery' => 'ALTER TABLE `xf_bdbank_transaction` ADD INDEX `to_user_id` (`to_user_id`)',
+            'dropQuery' => 'ALTER TABLE `xf_bdbank_transaction` DROP INDEX `to_user_id`',
         ),
     );
 

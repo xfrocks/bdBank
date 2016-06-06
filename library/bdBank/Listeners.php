@@ -125,6 +125,11 @@ class bdBank_Listeners
         }
     }
 
+    public static function widget_framework_ready(array &$renderers)
+    {
+        $renderers[] = 'bdBank_WidgetRenderer_RichestUsers';
+    }
+
     public static function createBankModel()
     {
         return XenForo_Model::create('bdBank_Model_Bank');

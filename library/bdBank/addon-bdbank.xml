@@ -724,6 +724,7 @@ eur=40</default_value>
     <phrase title="bdbank_thank_you_for_purchasing" version_id="14" version_string="0.11.2"><![CDATA[Thank you for purchasing.]]></phrase>
     <phrase title="bdbank_there_no_transactions_to_display" version_id="3" version_string="beta 3"><![CDATA[There are no transactions to display.]]></phrase>
     <phrase title="bdbank_this_will_allow_people_to_see_your_money" version_id="6" version_string="0.9.6"><![CDATA[This will allow people to see how much {money_lowercase} you have in various places like posts or your profile.]]></phrase>
+    <phrase title="bdbank_transactions" version_id="2000005" version_string="2.0.0-dev"><![CDATA[Transactions]]></phrase>
     <phrase title="bdbank_transaction_amount" version_id="1" version_string="beta"><![CDATA[Amount]]></phrase>
     <phrase title="bdbank_transaction_comment" version_id="1" version_string="beta"><![CDATA[Comment]]></phrase>
     <phrase title="bdbank_transaction_from_user" version_id="1" version_string="beta"><![CDATA[Sender]]></phrase>

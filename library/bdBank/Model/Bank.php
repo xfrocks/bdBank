@@ -200,33 +200,6 @@ class bdBank_Model_Bank extends XenForo_Model
         );
     }
 
-    public function archiveTransactions($thresholdDate = null)
-    {
-        if ($thresholdDate === null) {
-            $daysOfHistory = self::options('daysOfHistory');
-            if (empty($daysOfHistory)) {
-                // admin disabled this feature
-                return;
-            }
-
-            $thresholdDate = XenForo_Application::$time - 86400 * $daysOfHistory;
-        }
-
-        $this->_getDb()->query('
-			INSERT IGNORE INTO `xf_bdbank_archive`
-			(transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered)
-			SELECT transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered
-			FROM `xf_bdbank_transaction`
-			WHERE transfered < ?
-				AND reversed = 0
-		', $thresholdDate);
-
-        $this->_getDb()->query('
-			DELETE FROM `xf_bdbank_transaction`
-			WHERE transfered < ?
-		', $thresholdDate);
-    }
-
     public function saveTransaction(&$data)
     {
         static $required = array(

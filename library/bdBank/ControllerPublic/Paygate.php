@@ -74,9 +74,9 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
         if (bdBank_Helper_Number::comp($this->_balanceAfter, 0) === -1) {
             // oops
             throw $this->responseException($this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough', array(
-                'total' => bdBank_Model_Bank::helperBalanceFormat($this->_calculatedMoney),
-                'balance' => bdBank_Model_Bank::helperBalanceFormat($balance),
-            )), 403));
+                    'total' => bdBank_Model_Bank::helperBalanceFormat($this->_calculatedMoney),
+                    'balance' => bdBank_Model_Bank::helperBalanceFormat($balance),
+                )), 403));
         }
 
         $globalSalt = XenForo_Application::getConfig()->get('globalSalt');
@@ -129,7 +129,7 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 
         if (!empty($this->_callback)) {
             $client = XenForo_Helper_Http::getClient($this->_callback);
-            $client->setParameterPost(array(
+            $callbackParams = array(
                 'client_id' => $this->_clientId,
                 'amount' => $this->_amount,
                 'currency' => $this->_currencyUppercase,
@@ -140,11 +140,26 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
                 'calculated_money' => $this->_calculatedMoney,
 
                 'verifier' => $this->_verifier,
-            ));
-            $response = $client->request('POST');
+            );
+            $client->setParameterPost($callbackParams);
 
-            if ($response->getStatus() != 200) {
-                XenForo_Error::logException(new XenForo_Exception(sprintf('Callback returned error: %s', $response->getBody())));
+            $exception = null;
+            try {
+                $response = $client->request('POST');
+
+                if ($response->getStatus() != 200) {
+                    $exception = new XenForo_Exception(sprintf('Callback returned error: %s',
+                        $response->getBody()));
+                }
+            } catch (Zend_Exception $e) {
+                $exception = $e;
+            }
+
+            if ($exception !== null) {
+                XenForo_Error::logException($exception);
+                XenForo_Helper_File::log(__METHOD__, sprintf("curl -X POST '%s' -d '%s'",
+                    $this->_callback,
+                    http_build_query($callbackParams)));
             }
         }
 

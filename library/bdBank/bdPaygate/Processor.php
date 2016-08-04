@@ -7,8 +7,9 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
 
     public function isAvailable()
     {
-        if (!XenForo_Application::isRegistered('bdBank')) {
-            // the system is not working
+        try {
+            XenForo_Application::get('bdBank');
+        } catch (Zend_Exception $e) {
             return false;
         }
 

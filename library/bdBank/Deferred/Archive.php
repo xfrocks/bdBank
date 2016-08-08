@@ -23,6 +23,7 @@ class bdBank_Deferred_Archive extends XenForo_Deferred_Abstract
         $db = XenForo_Application::getDb();
         $startTime = microtime(true);
         $limitTime = ($targetRunTime > 0);
+        $transactionId = 0;
 
         while (true) {
             if ($limitTime) {
@@ -39,22 +40,27 @@ class bdBank_Deferred_Archive extends XenForo_Deferred_Abstract
             ', $data['batch']));
 
             foreach ($transactions as $transaction) {
+                $transactionId = max($transactionId, $transaction['transaction_id']);
+
                 if ($transaction['transfered'] > $data['cutOff']) {
                     return true;
                 }
 
                 if ($transaction['reversed'] < 1) {
-                    $archived = array_intersect_key($transaction, array(
-                        'transaction_id' => 1,
-                        'from_user_id' => 1,
-                        'to_user_id' => 1,
-                        'amount' => 1,
-                        'tax_amount' => 1,
-                        'comment' => 1,
-                        'transaction_type' => 1,
-                        'transfered' => 1,
+                    $db->query('
+                        INSERT IGNORE INTO `xf_bdbank_archive`
+                        (transaction_id, from_user_id, to_user_id, amount, tax_amount, comment, transaction_type, transfered)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ', array(
+                        $transaction['transaction_id'],
+                        $transaction['from_user_id'],
+                        $transaction['to_user_id'],
+                        $transaction['amount'],
+                        $transaction['tax_amount'],
+                        $transaction['comment'],
+                        $transaction['transaction_type'],
+                        $transaction['transfered'],
                     ));
-                    $db->insert('xf_bdbank_archive', $archived);
                 }
 
                 $db->delete('xf_bdbank_transaction', array('transaction_id = ?' => $transaction['transaction_id']));
@@ -63,7 +69,7 @@ class bdBank_Deferred_Archive extends XenForo_Deferred_Abstract
 
         $actionPhrase = new XenForo_Phrase('rebuilding');
         $typePhrase = new XenForo_Phrase('bdbank_transactions');
-        $status = sprintf('%s... %s (%s)', $actionPhrase, $typePhrase, XenForo_Locale::numberFormat($data['position']));
+        $status = sprintf('%s... %s (%s)', $actionPhrase, $typePhrase, XenForo_Locale::numberFormat($transactionId));
 
         return $data;
     }

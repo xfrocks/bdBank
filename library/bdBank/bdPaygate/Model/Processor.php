@@ -32,6 +32,15 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
         return sprintf('%s %s', XenForo_Locale::numberFormat($amount, 2), $currencies[$currency]);
     }
 
+    public function truncateAmount($amount, $currency)
+    {
+        if ($currency === bdBank_bdPaygate_Processor::CURRENCY_BDBANK) {
+            return round($amount, bdBank_Model_Bank::options('balanceDecimals'));
+        }
+
+        return parent::truncateAmount($amount, $currency);
+    }
+
     public function getProcessorNames()
     {
         $names = parent::getProcessorNames();

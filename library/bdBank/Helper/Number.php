@@ -13,7 +13,7 @@ class bdBank_Helper_Number
 
     public static function sub($a, $b)
     {
-        if (function_exists('bcmul')) {
+        if (function_exists('bcsub')) {
             return bcsub($a, $b, bdBank_Model_Bank::options('balanceDecimals'));
         } else {
             return (doubleval($a) - doubleval($b));

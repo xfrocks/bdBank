@@ -12,6 +12,12 @@ class bdBank_StatsHandler_Transaction extends XenForo_StatsHandler_Abstract
 
     public function getData($startDate, $endDate)
     {
+        $daysOfHistory = bdBank_Model_Bank::options('daysOfHistory');
+        $daysOfHistoryCutOff = 0;
+        if ($daysOfHistory > 0) {
+            $daysOfHistoryCutOff = XenForo_Application::$time - 86400 * $daysOfHistory;
+        }
+
         $db = $this->_getDb();
 
         $outLive = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_transaction', 'transfered', 'from_user_id = 0', 'SUM(amount)'), array(
@@ -24,10 +30,13 @@ class bdBank_StatsHandler_Transaction extends XenForo_StatsHandler_Abstract
             $endDate
         ));
 
-        $outArchived = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_archive', 'transfered', 'from_user_id = 0', 'SUM(amount)'), array(
-            $startDate,
-            $endDate
-        ));
+        $outArchived = array();
+        if ($daysOfHistoryCutOff > 0 && $startDate < $daysOfHistoryCutOff) {
+            $outArchived = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_archive',
+                'transfered', 'from_user_id = 0', 'SUM(amount)'),
+                array($startDate, $endDate)
+            );
+        }
 
         $outTax = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_transaction', 'reversed', '', 'SUM(tax_amount)'), array(
             $startDate,
@@ -44,20 +53,26 @@ class bdBank_StatsHandler_Transaction extends XenForo_StatsHandler_Abstract
             $endDate
         ));
 
-        $inArchived = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_archive', 'transfered', 'to_user_id = 0', 'SUM(amount)'), array(
-            $startDate,
-            $endDate
-        ));
+        $inArchived = array();
+        if ($daysOfHistoryCutOff > 0 && $startDate < $daysOfHistoryCutOff) {
+            $inArchived = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_archive',
+                'transfered', 'to_user_id = 0', 'SUM(amount)'),
+                array($startDate, $endDate)
+            );
+        }
 
         $inTax = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_transaction', 'transfered', 'reversed = 0', 'SUM(tax_amount)'), array(
             $startDate,
             $endDate
         ));
 
-        $inTaxArchived = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_archive', 'transfered', '', 'SUM(tax_amount)'), array(
-            $startDate,
-            $endDate
-        ));
+        $inTaxArchived = array();
+        if ($daysOfHistoryCutOff > 0 && $startDate < $daysOfHistoryCutOff) {
+            $inTaxArchived = $db->fetchPairs($this->_getBasicDataQuery('xf_bdbank_archive',
+                'transfered', '', 'SUM(tax_amount)'),
+                array($startDate, $endDate)
+            );
+        }
 
         $bankOut = $this->_mergeData(array(), $outLive);
         $bankOut = $this->_mergeData($bankOut, $outReversed);

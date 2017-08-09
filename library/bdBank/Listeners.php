@@ -2,8 +2,6 @@
 
 class bdBank_Listeners
 {
-    const UPDATER_URL = 'https://xfrocks.com/api/index.php?updater';
-
     public static function init_dependencies(XenForo_Dependencies_Abstract $dependencies, array $data)
     {
         /** @var XenForo_Application $app */
@@ -34,7 +32,9 @@ class bdBank_Listeners
         XenForo_CacheRebuilder_Abstract::$builders['bdBank_Bonuses'] = 'bdBank_CacheRebuilder_Bonuses';
         XenForo_CacheRebuilder_Abstract::$builders['bdBank_User'] = 'bdBank_CacheRebuilder_User';
 
-        bdBank_ShippableHelper_Updater::onInitDependencies($dependencies, self::UPDATER_URL, 'bdbank');
+        if (isset($data['routesAdmin'])) {
+            bdBank_ShippableHelper_Updater::onInitDependencies($dependencies, null, 'bdbank');
+        }
     }
 
     public static function navigation_tabs(array &$extraTabs, $selectedTabId)

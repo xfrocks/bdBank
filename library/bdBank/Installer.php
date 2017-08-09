@@ -188,7 +188,7 @@ class bdBank_Installer
         $contentTypeModel = XenForo_Model::create('XenForo_Model_ContentType');
         $contentTypeModel->rebuildContentTypeCache();
 
-        bdBank_ShippableHelper_Updater::onUninstall(bdBank_Listeners::UPDATER_URL, 'bdbank');
+        bdBank_ShippableHelper_Updater::onUninstall(null, 'bdbank');
     }
 
     protected static function _changeMoneyColumns(Zend_Db_Adapter_Abstract $db)

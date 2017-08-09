@@ -1,0 +1,53 @@
+I
+
+1.0.5 (03-12-2015)
+	System: Added new phrase for Bank username: bdbank_system_username
+	AdminCP: Added check for transfer permission before editing user balance
+
+1.0.3 (17-10-2015)
+	System: Bonus for resource
+	System: Bonus for like for all contents
+	System: Included Get More Money in transfer error if account balance is insufficient
+	System: Check for new version daily from xfrocks.com
+
+1.0.2 (13-10-2015)
+	AdminCP: Rebuilder for all bonus types
+	System: Bonus for new registration
+	System: Bonus for daily login
+
+1.0.1 (12-10-2015)
+	Frontend: Integration with [bd] Paygates: get more money feature, use money to buy user upgrade / resource downloads
+	AdminCP: Rebuilder for bonuses
+	AdminCP: Stats page
+	System: Trophy integration
+	System: Money/currency configuration
+	System: Transaction tax, refund
+	Dropped support for XenForo 1.1.x and older
+
+0.9.9 (26-03-2012)
+	Minor bug fix in AdminCP
+0.9.8 (26-03-2012)
+	Frontend: Money in navigation, right next to Alerts
+	Frontend: Money in visitor panel at the top of sidebar
+	Frontend: Money in profile page
+	Frontend: Policy setting to hide money in posts, profile page (visit account/policy)
+	Frontend: Alert after being transferred by other user
+	Frontend: Money will be live updated (example: after transferring money to other user in threads)
+	AdminCP: Different bonus points forum-based (go to forum edit page to change)
+	AdminCP: User money can now be edited directly in user edit page
+	AdminCP: Attachment Manager has its permission (must be allowed before user can use it)
+	AdminCP: Archive view (for archived transactions)
+	AdminCP: Filter transaction by name or amount
+	System: Easy change to change how to call money and currency (edit 3 phrases: bdbank_money, bdbank_money_lowercase, bdbank_currency)
+	System: Posts get characters counted before bonus is given
+	System: Old transactions will be archived to improve table performance
+	System: Transfer can now be taxed with flexible rules
+
+0.9.6 (13-10-2011)
+	Added AdminCP tools
+	Field is now reconfigurable in AdminCP options
+	Minor suggestions implemented
+0.9.5
+	Supports XenForo 1.1
+0.9.4
+	Bonus for attachment upload and download, uploader can set price for each attachment

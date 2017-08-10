@@ -22,5 +22,4 @@ class bdBank_XenForo_ControllerPublic_Account extends XFCP_bdBank_XenForo_Contro
 
         return parent::_saveVisitorSettings($settings, $errors, $extras);
     }
-
 }

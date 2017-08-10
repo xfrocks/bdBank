@@ -19,5 +19,4 @@ class bdBank_ViewPublic_Bank_TransferError extends XenForo_ViewPublic_Base
 
         parent::prepareParams();
     }
-
 }

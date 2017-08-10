@@ -33,8 +33,9 @@ class bdBank_Importer_vBulletin extends XFCP_bdBank_Importer_vBulletin
 			FROM `' . $this->_prefix . 'setting`
 			WHERE varname = ?
 		', 'kbankf');
-        if (empty($vbsetting))
+        if (empty($vbsetting)) {
             return true;
+        }
         // do nothing, assume it's done
         $options['field'] = $vbsetting['value'];
 
@@ -61,8 +62,9 @@ class bdBank_Importer_vBulletin extends XFCP_bdBank_Importer_vBulletin
 			');
         }
 
-        if (empty($options['field']))
+        if (empty($options['field'])) {
             return true;
+        }
         $records = $sDb->fetchAll($sDb->limit('
 			SELECT userid, ' . $options['field'] . ' AS money
 			FROM `' . $prefix . 'user`
@@ -70,8 +72,9 @@ class bdBank_Importer_vBulletin extends XFCP_bdBank_Importer_vBulletin
 			ORDER BY userid
 		', $options['limit']), $start);
 
-        if (empty($records))
+        if (empty($records)) {
             return true;
+        }
 
         $userIdMap = $model->getUserIdsMapFromArray($records, 'userid');
 
@@ -106,5 +109,10 @@ class bdBank_Importer_vBulletin extends XFCP_bdBank_Importer_vBulletin
             "$next / $options[max]"
         );
     }
+}
 
+if (false) {
+    class XFCP_bdBank_Importer_vBulletin extends XenForo_Importer_vBulletin
+    {
+    }
 }

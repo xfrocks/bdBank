@@ -224,10 +224,10 @@ class bdBank_Model_Stats extends XenForo_Model_Stats
         $dataRegistryModel = $this->getModelFromCache('XenForo_Model_DataRegistry');
 
         $value = $dataRegistryModel->get($key);
-        if (empty($value))
+        if (empty($value)) {
             $value = array();
+        }
 
         return $value;
     }
-
 }

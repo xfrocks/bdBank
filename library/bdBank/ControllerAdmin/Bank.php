@@ -4,7 +4,10 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
 {
     public function actionIndex()
     {
-        return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildAdminLink('bank/history'));
+        return $this->responseRedirect(
+            XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL,
+            XenForo_Link::buildAdminLink('bank/history')
+        );
     }
 
     public function actionHistory($isArchive = false)
@@ -101,12 +104,18 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
                 }
                 $receiver = $this->_getUserModel()->getUserByName($username);
                 if (empty($receiver)) {
-                    return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_receiver_not_found_x', array('username' => $username)));
+                    return $this->responseError(new XenForo_Phrase(
+                        'bdbank_transfer_error_receiver_not_found_x',
+                        array('username' => $username)
+                    ));
                 }
                 $receivers[$receiver['user_id']] = $receiver;
             }
             if (count($receivers) == 0) {
-                return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_no_receivers', array('money' => new XenForo_Phrase('bdbank_money'))));
+                return $this->responseError(new XenForo_Phrase(
+                    'bdbank_transfer_error_no_receivers',
+                    array('money' => new XenForo_Phrase('bdbank_money'))
+                ));
             }
             if (doubleval($formData['amount']) == 0) {
                 return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_zero_amount'));
@@ -184,7 +193,7 @@ class bdBank_ControllerAdmin_Bank extends XenForo_ControllerAdmin_Abstract
      */
     protected function _getUserModel()
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('XenForo_Model_User');
     }
-
 }

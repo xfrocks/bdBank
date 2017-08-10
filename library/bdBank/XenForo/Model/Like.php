@@ -27,13 +27,17 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
             $likeBonus = $bank->getActionBonus('liked');
             if ($likeBonus > 0) {
                 $bank->reverseSystemTransactionByComment(
-                    $bank->comment('liked_' . $like['content_type'], $like['content_id']));
+                    $bank->comment('liked_' . $like['content_type'], $like['content_id'])
+                );
             }
 
             $unlikePenalty = $bank->getActionBonus('unlike');
             if ($unlikePenalty > 0) {
-                $bank->personal()->give($like['like_user_id'], $unlikePenalty,
-                    $bank->comment('unlike_' . $like['content_type'], $like['content_id']));
+                $bank->personal()->give(
+                    $like['like_user_id'],
+                    $unlikePenalty,
+                    $bank->comment('unlike_' . $like['content_type'], $like['content_id'])
+                );
             }
         }
 
@@ -57,5 +61,4 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
             $bank->reverseSystemTransactionByComment($comments);
         }
     }
-
 }

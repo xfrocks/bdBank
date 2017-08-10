@@ -168,9 +168,12 @@ class bdBank_Installer
             self::_changeMoneyColumns($db);
         }
 
-        $db->query('REPLACE INTO `xf_content_type` (content_type, addon_id, fields) VALUES ("bdbank_transaction", "bdbank", "")');
-        $db->query('REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value) VALUES ("bdbank_transaction", "alert_handler_class", "bdBank_AlertHandler_Transaction")');
-        $db->query('REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value) VALUES ("bdbank_transaction", "stats_handler_class", "bdBank_StatsHandler_Transaction")');
+        $db->query('REPLACE INTO `xf_content_type` (content_type, addon_id, fields)
+            VALUES ("bdbank_transaction", "bdbank", "")');
+        $db->query('REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value)
+            VALUES ("bdbank_transaction", "alert_handler_class", "bdBank_AlertHandler_Transaction")');
+        $db->query('REPLACE INTO `xf_content_type_field` (content_type, field_name, field_value)
+            VALUES ("bdbank_transaction", "stats_handler_class", "bdBank_StatsHandler_Transaction")');
 
         /** @var XenForo_Model_ContentType $contentTypeModel */
         $contentTypeModel = XenForo_Model::create('XenForo_Model_ContentType');
@@ -221,5 +224,4 @@ class bdBank_Installer
             }
         }
     }
-
 }

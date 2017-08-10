@@ -10,5 +10,4 @@ class bdBank_XenForo_ControllerPublic_Thread extends XFCP_bdBank_XenForo_Control
 
         return $fetchOptions;
     }
-
 }

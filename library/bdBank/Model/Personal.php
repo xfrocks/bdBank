@@ -73,10 +73,18 @@ class bdBank_Model_Personal extends XenForo_Model
         return $tax;
     }
 
-    public function transfer($from, $to, $amount, $comment = null, $type = bdBank_Model_Bank::TYPE_PERSONAL, $saveTransaction = true, array $options = array())
-    {
+    public function transfer(
+        $from,
+        $to,
+        $amount,
+        $comment = null,
+        $type = bdBank_Model_Bank::TYPE_PERSONAL,
+        $saveTransaction = true,
+        array $options = array()
+    ) {
         $from = intval($from);
         $to = intval($to);
+        $transaction = null;
 
         // merge specified options with the default options set
         $defaultOptions = array(
@@ -241,10 +249,12 @@ class bdBank_Model_Personal extends XenForo_Model
             if ($type == bdBank_Model_Bank::TYPE_PERSONAL
                 && !empty($userFrom)
                 && !empty($userTo)
-                && !empty($transaction)
+                && $transaction !== null
             ) {
                 // send an alert if this is a personal transaction between 2 real users
-                if (!$userModel->isUserIgnored($userTo, $userFrom['user_id']) && XenForo_Model_Alert::userReceivesAlert($userTo, 'bdbank_transaction', 'transfer')) {
+                if (!$userModel->isUserIgnored($userTo, $userFrom['user_id'])
+                    && XenForo_Model_Alert::userReceivesAlert($userTo, 'bdbank_transaction', 'transfer')
+                ) {
                     XenForo_Model_Alert::alert(
                         $userTo['user_id'],
                         $userFrom['user_id'],
@@ -267,15 +277,21 @@ class bdBank_Model_Personal extends XenForo_Model
             'tax_amount' => $taxAmount
         );
 
-        if ($saveTransaction AND isset($transaction['transaction_id'])) {
+        if ($transaction !== null) {
             $result['transaction_id'] = $transaction['transaction_id'];
         }
 
         return $result;
     }
 
-    public function give($userId, $amount, $comment, $type = bdBank_Model_Bank::TYPE_SYSTEM, $saveTransaction = true, array $options = array())
-    {
+    public function give(
+        $userId,
+        $amount,
+        $comment,
+        $type = bdBank_Model_Bank::TYPE_SYSTEM,
+        $saveTransaction = true,
+        array $options = array()
+    ) {
         try {
             return $this->transfer(0, $userId, $amount, $comment, $type, $saveTransaction, $options);
         } catch (bdBank_Exception $e) {
@@ -290,5 +306,4 @@ class bdBank_Model_Personal extends XenForo_Model
         // just a shortcut to access the field name
         return bdBank_Model_Bank::options('field');
     }
-
 }

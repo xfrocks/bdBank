@@ -13,8 +13,9 @@ class bdBank_Route_Prefix_Public implements XenForo_Route_Interface
         // later, see controllers)
         $action = $router->resolveActionAsPageNumber($action, $request);
         // step 3: get back the action from request's params list
-        if (empty($action))
+        if (empty($action)) {
             $action = $request->getParam('action');
+        }
         // step 4: RUN
         return $router->getRouteMatch('bdBank_ControllerPublic_Bank', $action, 'bdbank');
     }
@@ -28,7 +29,12 @@ class bdBank_Route_Prefix_Public implements XenForo_Route_Interface
         $actionFaked = XenForo_Link::getPageNumberAsAction('', $extraParams);
         // build the link with a string param (it's actually our real action)
         // the fake action (if any) will be placed in also
-        return XenForo_Link::buildBasicLinkWithStringParam($outputPrefix, $actionFaked, $extension, array('action' => $action), 'action');
+        return XenForo_Link::buildBasicLinkWithStringParam(
+            $outputPrefix,
+            $actionFaked,
+            $extension,
+            array('action' => $action),
+            'action'
+        );
     }
-
 }

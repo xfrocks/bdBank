@@ -61,7 +61,6 @@ class bdBank_XenForo_Model_Attachment extends XFCP_bdBank_XenForo_Model_Attachme
             return $result;
         }
     }
-
 }
 
 if (strpos(XenForo_Model_Attachment::$dataColumns, 'data.user_id') === false) {

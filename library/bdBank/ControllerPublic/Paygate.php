@@ -42,11 +42,17 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 
         $exchangeRates = bdBank_Model_Bank::options('exchangeRates');
         if (isset($exchangeRates[$this->_currencyLowercase])) {
-            $this->_calculatedMoney = bdBank_Helper_Number::mul($this->_amount, $exchangeRates[$this->_currencyLowercase]);
+            $this->_calculatedMoney = bdBank_Helper_Number::mul(
+                $this->_amount,
+                $exchangeRates[$this->_currencyLowercase]
+            );
         } elseif ($this->_currencyLowercase == bdBank_bdPaygate_Processor::CURRENCY_BDBANK) {
             $this->_calculatedMoney = $this->_amount;
         } else {
-            throw new XenForo_Exception(new XenForo_Phrase('bdbank_paygate_error_x_not_supported_currency', array('currency' => $this->_currencyUppercase)), true);
+            throw new XenForo_Exception(new XenForo_Phrase(
+                'bdbank_paygate_error_x_not_supported_currency',
+                array('currency' => $this->_currencyUppercase)
+            ), true);
         }
 
         $personal = bdBank_Model_Bank::getInstance()->personal();
@@ -58,7 +64,15 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
         );
 
         try {
-            $result = $personal->transfer($currentUserId, 0, $this->_calculatedMoney, $this->_displayName, bdBank_Model_Bank::TYPE_PERSONAL, true, $options);
+            $result = $personal->transfer(
+                $currentUserId,
+                0,
+                $this->_calculatedMoney,
+                $this->_displayName,
+                bdBank_Model_Bank::TYPE_PERSONAL,
+                true,
+                $options
+            );
         } catch (bdBank_Exception $e) {
             if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY) {
                 // this will never happen because we turned on TEST mode
@@ -66,17 +80,23 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
                 throw $e;
             } else {
                 // display a generic error message
-                throw $this->responseException($this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())), 503));
+                throw $this->responseException($this->responseError(new XenForo_Phrase(
+                    'bdbank_transfer_error_generic',
+                    array('error' => $e->getMessage())
+                ), 503));
             }
         }
 
         $this->_balanceAfter = $result['from_balance_after'];
         if (bdBank_Helper_Number::comp($this->_balanceAfter, 0) === -1) {
             // oops
-            throw $this->responseException($this->responseError(new XenForo_Phrase('bdbank_transfer_error_not_enough', array(
+            throw $this->responseException($this->responseError(new XenForo_Phrase(
+                'bdbank_transfer_error_not_enough',
+                array(
                     'total' => bdBank_Model_Bank::helperBalanceFormat($this->_calculatedMoney),
                     'balance' => bdBank_Model_Bank::helperBalanceFormat($balance),
-                )), 403));
+                )
+            ), 403));
         }
 
         $globalSalt = XenForo_Application::getConfig()->get('globalSalt');
@@ -86,7 +106,11 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
             $this->_confirmed = true;
         }
 
-        $this->_verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier($this->_clientId, $this->_amount, $this->_currencyUppercase);
+        $this->_verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier(
+            $this->_clientId,
+            $this->_amount,
+            $this->_currencyUppercase
+        );
 
         parent::_preDispatch($action);
     }
@@ -122,9 +146,19 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
         $currentUserId = XenForo_Visitor::getUserId();
 
         try {
-            $result = $personal->transfer($currentUserId, 0, $this->_calculatedMoney, $this->_displayName, bdBank_Model_Bank::TYPE_PERSONAL, true);
+            $result = $personal->transfer(
+                $currentUserId,
+                0,
+                $this->_calculatedMoney,
+                $this->_displayName,
+                bdBank_Model_Bank::TYPE_PERSONAL,
+                true
+            );
         } catch (bdBank_Exception $e) {
-            throw $this->responseException($this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())), 503));
+            throw $this->responseException($this->responseError(new XenForo_Phrase(
+                'bdbank_transfer_error_generic',
+                array('error' => $e->getMessage())
+            ), 503));
         }
 
         if (!empty($this->_callback)) {
@@ -148,8 +182,10 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
                 $response = $client->request('POST');
 
                 if ($response->getStatus() != 200) {
-                    $exception = new XenForo_Exception(sprintf('Callback returned error: %s',
-                        $response->getBody()));
+                    $exception = new XenForo_Exception(sprintf(
+                        'Callback returned error: %s',
+                        $response->getBody()
+                    ));
                 }
             } catch (Zend_Exception $e) {
                 $exception = $e;
@@ -157,13 +193,14 @@ class bdBank_ControllerPublic_Paygate extends XenForo_ControllerPublic_Abstract
 
             if ($exception !== null) {
                 XenForo_Error::logException($exception);
-                XenForo_Helper_File::log(__METHOD__, sprintf("curl -X POST '%s' -d '%s'",
+                XenForo_Helper_File::log(__METHOD__, sprintf(
+                    "curl -X POST '%s' -d '%s'",
                     $this->_callback,
-                    http_build_query($callbackParams)));
+                    http_build_query($callbackParams)
+                ));
             }
         }
 
         return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, $this->_redirect);
     }
-
 }

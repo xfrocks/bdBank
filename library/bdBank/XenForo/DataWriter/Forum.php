@@ -24,5 +24,4 @@ class bdBank_XenForo_DataWriter_Forum extends XFCP_bdBank_XenForo_DataWriter_For
 
         return $fields;
     }
-
 }

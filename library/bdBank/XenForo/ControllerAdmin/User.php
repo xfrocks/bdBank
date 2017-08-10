@@ -43,5 +43,4 @@ class bdBank_XenForo_ControllerAdmin_User extends XFCP_bdBank_XenForo_Controller
             }
         }
     }
-
 }

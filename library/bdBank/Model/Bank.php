@@ -47,7 +47,10 @@ class bdBank_Model_Bank extends XenForo_Model
         $extra['client_secret'] = $this->getClientSecret($clientId);
         ksort($extra);
 
-        return md5(implode('&', array_map(create_function('$key, $value', 'return "{$key}={$value}";'), array_keys($extra), $extra)));
+        return md5(implode(
+            '&',
+            array_map(create_function('$key, $value', 'return "{$key}={$value}";'), array_keys($extra), $extra)
+        ));
     }
 
     public function getClientSecret($clientId)
@@ -59,7 +62,9 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         $this->standardizeViewingUserReference($viewingUser);
 
-        if ($transaction['transaction_type'] == self::TYPE_PERSONAL AND $transaction['reversed'] == 0 AND $transaction['to_user_id'] == $viewingUser['user_id']) {
+        if ($transaction['transaction_type'] == self::TYPE_PERSONAL
+            && $transaction['reversed'] == 0
+            && $transaction['to_user_id'] == $viewingUser['user_id']) {
             return true;
         }
 
@@ -91,7 +96,7 @@ class bdBank_Model_Bank extends XenForo_Model
                 break;
 
             case 'attachment_downloaded':
-                if (empty($extraData)) {
+                if (empty($extraData) || !is_string($extraData)) {
                     throw new bdBank_Exception('attachment_downloaded_bonus_requires_file_extension_as_extra_data');
                 } else {
                     $extension = strtolower($extraData);
@@ -155,25 +160,36 @@ class bdBank_Model_Bank extends XenForo_Model
                     // new XenForo_Phrase('bdbank_explain_comment_liked_post');
                     // new XenForo_Phrase('bdbank_explain_comment_unlike_post');
                     $comment = new XenForo_Phrase(
-                        'bdbank_explain_comment_' . $parts[0]);
+                        'bdbank_explain_comment_' . $parts[0]
+                    );
                     $link = XenForo_Link::buildPublicLink('posts', array('post_id' => $parts[1]));
                     break;
                 case 'attachment_downloaded':
                     // new XenForo_Phrase('bdbank_explain_comment_attachment_downloaded');
                     $comment = new XenForo_Phrase(
-                        'bdbank_explain_comment_' . $parts[0]);
+                        'bdbank_explain_comment_' . $parts[0]
+                    );
                     $link = XenForo_Link::buildPublicLink('attachments', array('attachment_id' => $parts[1]));
                     break;
                 case 'manually_edited':
-                    $comment = new XenForo_Phrase('bdbank_explain_comment_manually_edited_by_admin_x', array('admin_id' => $parts[1]));
+                    $comment = new XenForo_Phrase(
+                        'bdbank_explain_comment_manually_edited_by_admin_x',
+                        array('admin_id' => $parts[1])
+                    );
                     break;
                 case 'bdbank_purchase':
                 case 'bdbank_purchase_revert':
                     // new XenForo_Phrase('bdbank_explain_comment_bdbank_purchase');
                     // new XenForo_Phrase('bdbank_explain_comment_bdbank_purchase_revert');
                     $comment = new XenForo_Phrase(
-                        'bdbank_explain_comment_' . $parts[0], array(
-                        'amount' => XenForo_Template_Helper_Core::callHelper('bdbank_balanceformat', array($parts[1]))));
+                        'bdbank_explain_comment_' . $parts[0],
+                        array(
+                            'amount' => XenForo_Template_Helper_Core::callHelper(
+                                'bdbank_balanceformat',
+                                array($parts[1])
+                            )
+                        )
+                    );
                     $link = XenForo_Link::buildPublicLink('bank/get-more');
                     break;
                 case 'resource_update':
@@ -183,8 +199,13 @@ class bdBank_Model_Bank extends XenForo_Model
                     // new XenForo_Phrase('bdbank_explain_comment_liked_resource_update');
                     // new XenForo_Phrase('bdbank_explain_comment_unlike_resource_update');
                     $comment = new XenForo_Phrase(
-                        'bdbank_explain_comment_' . $parts[0]);
-                    $link = XenForo_Link::buildPublicLink('resources/update', null, array('resource_update_id' => $parts[1]));
+                        'bdbank_explain_comment_' . $parts[0]
+                    );
+                    $link = XenForo_Link::buildPublicLink(
+                        'resources/update',
+                        null,
+                        array('resource_update_id' => $parts[1])
+                    );
                     break;
 
                 default:
@@ -239,7 +260,11 @@ class bdBank_Model_Bank extends XenForo_Model
             // found a reversed transaction with the same data
             // this happens a lot, we will update the old transaction
             // instead of creating a lot of reversed transactions
-            $this->_getDb()->update('xf_bdbank_transaction', array('reversed' => 0), array('transaction_id = ?' => $rtFound));
+            $this->_getDb()->update(
+                'xf_bdbank_transaction',
+                array('reversed' => 0),
+                array('transaction_id = ?' => $rtFound)
+            );
             $data['transaction_id'] = $rtFound;
         } else {
             $data['transfered'] = time();
@@ -254,12 +279,23 @@ class bdBank_Model_Bank extends XenForo_Model
 
         // get back the fund from receiver account
         // this may throw not_enough_money exception...
-        $personal->transfer($transaction['to_user_id'], 0, bdBank_Helper_Number::sub($transaction['amount'], $transaction['tax_amount']), null, self::TYPE_SYSTEM, false);
+        $personal->transfer(
+            $transaction['to_user_id'],
+            0,
+            bdBank_Helper_Number::sub($transaction['amount'], $transaction['tax_amount']),
+            null,
+            self::TYPE_SYSTEM,
+            false
+        );
 
         // actual refund
         $personal->give($transaction['from_user_id'], $transaction['amount'], null, self::TYPE_SYSTEM, false);
 
-        $this->_getDb()->update('xf_bdbank_transaction', array('reversed' => XenForo_Application::$time), array('transaction_id = ?' => $transaction['transaction_id']));
+        $this->_getDb()->update(
+            'xf_bdbank_transaction',
+            array('reversed' => XenForo_Application::$time),
+            array('transaction_id = ?' => $transaction['transaction_id'])
+        );
     }
 
     public function reverseSystemTransactionByComment($comments)
@@ -298,7 +334,14 @@ class bdBank_Model_Bank extends XenForo_Model
 
             foreach ($found as $info) {
                 try {
-                    $personal->transfer($info['to_user_id'], $info['from_user_id'], $info['amount'], null, self::TYPE_SYSTEM, false);
+                    $personal->transfer(
+                        $info['to_user_id'],
+                        $info['from_user_id'],
+                        $info['amount'],
+                        null,
+                        self::TYPE_SYSTEM,
+                        false
+                    );
                     $reversed[$info['transaction_id']] = $info['amount'];
 
                     if ($info['found_table'] == 'transaction') {
@@ -310,8 +353,15 @@ class bdBank_Model_Bank extends XenForo_Model
             }
 
             if (count($reversed) > 0) {
-                $this->_getDb()->update('xf_bdbank_transaction', array('reversed' => XenForo_Application::$time), 'transaction_id IN (' . implode(',', array_keys($reversed)) . ')');
-                $this->_getDb()->delete('xf_bdbank_archive', 'transaction_id IN (' . implode(',', array_keys($reversed)) . ')');
+                $this->_getDb()->update(
+                    'xf_bdbank_transaction',
+                    array('reversed' => XenForo_Application::$time),
+                    'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+                );
+                $this->_getDb()->delete(
+                    'xf_bdbank_archive',
+                    'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+                );
             }
 
             XenForo_Db::commit();
@@ -412,7 +462,9 @@ class bdBank_Model_Bank extends XenForo_Model
                 $transaction['from_user'] = $users[$transaction['from_user_id']];
                 $transaction['to_user'] = $users[$transaction['to_user_id']];
                 if (isset($conditions['user_id'])) {
-                    $transaction['other_user'] = $users[$transaction['from_user_id'] == $conditions['user_id'] ? $transaction['to_user_id'] : $transaction['from_user_id']];
+                    $transaction['other_user'] = ($users[$transaction['from_user_id'] == $conditions['user_id'] ?
+                        $transaction['to_user_id'] :
+                        $transaction['from_user_id']]);
                 }
             }
 
@@ -525,6 +577,7 @@ class bdBank_Model_Bank extends XenForo_Model
      */
     public function personal()
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('bdBank_Model_Personal');
     }
 
@@ -533,6 +586,7 @@ class bdBank_Model_Bank extends XenForo_Model
      */
     public function stats()
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('bdBank_Model_Stats');
     }
 
@@ -540,14 +594,21 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         $db = XenForo_Application::getDb();
 
-        $attachments = $db->fetchOne("SELECT COUNT(*) FROM `xf_attachment` WHERE content_type = ? AND content_id = ?", array(
-            $contentType,
-            $contentId
-        ));
+        $attachments = $db->fetchOne(
+            "SELECT COUNT(*) FROM `xf_attachment` WHERE content_type = ? AND content_id = ?",
+            array(
+                $contentType,
+                $contentId
+            )
+        );
         if ($attachments > 0) {
             $point = $this->getActionBonus('attachment_' . $contentType);
             if ($point != 0) {
-                $this->personal()->give($userId, bdBank_Helper_Number::mul($point, $attachments), $this->comment('attachment_' . $contentType, $contentId));
+                $this->personal()->give(
+                    $userId,
+                    bdBank_Helper_Number::mul($point, $attachments),
+                    $this->comment('attachment_' . $contentType, $contentId)
+                );
             }
         }
     }
@@ -557,6 +618,7 @@ class bdBank_Model_Bank extends XenForo_Model
      */
     protected function _getUserModel()
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('XenForo_Model_User');
     }
 
@@ -652,7 +714,10 @@ class bdBank_Model_Bank extends XenForo_Model
 
                     foreach ($lines as $line) {
                         $parts = explode('=', utf8_strtolower(utf8_trim($line)));
-                        if (count($parts) == 2 AND is_numeric($parts[0]) AND preg_match('/^([0-9]+)([a-z]+)$/', $parts[1], $matches)) {
+                        if (count($parts) == 2
+                            && is_numeric($parts[0])
+                            && preg_match('/^([0-9]+)([a-z]+)$/', $parts[1], $matches)
+                        ) {
                             self::$_getMorePrices[] = array(
                                 $parts[0],
                                 $matches[1],
@@ -724,8 +789,9 @@ class bdBank_Model_Bank extends XenForo_Model
             $array = $str;
         } else {
             $array = @unserialize($str);
-            if (empty($array))
+            if (empty($array)) {
                 $array = array();
+            }
         }
 
         return $array;
@@ -760,11 +826,18 @@ class bdBank_Model_Bank extends XenForo_Model
                 $negative = true;
                 $value = bdBank_Helper_Number::mul($value, -1);
             }
-            $valueFormatted = XenForo_Template_Helper_Core::numberFormat($value, bdBank_Model_Bank::options('balanceDecimals'));
+            $valueFormatted = XenForo_Template_Helper_Core::numberFormat(
+                $value,
+                bdBank_Model_Bank::options('balanceDecimals')
+            );
         }
 
         // check for option to include the currency after the number instead?
-        return ($negative ? '-' : '') . ((self::options('balanceFormat') == 'currency_first') ? ($currencyName . $valueFormatted) : ($valueFormatted . $currencyName));
+        return ($negative ? '-' : '') .
+            ((self::options('balanceFormat') == 'currency_first') ?
+                ($currencyName . $valueFormatted) :
+                ($valueFormatted . $currencyName)
+            );
     }
 
     public static function helperHasPermission($group, $permissionId = null)
@@ -791,5 +864,4 @@ class bdBank_Model_Bank extends XenForo_Model
 
         return XenForo_Visitor::getInstance()->hasPermission($group, $permissionId);
     }
-
 }

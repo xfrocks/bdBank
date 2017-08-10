@@ -74,7 +74,14 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
             $page = ceil(($count + 1) / $transactionPerPage);
 
-            return $this->responseRedirect(XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL, XenForo_Link::buildPublicLink('bank/history', null, array('page' => $page)) . '#transaction-' . $transaction['transaction_id']);
+            return $this->responseRedirect(
+                XenForo_ControllerResponse_Redirect::RESOURCE_CANONICAL,
+                XenForo_Link::buildPublicLink(
+                    'bank/history',
+                    null,
+                    array('page' => $page)
+                ) . '#transaction-' . $transaction['transaction_id']
+            );
         }
 
         $transactions = $bank->getTransactions($conditions, $fetchOptions);
@@ -94,7 +101,11 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             'total' => $totalTransactions,
         );
 
-        return $this->responseView('bdBank_ViewPublic_Bank_History', $isPopup ? 'bdbank_page_history_popup' : 'bdbank_page_history', $viewParams);
+        return $this->responseView(
+            'bdBank_ViewPublic_Bank_History',
+            $isPopup ? 'bdbank_page_history_popup' : 'bdbank_page_history',
+            $viewParams
+        );
     }
 
     public function actionHistoryPopup()
@@ -146,15 +157,25 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
                 }
                 $receiver = $userModel->getUserByName($username);
                 if (empty($receiver)) {
-                    return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_receiver_not_found_x', array('username' => $username)));
-                } else
+                    return $this->responseError(new XenForo_Phrase(
+                        'bdbank_transfer_error_receiver_not_found_x',
+                        array('username' => $username)
+                    ));
+                } else {
                     if ($receiver['user_id'] == $currentUserId) {
-                        return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_self', array('money' => new XenForo_Phrase('bdbank_money'))));
+                        return $this->responseError(new XenForo_Phrase(
+                            'bdbank_transfer_error_self',
+                            array('money' => new XenForo_Phrase('bdbank_money'))
+                        ));
                     }
+                }
                 $receivers[$receiver['user_id']] = $receiver;
             }
             if (count($receivers) == 0) {
-                return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_no_receivers', array('money' => new XenForo_Phrase('bdbank_money'))));
+                return $this->responseError(new XenForo_Phrase(
+                    'bdbank_transfer_error_no_receivers',
+                    array('money' => new XenForo_Phrase('bdbank_money'))
+                ));
             }
 
             if (bdBank_Helper_Number::comp($formData['amount'], 0) !== 1) {
@@ -186,7 +207,15 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
             foreach ($receivers as $receiver) {
                 try {
-                    $result = $personal->transfer($currentUserId, $receiver['user_id'], $formData['amount'], $formData['comment'], bdBank_Model_Bank::TYPE_PERSONAL, true, $optionsTest);
+                    $result = $personal->transfer(
+                        $currentUserId,
+                        $receiver['user_id'],
+                        $formData['amount'],
+                        $formData['comment'],
+                        bdBank_Model_Bank::TYPE_PERSONAL,
+                        true,
+                        $optionsTest
+                    );
                 } catch (bdBank_Exception $e) {
                     if ($e->getMessage() == bdBank_Exception::NOT_ENOUGH_MONEY) {
                         // this will never happen because we turned on TEST mode
@@ -194,7 +223,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
                         throw $e;
                     } else {
                         // display a generic error message
-                        return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())));
+                        return $this->responseError(new XenForo_Phrase(
+                            'bdbank_transfer_error_generic',
+                            array('error' => $e->getMessage())
+                        ));
                     }
                 }
 
@@ -239,24 +271,40 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
 
             if ($formData['hash'] != $hash) {
                 // display confirmation
-                return $this->responseView('bdBank_ViewPublic_Bank_TransferConfirm', 'bdbank_page_transfer_confirm', array(
-                    'formData' => $formData,
-                    'receivers' => $receivers,
-                    'total' => $total,
-                    'balance' => $balance,
-                    'balanceAfter' => $balanceAfter,
-                    'hash' => $hash,
+                return $this->responseView(
+                    'bdBank_ViewPublic_Bank_TransferConfirm',
+                    'bdbank_page_transfer_confirm',
+                    array(
+                        'formData' => $formData,
+                        'receivers' => $receivers,
+                        'total' => $total,
+                        'balance' => $balance,
+                        'balanceAfter' => $balanceAfter,
+                        'hash' => $hash,
 
-                    // since 0.10
-                    'senderPaysTax' => $senderPaysTax,
-                ));
+                        // since 0.10
+                        'senderPaysTax' => $senderPaysTax,
+                    )
+                );
             } else {
                 foreach ($receivers as $receiver) {
-                    $personal->transfer($currentUserId, $receiver['user_id'], $formData['amount'], $formData['comment'], bdBank_Model_Bank::TYPE_PERSONAL, true, $options);
+                    $personal->transfer(
+                        $currentUserId,
+                        $receiver['user_id'],
+                        $formData['amount'],
+                        $formData['comment'],
+                        bdBank_Model_Bank::TYPE_PERSONAL,
+                        true,
+                        $options
+                    );
                 }
 
                 if (!$this->_noRedirect()) {
-                    return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, empty($formData['rtn']) ? $link : $formData['rtn'], new XenForo_Phrase('bdbank_transfer_completed_total_x', array('total' => $total)));
+                    return $this->responseRedirect(
+                        XenForo_ControllerResponse_Redirect::SUCCESS,
+                        empty($formData['rtn']) ? $link : $formData['rtn'],
+                        new XenForo_Phrase('bdbank_transfer_completed_total_x', array('total' => $total))
+                    );
                 } else {
                     // this is an AJAX request
                     $userIds = array_keys($receivers);
@@ -269,7 +317,10 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
                         'receivers' => $receivers,
 
                         '_redirectTarget' => empty($formData['rtn']) ? $link : $formData['rtn'],
-                        '_redirectMessage' => new XenForo_Phrase('bdbank_transfer_completed_total_x', array('total' => $total)),
+                        '_redirectMessage' => new XenForo_Phrase(
+                            'bdbank_transfer_completed_total_x',
+                            array('total' => $total)
+                        ),
                     );
 
                     return $this->responseView('bdBank_ViewPublic_Bank_TransferComplete', '', $viewParams);
@@ -314,11 +365,21 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
                         'balance' => bdBank_Model_Bank::helperBalanceFormat(bdBank_Model_Bank::balance()),
                     )), true);
                 } else {
-                    return $this->responseError(new XenForo_Phrase('bdbank_transfer_error_generic', array('error' => $e->getMessage())));
+                    return $this->responseError(new XenForo_Phrase(
+                        'bdbank_transfer_error_generic',
+                        array('error' => $e->getMessage())
+                    ));
                 }
             }
 
-            return $this->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildPublicLink('bank/history', '', array('transaction_id' => $transaction['transaction_id'])));
+            return $this->responseRedirect(
+                XenForo_ControllerResponse_Redirect::SUCCESS,
+                XenForo_Link::buildPublicLink(
+                    'bank/history',
+                    '',
+                    array('transaction_id' => $transaction['transaction_id'])
+                )
+            );
         } else {
             $viewParams = array('transaction' => $transaction,);
 
@@ -349,7 +410,11 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
     {
         $viewParams = array();
 
-        return $this->responseView('bdBank_ViewPublic_Bank_GetMoreComplete', 'bdbank_page_get_more_complete', $viewParams);
+        return $this->responseView(
+            'bdBank_ViewPublic_Bank_GetMoreComplete',
+            'bdbank_page_get_more_complete',
+            $viewParams
+        );
     }
 
     protected function _actionGetMore_bdPaygate(array $prices)
@@ -369,7 +434,9 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             $amount = $price[0];
             $cost = $price[1];
             $currency = $price[2];
-            $itemName = new XenForo_Phrase('bdbank_purchase_x', array(
+            $itemName = new XenForo_Phrase(
+                'bdbank_purchase_x',
+                array(
                     'item' => XenForo_Template_Helper_Core::callHelper(
                         strtolower('bdbank_balanceFormat'),
                         array($amount)
@@ -401,7 +468,11 @@ class bdBank_ControllerPublic_Bank extends XenForo_ControllerPublic_Abstract
             }
 
             if (!empty($forms)) {
-                $costStr = sprintf("%d %s", XenForo_Template_Helper_Core::numberFormat($cost, 2), utf8_strtoupper($currency));
+                $costStr = sprintf(
+                    "%d %s",
+                    XenForo_Template_Helper_Core::numberFormat($cost, 2),
+                    utf8_strtoupper($currency)
+                );
                 $formatCostFunc = array($processorModel, 'formatCost');
                 if (is_callable($formatCostFunc)) {
                     $costStr = call_user_func($formatCostFunc, $cost, $currency);

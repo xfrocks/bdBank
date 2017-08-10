@@ -11,5 +11,4 @@ class bdBank_CronEntry_Stats
         $stats->rebuildGeneral();
         $stats->rebuildRichest();
     }
-
 }

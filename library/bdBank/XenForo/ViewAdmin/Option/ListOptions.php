@@ -82,5 +82,4 @@ class bdBank_XenForo_ViewAdmin_Option_ListOptions extends XFCP_bdBank_XenForo_Vi
             $this->_params['bdBank_tabs'] = $tabs;
         }
     }
-
 }

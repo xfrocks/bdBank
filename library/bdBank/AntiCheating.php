@@ -46,10 +46,9 @@ class bdBank_AntiCheating
             $formatter->stripAllBbCode(true);
             $formatter->setCensoring(true);
 
-            self::$_stripParser = new XenForo_BbCode_Parser($formatter);;
+            self::$_stripParser = new XenForo_BbCode_Parser($formatter);
         }
 
         return self::$_stripParser;
     }
-
 }

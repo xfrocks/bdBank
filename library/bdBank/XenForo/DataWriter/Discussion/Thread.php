@@ -25,5 +25,4 @@ class bdBank_XenForo_DataWriter_Discussion_Thread extends XFCP_bdBank_XenForo_Da
 
         parent::_discussionPostDelete();
     }
-
 }

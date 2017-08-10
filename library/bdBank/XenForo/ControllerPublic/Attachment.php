@@ -25,8 +25,11 @@ class bdBank_XenForo_ControllerPublic_Attachment extends XFCP_bdBank_XenForo_Con
                     // this attachment generates bonus for uploader
                     // check to make sure no duplicated bonus
                     if (!$attachmentModel->bdBank_isDownloaded($attachment, $userId)) {
-                        $bank->personal()->give($attachment['user_id'], $point,
-                            $bank->comment('attachment_downloaded', $attachment['attachment_id']));
+                        $bank->personal()->give(
+                            $attachment['user_id'],
+                            $point,
+                            $bank->comment('attachment_downloaded', $attachment['attachment_id'])
+                        );
 
                         $attachmentModel->bdBank_markDownloaded($attachment, $userId);
                     }
@@ -47,5 +50,4 @@ class bdBank_XenForo_ControllerPublic_Attachment extends XFCP_bdBank_XenForo_Con
 
         return $cached[$attachmentId];
     }
-
 }

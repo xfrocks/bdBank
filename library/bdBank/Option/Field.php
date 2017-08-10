@@ -17,5 +17,4 @@ class bdBank_Option_Field
 
         return true;
     }
-
 }

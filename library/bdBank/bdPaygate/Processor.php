@@ -35,16 +35,36 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
         return false;
     }
 
-    public function validateCallback(Zend_Controller_Request_Http $request, &$transactionId, &$paymentStatus, &$transactionDetails, &$itemId)
-    {
+    public function validateCallback(
+        Zend_Controller_Request_Http $request,
+        &$transactionId,
+        &$paymentStatus,
+        &$transactionDetails,
+        &$itemId
+    ) {
         $amount = false;
         $currency = false;
 
-        return $this->validateCallback2($request, $transactionId, $paymentStatus, $transactionDetails, $itemId, $amount, $currency);
+        return $this->validateCallback2(
+            $request,
+            $transactionId,
+            $paymentStatus,
+            $transactionDetails,
+            $itemId,
+            $amount,
+            $currency
+        );
     }
 
-    public function validateCallback2(Zend_Controller_Request_Http $request, &$transactionId, &$paymentStatus, &$transactionDetails, &$itemId, &$amount, &$currency)
-    {
+    public function validateCallback2(
+        Zend_Controller_Request_Http $request,
+        &$transactionId,
+        &$paymentStatus,
+        &$transactionDetails,
+        &$itemId,
+        &$amount,
+        &$currency
+    ) {
         $input = new XenForo_Input($request);
         $filtered = $input->filter(array(
             'client_id' => XenForo_Input::STRING,
@@ -66,7 +86,11 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
         $amount = $filtered['amount'];
         $currency = $filtered['currency'];
 
-        $verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier($filtered['client_id'], $filtered['amount'], $filtered['currency']);
+        $verifier = bdBank_Model_Bank::getInstance()->generateClientVerifier(
+            $filtered['client_id'],
+            $filtered['amount'],
+            $filtered['currency']
+        );
 
         if ($verifier != $filtered['verifier']) {
             $this->_setError('Cannot verify `verifier`');
@@ -77,8 +101,15 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
         return true;
     }
 
-    public function generateFormData($amount, $currency, $itemName, $itemId, $recurringInterval = false, $recurringUnit = false, array $extraData = array())
-    {
+    public function generateFormData(
+        $amount,
+        $currency,
+        $itemName,
+        $itemId,
+        $recurringInterval = false,
+        $recurringUnit = false,
+        array $extraData = array()
+    ) {
         $this->_assertAmount($amount);
         $this->_assertCurrency($currency);
         $this->_assertItem($itemName, $itemId);
@@ -95,7 +126,10 @@ class bdBank_bdPaygate_Processor extends bdPaygate_Processor_Abstract
             'data' => $itemId,
             'redirect' => $returnUrl,
         ));
-        $callToAction = new XenForo_Phrase('bdbank_bdpaygate_call_to_action', array('money' => new XenForo_Phrase('bdbank_money')));
+        $callToAction = new XenForo_Phrase(
+            'bdbank_bdpaygate_call_to_action',
+            array('money' => new XenForo_Phrase('bdbank_money'))
+        );
 
         $form = <<<EOF
 <a href="{$formAction}" class="OverlayTrigger button">{$callToAction}</a>
@@ -103,5 +137,4 @@ EOF;
 
         return $form;
     }
-
 }

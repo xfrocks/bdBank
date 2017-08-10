@@ -13,5 +13,4 @@ class bdBank_AlertHandler_Transaction extends XenForo_AlertHandler_Abstract
     {
         return 'bdbank_alert_transaction_' . $action;
     }
-
 }

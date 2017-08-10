@@ -6,5 +6,4 @@ class bdBank_Route_PrefixAdmin_Bank implements XenForo_Route_Interface
     {
         return $router->getRouteMatch('bdBank_ControllerAdmin_Bank', $routePath, 'bdbank');
     }
-
 }

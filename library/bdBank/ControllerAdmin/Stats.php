@@ -78,6 +78,7 @@ class bdBank_ControllerAdmin_Stats extends XenForo_ControllerAdmin_Stats
      */
     protected function _getStatsModel()
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('bdBank_Model_Stats');
     }
 }

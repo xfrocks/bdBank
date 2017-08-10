@@ -63,5 +63,4 @@ class bdBank_CacheRebuilder_User extends XenForo_CacheRebuilder_Abstract
 
         return $position;
     }
-
 }

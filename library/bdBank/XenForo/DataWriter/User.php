@@ -17,7 +17,11 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
             && $postSaveGive !== 0
         ) {
             $adminUserId = XenForo_Visitor::getUserId();
-            bdBank_Model_Bank::getInstance()->personal()->give($this->get('user_id'), $postSaveGive, 'manually_edited ' . $adminUserId);
+            bdBank_Model_Bank::getInstance()->personal()->give(
+                $this->get('user_id'),
+                $postSaveGive,
+                'manually_edited ' . $adminUserId
+            );
         }
 
         if ($this->isChanged('user_state')) {
@@ -64,5 +68,4 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
 
         return $fields;
     }
-
 }

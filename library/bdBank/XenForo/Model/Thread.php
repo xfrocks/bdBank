@@ -24,5 +24,4 @@ class bdBank_XenForo_Model_Thread extends XFCP_bdBank_XenForo_Model_Thread
     {
         self::$_threads = array();
     }
-
 }

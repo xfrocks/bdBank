@@ -61,5 +61,4 @@ class bdBank_CacheRebuilder_Bonuses extends XenForo_CacheRebuilder_Abstract
 
         return true;
     }
-
 }

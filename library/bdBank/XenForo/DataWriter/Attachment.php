@@ -14,10 +14,13 @@ class bdBank_XenForo_DataWriter_Attachment extends XFCP_bdBank_XenForo_DataWrite
             if (bdBank_Helper_Number::comp($reversed, 0) === 1) {
                 $transaction = $bank->getTransactionByComment($comment);
                 if (!empty($transaction)) {
-                    $bank->macro_bonusAttachment($this->get('content_type'), $this->get('content_id'), $transaction['to_user_id']);
+                    $bank->macro_bonusAttachment(
+                        $this->get('content_type'),
+                        $this->get('content_id'),
+                        $transaction['to_user_id']
+                    );
                 }
             }
         }
     }
-
 }

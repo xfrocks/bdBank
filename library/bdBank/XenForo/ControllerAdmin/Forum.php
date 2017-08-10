@@ -29,5 +29,4 @@ class bdBank_XenForo_ControllerAdmin_Forum extends XFCP_bdBank_XenForo_Controlle
         $options = $this->_input->filterSingle('bdbank_options', XenForo_Input::ARRAY_SIMPLE);
         $dw->set('bdbank_options', $options);
     }
-
 }

@@ -50,8 +50,14 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
         return $names;
     }
 
-    protected function _processIntegratedAction($action, $user, $data, bdPaygate_Processor_Abstract $processor, $amount, $currency)
-    {
+    protected function _processIntegratedAction(
+        $action,
+        $user,
+        $data,
+        bdPaygate_Processor_Abstract $processor,
+        $amount,
+        $currency
+    ) {
         if ($action == 'bdbank_purchase') {
             $requestedAmount = $data[0];
 
@@ -90,16 +96,25 @@ class bdBank_bdPaygate_Model_Processor extends XFCP_bdBank_bdPaygate_Model_Proce
         return parent::_processIntegratedAction($action, $user, $data, $processor, $amount, $currency);
     }
 
-    protected function _revertIntegratedAction($action, $user, $data, bdPaygate_Processor_Abstract $processor, $amount, $currency)
-    {
+    protected function _revertIntegratedAction(
+        $action,
+        $user,
+        $data,
+        bdPaygate_Processor_Abstract $processor,
+        $amount,
+        $currency
+    ) {
         if ($action == 'bdbank_purchase') {
             $personal = bdBank_Model_Bank::getInstance()->personal();
-            $personal->give($user['user_id'], bdBank_Helper_Number::mul($data[0], -1), 'bdbank_purchase_revert ' . $data[0]);
+            $personal->give(
+                $user['user_id'],
+                bdBank_Helper_Number::mul($data[0], -1),
+                'bdbank_purchase_revert ' . $data[0]
+            );
 
             return 'Taken away ' . $data[0] . ' from user #' . $user['user_id'];
         }
 
         return parent::_revertIntegratedAction($action, $user, $data, $processor, $amount, $currency);
     }
-
 }

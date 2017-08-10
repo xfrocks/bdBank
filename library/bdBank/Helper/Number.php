@@ -64,5 +64,4 @@ class bdBank_Helper_Number
             }
         }
     }
-
 }

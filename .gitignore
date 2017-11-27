@@ -3,3 +3,4 @@
 library/bdBank/DevHelper/Generated/*
 library/bdBank/FileSums.php
 library/bdBank/DevHelper/XFCP
+js/bdBank/*.min.js

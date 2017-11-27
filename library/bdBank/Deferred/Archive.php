@@ -39,6 +39,11 @@ class bdBank_Deferred_Archive extends XenForo_Deferred_Abstract
                 ORDER BY transaction_id ASC
             ', $data['batch']));
 
+            if (count($transactions) === 0) {
+                // nothing left to process
+                return true;
+            }
+
             foreach ($transactions as $transaction) {
                 $transactionId = max($transactionId, $transaction['transaction_id']);
 

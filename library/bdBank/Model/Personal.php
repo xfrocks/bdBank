@@ -84,6 +84,7 @@ class bdBank_Model_Personal extends XenForo_Model
     ) {
         $from = intval($from);
         $to = intval($to);
+        $selfField = self::field();
         $transaction = null;
 
         // merge specified options with the default options set
@@ -147,25 +148,31 @@ class bdBank_Model_Personal extends XenForo_Model
             $users = $options[bdBank_Model_Bank::TRANSACTION_OPTION_USERS];
         }
 
-        if (isset($users[$from]) AND isset($users[$to])) {
-            // we already have the users information
-            // assuming the required data exists
-            // skip the query
-        } else {
-            $users = $userModel->getUsersByIds(array(
-                $from,
-                $to
-            ), array('join' => XenForo_Model_Post::FETCH_USER_OPTIONS | XenForo_Model_Post::FETCH_USER_PROFILE));
+        $userIds = array();
+        $userFrom = $userTo = null;
+        $needsUserFrom = $from > 0;
+        $needsUserTo = $from > 0 && $to > 0;
+        if ($needsUserFrom && !isset($users[$from])) {
+            $userIds[] = $from;
+        }
+        if ($needsUserTo && !isset($users[$to])) {
+            $userIds[] = $to;
+        }
+        if (count($userIds) > 0) {
+            $users += $userModel->getUsersByIds(
+                $userIds,
+                array('join' => XenForo_Model_Post::FETCH_USER_OPTIONS | XenForo_Model_Post::FETCH_USER_PROFILE)
+            );
         }
 
-        if ($from > 0) {
-            if (empty($users[$from])) {
+        if ($needsUserFrom) {
+            if (empty($users[$from]) || $users[$from]['user_id'] !== $from) {
                 throw new bdBank_Exception(bdBank_Exception::USER_NOT_FOUND, $from);
             }
             $userFrom = $users[$from];
         }
-        if ($to > 0) {
-            if (empty($users[$to])) {
+        if ($needsUserTo) {
+            if (empty($users[$to]) || $users[$to]['user_id'] !== $to) {
                 throw new bdBank_Exception(bdBank_Exception::USER_NOT_FOUND, $to);
             }
             $userTo = $users[$to];
@@ -190,8 +197,12 @@ class bdBank_Model_Personal extends XenForo_Model
         }
 
         // checks for sufficient money
-        if (!empty($userFrom[self::field()])) {
-            $fromBalance = $userFrom[self::field()];
+        if (is_array($userFrom)) {
+            if (!isset($userFrom[$selfField])) {
+                throw new bdBank_Exception(bdBank_Exception::NOT_ENOUGH_MONEY, $from);
+            }
+
+            $fromBalance = $userFrom[$selfField];
 
             // use the fromBalance from options if it exists
             if ($options[bdBank_Model_Bank::TRANSACTION_OPTION_FROM_BALANCE] !== false) {
@@ -231,33 +242,35 @@ class bdBank_Model_Personal extends XenForo_Model
                 // REPLAY mode: do not update account information
             } else {
                 if ($from > 0) {
+                    /** @noinspection SqlResolve */
                     $this->_getDb()->query("
-						UPDATE xf_user
-						SET `" . self::field() . "` = `" . self::field() . "` + $fromAmount
-						WHERE user_id = $from
-					");
+                        UPDATE xf_user
+                        SET `$selfField` = `$selfField` + $fromAmount
+                        WHERE user_id = $from
+                    ");
                 }
                 if ($to > 0) {
+                    /** @noinspection SqlResolve */
                     $this->_getDb()->query("
-						UPDATE xf_user
-						SET `" . self::field() . "` = `" . self::field() . "` + $toAmount
-						WHERE user_id = $to
-					");
+                        UPDATE xf_user
+                        SET `$selfField` = `$selfField` + $toAmount
+                        WHERE user_id = $to
+                    ");
                 }
             }
 
             if ($type == bdBank_Model_Bank::TYPE_PERSONAL
-                && !empty($userFrom)
-                && !empty($userTo)
+                && is_array($userFrom)
+                && is_array($userTo)
                 && $transaction !== null
             ) {
                 // send an alert if this is a personal transaction between 2 real users
-                if (!$userModel->isUserIgnored($userTo, $userFrom['user_id'])
+                if (!$userModel->isUserIgnored($userTo, $from)
                     && XenForo_Model_Alert::userReceivesAlert($userTo, 'bdbank_transaction', 'transfer')
                 ) {
                     XenForo_Model_Alert::alert(
-                        $userTo['user_id'],
-                        $userFrom['user_id'],
+                        $to,
+                        $from,
                         $userFrom['username'],
                         'bdbank_transaction',
                         $transaction['transaction_id'],

@@ -88,6 +88,7 @@ class bdBank_Model_Rebuilder
 
             $post = $postModel->getPostById($postId, array('join' => XenForo_Model_Post::FETCH_THREAD));
 
+            /** @var bdBank_XenForo_DataWriter_DiscussionMessage_Post $dw */
             $dw = XenForo_DataWriter::create('XenForo_DataWriter_DiscussionMessage_Post');
             if ($dw->setExistingData($post, true)) {
                 $dw->setExtraData(bdBank_XenForo_DataWriter_DiscussionMessage_Post::DATA_THREAD, $post);
@@ -96,7 +97,7 @@ class bdBank_Model_Rebuilder
                     $dw->setExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM, $forums[$post['node_id']]);
                 }
 
-                $dw->save();
+                $dw->bdBank_doBonus();
             }
         }
 

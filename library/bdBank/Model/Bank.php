@@ -49,7 +49,9 @@ class bdBank_Model_Bank extends XenForo_Model
 
         return md5(implode(
             '&',
-            array_map(create_function('$key, $value', 'return "{$key}={$value}";'), array_keys($extra), $extra)
+            array_map(function ($key, $value) {
+                return "$key=$value";
+            }, array_keys($extra), $extra)
         ));
     }
 

@@ -314,7 +314,7 @@
 	<xen:explain>{$property.description}</xen:explain>
 	<xen:html><xen:include template="style_property_unit_extra"><xen:set var="$reset">{xen:phrase reset}</xen:set></xen:include></xen:html>
 </xen:radiounit>]]></template>
-    <template title="bdbank_tools_rebuild"><![CDATA[<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
+    <template title="bdbank_tools_rebuild"><![CDATA[<xen:form action="{xen:adminlink 'tools/trigger-deferred'}">
 	<h2 class="subHeading">{xen:phrase bdbank_rebuild_bonuses}</h2>
 	<xen:selectunit name="options[bonus_type]" value="" label="{xen:phrase bdbank_rebuild_bonuses_type}:" explain="{xen:phrase bdbank_rebuild_bonuses_explain}">
 		<xen:option value="">{xen:phrase bdbank_rebuild_bonuses_type_all}</xen:option>
@@ -326,16 +326,18 @@
 	<xen:spinboxunit name="options[batch]" value="500" step="50" min="1" label="{xen:phrase items_to_process_per_page}:" />
 	
 	<xen:submitunit save="{xen:phrase rebuild_now}" />
-	<input type="hidden" name="cache" value="bdBank_Bonuses" />
+	<input type="hidden" name="cache" value="bdBank_Deferred_Bonuses" />
 </xen:form>
 
-<xen:form action="{xen:adminlink 'tools/cache-rebuild'}">
+<xen:form action="{xen:adminlink 'tools/trigger-deferred'}">
 	<h2 class="subHeading">{xen:phrase bdbank_rebuild_user}</h2>
 	<xen:spinboxunit name="options[batch]" value="100" step="50" min="1" label="{xen:phrase items_to_process_per_page}:" />
 	
 	<xen:submitunit save="{xen:phrase rebuild_now}" />
-	<input type="hidden" name="cache" value="bdBank_User" />
-</xen:form>]]></template>
+	<input type="hidden" name="cache" value="bdBank_Deferred_User" />
+</xen:form>
+
+<xen:edithint template="tools_rebuild" />]]></template>
     <template title="bdbank_transfer"><![CDATA[<xen:title>{xen:phrase bdbank_transfer, 'money={xen:phrase bdbank_money}'}</xen:title>
 
 <xen:if is="{$errorsString}"><div class="baseHtml">{xen:raw $errorsString}</div></xen:if>

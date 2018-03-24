@@ -40,6 +40,12 @@ class bdBank_Model_Rebuilder
         /* @var $userModel XenForo_Model_User */
         $userModel = $bank->getModelFromCache('XenForo_Model_User');
 
+        $bonusType = 'register';
+        $point = $bank->getActionBonus($bonusType);
+        if ($point == 0) {
+            return true;
+        }
+
         $userIds = $userModel->getUserIdsInRange($position, $options['batch']);
         if (sizeof($userIds) == 0) {
             return true;
@@ -48,18 +54,12 @@ class bdBank_Model_Rebuilder
         $bank = bdBank_Model_Bank::getInstance();
         bdBank_Model_Bank::$isReplaying = true;
 
-        $bonusType = 'register';
-        $point = $bank->getActionBonus($bonusType);
-
         foreach ($userIds AS $userId) {
             $position = $userId;
 
             $comment = $bank->comment($bonusType, $userId);
             $bank->reverseSystemTransactionByComment($comment);
-
-            if ($point != 0) {
-                $bank->personal()->give($userId, $point, $comment);
-            }
+            $bank->personal()->give($userId, $point, $comment);
         }
 
         return $position;
@@ -137,21 +137,26 @@ class bdBank_Model_Rebuilder
 
         $bank = bdBank_Model_Bank::getInstance();
 
+        $point = $bank->getActionBonus('liked');
+        if ($point == 0) {
+            return true;
+        }
+
         $likeIds = $db->fetchCol($db->limit('
-			SELECT like_id
-			FROM xf_liked_content
-			WHERE like_id > ?
-			ORDER BY like_id
-		', $options['batch']), $position);
+            SELECT like_id
+            FROM xf_liked_content
+            WHERE like_id > ?
+            ORDER BY like_id
+        ', $options['batch']), $position);
         if (sizeof($likeIds) == 0) {
             return true;
         }
 
         $likes = $db->fetchAll('
-			SELECT *
-			FROM xf_liked_content
-			WHERE like_id IN (' . $db->quote($likeIds) . ')
-		');
+            SELECT *
+            FROM xf_liked_content
+            WHERE like_id IN (' . $db->quote($likeIds) . ')
+        ');
 
         bdBank_Model_Bank::$isReplaying = true;
 
@@ -159,14 +164,8 @@ class bdBank_Model_Rebuilder
             $position = $like['like_id'];
 
             $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id']);
-
-            // first we have to reverse any previous transactions
             $bank->reverseSystemTransactionByComment($comment);
-
-            $point = $bank->getActionBonus('liked');
-            if ($point != 0) {
-                $bank->personal()->give($like['content_user_id'], $point, $comment);
-            }
+            $bank->personal()->give($like['content_user_id'], $point, $comment);
         }
 
         return $position;

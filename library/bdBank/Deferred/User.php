@@ -24,21 +24,19 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
             return true;
         }
 
+        $db = XenForo_Application::getDb();
+
         foreach ($userIds AS $userId) {
             $data['position'] = $userId;
-
-            /* @var $userDw XenForo_DataWriter_User */
-            $userDw = XenForo_DataWriter::create('XenForo_DataWriter_User');
-            if (!$userDw->setExistingData($userId)) {
-                continue;
-            }
 
             $incoming = $this->_fetchSum('amount - tax_amount', 'to_user_id = ' . $userId);
             $outgoing = $this->_fetchSum('amount', 'from_user_id = ' . $userId);
 
-            $userDw->set($field, bdBank_Helper_Number::sub($incoming, $outgoing));
-
-            $userDw->save();
+            $db->update(
+                'xf_user',
+                array($field => bdBank_Helper_Number::sub($incoming, $outgoing)),
+                array('user_id = ?' => $userId)
+            );
         }
 
         $actionPhrase = new XenForo_Phrase('rebuilding');

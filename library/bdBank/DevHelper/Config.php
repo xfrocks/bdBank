@@ -26,19 +26,10 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'primaryKey' => array('transaction_id'),
             'indeces' => array(
                 'comment' => array('name' => 'comment', 'fields' => array('comment'), 'type' => 'NORMAL'),
-                'from_user_id' => array(
-                    'name' => 'from_user_id',
-                    'fields' => array('from_user_id'),
-                    'type' => 'NORMAL'
-                ),
+                'from_user_id' => array('name' => 'from_user_id', 'fields' => array('from_user_id'), 'type' => 'NORMAL'),
                 'to_user_id' => array('name' => 'to_user_id', 'fields' => array('to_user_id'), 'type' => 'NORMAL'),
             ),
-            'files' => array(
-                'data_writer' => false,
-                'model' => false,
-                'route_prefix_admin' => false,
-                'controller_admin' => false
-            ),
+            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
         ),
         'attachment_downloaded' => array(
             'name' => 'attachment_downloaded',
@@ -56,12 +47,7 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'title_field' => false,
             'primaryKey' => array('attachment_id', 'user_id'),
             'indeces' => array(),
-            'files' => array(
-                'data_writer' => false,
-                'model' => false,
-                'route_prefix_admin' => false,
-                'controller_admin' => false
-            ),
+            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
         ),
         'archive' => array(
             'name' => 'archive',
@@ -86,12 +72,7 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'indeces' => array(
                 'comment' => array('name' => 'comment', 'fields' => array('comment'), 'type' => 'NORMAL'),
             ),
-            'files' => array(
-                'data_writer' => false,
-                'model' => false,
-                'route_prefix_admin' => false,
-                'controller_admin' => false
-            ),
+            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
         ),
         'stats' => array(
             'name' => 'stats',
@@ -110,12 +91,7 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'title_field' => 'stats_key',
             'primaryKey' => false,
             'indeces' => array(),
-            'files' => array(
-                'data_writer' => false,
-                'model' => false,
-                'route_prefix_admin' => false,
-                'controller_admin' => false
-            ),
+            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
         ),
     );
     protected $_dataPatches = array(
@@ -129,18 +105,13 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'bdbank_show_money' => array('name' => 'bdbank_show_money', 'type' => 'uint', 'default' => 1),
         ),
         'xf_bdbank_transaction' => array(
-            'index::from_user_id' => array(
-                'index' => true,
-                'type' => 'NORMAL',
-                'fields' => array('from_user_id'),
-                'name' => 'from_user_id'
-            ),
-            'index::to_user_id' => array(
-                'index' => true,
-                'type' => 'NORMAL',
-                'fields' => array('to_user_id'),
-                'name' => 'to_user_id'
-            ),
+            'index::from_user_id' => array('index' => true, 'type' => 'NORMAL', 'fields' => array('from_user_id'), 'name' => 'from_user_id'),
+            'index::to_user_id' => array('index' => true, 'type' => 'NORMAL', 'fields' => array('to_user_id'), 'name' => 'to_user_id'),
+            'index::transfered' => array('index' => true, 'fields' => array('transfered'), 'name' => 'transfered', 'type' => 'NORMAL'),
+            'index::reversed' => array('index' => true, 'fields' => array('reversed'), 'name' => 'reversed', 'type' => 'NORMAL'),
+        ),
+        'xf_bdbank_archive' => array(
+            'index::transfered' => array('index' => true, 'fields' => array('transfered'), 'name' => 'transfered', 'type' => 'NORMAL'),
         ),
     );
     protected $_exportPath = '/Users/sondh/XenForo/bdBank';

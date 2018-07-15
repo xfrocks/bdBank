@@ -108,7 +108,6 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'index::from_user_id' => array('index' => true, 'type' => 'NORMAL', 'fields' => array('from_user_id'), 'name' => 'from_user_id'),
             'index::to_user_id' => array('index' => true, 'type' => 'NORMAL', 'fields' => array('to_user_id'), 'name' => 'to_user_id'),
             'index::transfered' => array('index' => true, 'fields' => array('transfered'), 'name' => 'transfered', 'type' => 'NORMAL'),
-            'index::reversed' => array('index' => true, 'fields' => array('reversed'), 'name' => 'reversed', 'type' => 'NORMAL'),
         ),
         'xf_bdbank_archive' => array(
             'index::transfered' => array('index' => true, 'fields' => array('transfered'), 'name' => 'transfered', 'type' => 'NORMAL'),

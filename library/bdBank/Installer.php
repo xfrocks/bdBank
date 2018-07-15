@@ -21,7 +21,6 @@ class bdBank_Installer
                 ,INDEX `from_user_id` (`from_user_id`)
                 ,INDEX `to_user_id` (`to_user_id`)
                 ,INDEX `transfered` (`transfered`)
-                ,INDEX `reversed` (`reversed`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_transaction`',
         ),
@@ -114,14 +113,6 @@ class bdBank_Installer
             'checkQuery' => 'SHOW INDEXES FROM `xf_bdbank_transaction` WHERE Key_name LIKE \'transfered\'',
             'addQuery' => 'ALTER TABLE `xf_bdbank_transaction` ADD INDEX `transfered` (`transfered`)',
             'dropQuery' => 'ALTER TABLE `xf_bdbank_transaction` DROP INDEX `transfered`',
-        ),
-        array(
-            'table' => 'xf_bdbank_transaction',
-            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_bdbank_transaction\'',
-            'index' => 'reversed',
-            'checkQuery' => 'SHOW INDEXES FROM `xf_bdbank_transaction` WHERE Key_name LIKE \'reversed\'',
-            'addQuery' => 'ALTER TABLE `xf_bdbank_transaction` ADD INDEX `reversed` (`reversed`)',
-            'dropQuery' => 'ALTER TABLE `xf_bdbank_transaction` DROP INDEX `reversed`',
         ),
         array(
             'table' => 'xf_bdbank_archive',

@@ -142,8 +142,8 @@ class bdBank_Model_Bank extends XenForo_Model
         $parts = explode(' ', $comment);
         $link = false;
 
-        if (count($parts) == 2) {
-            // all default system comment have 2 parts only
+        if (count($parts) >= 2) {
+            // all default system comment have at least 2 parts
             switch ($parts[0]) {
                 case 'register':
                     $comment = new XenForo_Phrase('bdbank_explain_comment_register');
@@ -775,9 +775,19 @@ class bdBank_Model_Bank extends XenForo_Model
         return array();
     }
 
-    public static function comment($type, $id)
+    /**
+     * @param string $type
+     * @param string $id
+     * @param string $subId
+     * @return string
+     */
+    public static function comment($type, $id, $subId = '')
     {
         $comment = "$type $id";
+        if (strlen($subId) > 0) {
+            $comment .= ' ' . $subId;
+        }
+
         if (strlen($comment) > 255) {
             // possible?
             $comment = substr($comment, 0, 255 - 32) . md5($comment);

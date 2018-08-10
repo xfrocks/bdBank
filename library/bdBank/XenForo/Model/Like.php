@@ -10,7 +10,12 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
             $bank = bdBank_Model_Bank::getInstance();
             $point = $bank->getActionBonus('liked');
             if ($point != 0) {
-                $bank->personal()->give($contentUserId, $point, $bank->comment('liked_' . $contentType, $contentId));
+                if ($likeUserId === null) {
+                    $likeUserId = XenForo_Visitor::getUserId();
+                }
+
+                $comment = $bank->comment('liked_' . $contentType, $contentId, intval($likeUserId));
+                $bank->personal()->give($contentUserId, $point, $comment);
             }
         }
 
@@ -27,16 +32,16 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
             $likeBonus = $bank->getActionBonus('liked');
             if ($likeBonus > 0) {
                 $bank->reverseSystemTransactionByComment(
-                    $bank->comment('liked_' . $like['content_type'], $like['content_id'])
+                    $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id'])
                 );
             }
 
             $unlikePenalty = $bank->getActionBonus('unlike');
-            if ($unlikePenalty > 0) {
+            if ($unlikePenalty !== 0) {
                 $bank->personal()->give(
                     $like['like_user_id'],
                     $unlikePenalty,
-                    $bank->comment('unlike_' . $like['content_type'], $like['content_id'])
+                    $bank->comment('unlike_' . $like['content_type'], $like['content_id'], $like['like_id'])
                 );
             }
         }
@@ -46,18 +51,34 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
 
     public function deleteContentLikes($contentType, $contentIds, $updateUserLikeCounter = true)
     {
-        parent::deleteContentLikes($contentType, $contentIds, $updateUserLikeCounter);
-
         if (!is_array($contentIds)) {
             $contentIds = array($contentIds);
         }
+        if (!$contentIds) {
+            return;
+        }
 
-        if ($contentIds) {
+        $db = $this->_getDb();
+        $contentIdsQuoted = $db->quote($contentIds);
+        $likes = $db->fetchAll('
+            SELECT content_type, content_id, like_user_id
+            FROM xf_liked_content
+            WHERE content_type = ? AND content_id IN (' . $contentIdsQuoted . ')
+        ', $contentType);
+
+        parent::deleteContentLikes($contentType, $contentIds, $updateUserLikeCounter);
+
+        if (count($likes) > 0) {
             $bank = bdBank_Model_Bank::getInstance();
             $comments = array();
-            foreach ($contentIds as $contentId) {
-                $comments[] = $bank->comment('liked_' . $contentType, $contentId);
+            foreach ($likes as $like) {
+                $comments[] = $bank->comment(
+                    'liked_' . $like['content_type'],
+                    $like['content_id'],
+                    $like['like_user_id']
+                );
             }
+
             $bank->reverseSystemTransactionByComment($comments);
         }
     }

@@ -164,7 +164,7 @@ class bdBank_Model_Rebuilder
         foreach ($likes AS $like) {
             $position = $like['like_id'];
 
-            $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id']);
+            $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
             $bank->reverseSystemTransactionByComment($comment);
             $bank->personal()->give($like['content_user_id'], $point, $comment);
         }

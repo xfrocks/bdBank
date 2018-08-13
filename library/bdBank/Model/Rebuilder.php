@@ -154,21 +154,15 @@ class bdBank_Model_Rebuilder
             return true;
         }
 
-        $likeIds = $db->fetchCol($db->limit('
-            SELECT like_id
+        $likes = $db->fetchAll($db->limit('
+            SELECT *
             FROM xf_liked_content
             WHERE like_id > ?
             ORDER BY like_id
         ', $options['batch']), $position);
-        if (sizeof($likeIds) == 0) {
+        if (count($likes) === 0) {
             return true;
         }
-
-        $likes = $db->fetchAll('
-            SELECT *
-            FROM xf_liked_content
-            WHERE like_id IN (' . $db->quote($likeIds) . ')
-        ');
 
         bdBank_Model_Bank::$isReplaying = true;
 

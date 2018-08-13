@@ -114,6 +114,7 @@ class bdBank_Model_Personal extends XenForo_Model
         $options = XenForo_Application::mapMerge($defaultOptions, $options);
         $isTesting = empty($options[bdBank_Model_Bank::TRANSACTION_OPTION_TEST]) ? false : true;
         $isReplaying = (empty($options[bdBank_Model_Bank::TRANSACTION_OPTION_REPLAY]) AND empty(bdBank_Model_Bank::$isReplaying)) ? false : true;
+        $timestamp = empty($options[bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP]) ? 0 : $options[bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP];
 
         /* @var $userModel XenForo_Model_User */
         $userModel = $this->getModelFromCache('XenForo_Model_User');
@@ -234,6 +235,7 @@ class bdBank_Model_Personal extends XenForo_Model
                     'tax_amount' => $taxAmount,
                     'comment' => strval($comment),
                     'transaction_type' => $type,
+                    'transfered' => $timestamp,
                 );
                 $this->_bank->saveTransaction($transaction);
             }

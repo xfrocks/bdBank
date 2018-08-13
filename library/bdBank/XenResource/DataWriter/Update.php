@@ -18,7 +18,16 @@ class bdBank_XenResource_DataWriter_Update extends XFCP_bdBank_XenResource_DataW
             $bonusType = ($this->_bdBank_isResourceDescriptionUpdate() ? 'resource' : 'resourceUpdate');
             $point = $bank->getActionBonus($bonusType);
             if ($point != 0) {
-                $bank->personal()->give($this->_resource['user_id'], $point, $this->_bdBankComment());
+                $bank->personal()->give(
+                    $this->_resource['user_id'],
+                    $point,
+                    $this->_bdBankComment(),
+                    bdBank_Model_Bank::TYPE_SYSTEM,
+                    true,
+                    array(
+                        bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $this->get('post_date')
+                    )
+                );
             }
         }
     }

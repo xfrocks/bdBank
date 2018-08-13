@@ -23,7 +23,16 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
             $bonusType = $this->_bdBank_isDiscussionFirstMessage() ? 'thread' : 'post';
             $point = $bank->getActionBonus($bonusType, array('forum' => $forum));
             if ($point != 0) {
-                $bank->personal()->give($userId, $point, $this->_bdBankComment());
+                $bank->personal()->give(
+                    $userId,
+                    $point,
+                    $this->_bdBankComment(),
+                    bdBank_Model_Bank::TYPE_SYSTEM,
+                    true,
+                    array(
+                        bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $this->get('post_date'),
+                    )
+                );
             }
         }
     }

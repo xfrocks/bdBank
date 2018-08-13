@@ -18,6 +18,7 @@ class bdBank_Model_Bank extends XenForo_Model
     const TRANSACTION_OPTION_REPLAY = 'opt_replay';
     const TRANSACTION_OPTION_FROM_BALANCE = 'opt_fromBalance';
     const TRANSACTION_OPTION_USERS = 'opt_users';
+    const TRANSACTION_OPTION_TIMESTAMP = 'opt_timestamp';
 
     const PERM_GROUP = 'bdbank';
     const PERM_TRANSFER = 'bdbank_transfer';
@@ -269,7 +270,9 @@ class bdBank_Model_Bank extends XenForo_Model
             );
             $data['transaction_id'] = $rtFound;
         } else {
-            $data['transfered'] = time();
+            if (empty($data['transfered'])) {
+                $data['transfered'] = time();
+            }
             $this->_getDb()->insert('xf_bdbank_transaction', $data);
             $data['transaction_id'] = $this->_getDb()->lastInsertId();
         }
@@ -598,10 +601,7 @@ class bdBank_Model_Bank extends XenForo_Model
 
         $attachments = $db->fetchOne(
             "SELECT COUNT(*) FROM `xf_attachment` WHERE content_type = ? AND content_id = ?",
-            array(
-                $contentType,
-                $contentId
-            )
+            array($contentType, $contentId)
         );
         if ($attachments > 0) {
             $point = $this->getActionBonus('attachment_' . $contentType);

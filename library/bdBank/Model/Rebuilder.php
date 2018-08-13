@@ -94,10 +94,10 @@ class bdBank_Model_Rebuilder
         $forums = $forumModel->getForums();
         bdBank_Model_Bank::$isReplaying = true;
 
-        foreach ($postIds AS $postId) {
-            $position = $postId;
+        $posts = $postModel->getPostsByIds($postIds, array('join' => XenForo_Model_Post::FETCH_THREAD));
 
-            $post = $postModel->getPostById($postId, array('join' => XenForo_Model_Post::FETCH_THREAD));
+        foreach ($posts as $post) {
+            $position = $post['post_id'];
 
             /** @var bdBank_XenForo_DataWriter_DiscussionMessage_Post $dw */
             $dw = XenForo_DataWriter::create('XenForo_DataWriter_DiscussionMessage_Post');

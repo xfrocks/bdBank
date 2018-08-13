@@ -10,18 +10,22 @@ class bdBank_XenResource_DataWriter_Update extends XFCP_bdBank_XenResource_DataW
             && isset($this->_resource['user_id'])
         ) {
             $bank = bdBank_Model_Bank::getInstance();
-            if (!$this->isInsert()) {
-                // updating a post, first we will reverse the old transaction...
-                $bank->reverseSystemTransactionByComment($this->_bdBankComment());
-            }
 
             $bonusType = ($this->_bdBank_isResourceDescriptionUpdate() ? 'resource' : 'resourceUpdate');
+            $comment = $this->_bdBankComment();
             $point = $bank->getActionBonus($bonusType);
+            if (!$this->isInsert()) {
+                $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+                if (count($reverseResult['skipped']) > 0) {
+                    return;
+                }
+            }
+
             if ($point != 0) {
                 $bank->personal()->give(
                     $this->_resource['user_id'],
                     $point,
-                    $this->_bdBankComment(),
+                    $comment,
                     bdBank_Model_Bank::TYPE_SYSTEM,
                     true,
                     array(

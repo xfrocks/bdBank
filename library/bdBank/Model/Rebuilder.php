@@ -57,10 +57,14 @@ class bdBank_Model_Rebuilder
         bdBank_Model_Bank::$isReplaying = true;
 
         foreach ($users AS $user) {
-            $position = $user['user_id'];
+            $position = max($position, $user['user_id']);
 
             $comment = $bank->comment($bonusType, $user['user_id']);
-            $bank->reverseSystemTransactionByComment($comment);
+            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+            if (count($reverseResult['skipped']) > 0) {
+                continue;
+            }
+
             $bank->personal()->give(
                 $user['user_id'],
                 $point,
@@ -170,7 +174,11 @@ class bdBank_Model_Rebuilder
             $position = $like['like_id'];
 
             $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
-            $bank->reverseSystemTransactionByComment($comment);
+            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+            if (count($reverseResult['skipped']) > 0) {
+                continue;
+            }
+
             $bank->personal()->give(
                 $like['content_user_id'],
                 $point,

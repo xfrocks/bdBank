@@ -5,8 +5,11 @@ class bdBank_XenForo_Model_Attachment extends XFCP_bdBank_XenForo_Model_Attachme
     public function deleteAttachmentsFromContentIds($contentType, array $contentIds)
     {
         $bank = bdBank_Model_Bank::getInstance();
-        foreach ($contentIds as $contentId) {
-            $bank->reverseSystemTransactionByComment($bank->comment('attachment_' . $contentType, $contentId));
+        $point = $bank->getActionBonus('attachment_' . $contentType);
+        if ($point != 0) {
+            foreach ($contentIds as $contentId) {
+                $bank->reverseSystemTransactionByComment($bank->comment('attachment_' . $contentType, $contentId));
+            }
         }
 
         parent::deleteAttachmentsFromContentIds($contentType, $contentIds);

@@ -7,16 +7,22 @@ class bdBank_XenForo_DataWriter_Attachment extends XFCP_bdBank_XenForo_DataWrite
         parent::_postDelete();
 
         if ($this->get('content_id') > 0) {
+            $contentType = $this->get('content_type');
+            $contentId = $this->get('content_id');
             $bank = bdBank_Model_Bank::getInstance();
-            $comment = $bank->comment('attachment_' . $this->get('content_type'), $this->get('content_id'));
-            $reversed = $bank->reverseSystemTransactionByComment($comment);
+            $point = $bank->getActionBonus('attachment_' . $contentType);
+            if ($point == 0) {
+                return;
+            }
 
-            if (bdBank_Helper_Number::comp($reversed, 0) === 1) {
+            $comment = $bank->comment('attachment_' . $contentType, $contentId);
+            $reverseResult = $bank->reverseSystemTransactionByComment($comment);
+            if (bdBank_Helper_Number::comp($reverseResult['totalReversed'], 0) === 1) {
                 $transaction = $bank->getTransactionByComment($comment);
                 if (!empty($transaction)) {
                     $bank->macro_bonusAttachment(
-                        $this->get('content_type'),
-                        $this->get('content_id'),
+                        $contentType,
+                        $contentId,
                         $transaction['to_user_id']
                     );
                 }

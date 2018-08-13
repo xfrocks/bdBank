@@ -24,16 +24,15 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
             );
         }
 
-        if ($this->isChanged('user_state')) {
+        if ($this->isChanged('user_state') && $this->get('user_state') === 'valid') {
             $bank = bdBank_Model_Bank::getInstance();
             $bonusType = 'register';
-            $userId = $this->get('user_id');
-            $comment = $bank->comment($bonusType, $userId);
-            $bank->reverseSystemTransactionByComment($comment);
-
-            if ($this->get('user_state') === 'valid') {
-                $point = $bank->getActionBonus($bonusType);
-                if ($point != 0) {
+            $point = $bank->getActionBonus($bonusType);
+            if ($point != 0) {
+                $userId = $this->get('user_id');
+                $comment = $bank->comment($bonusType, $userId);
+                $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+                if (count($reverseResult['skipped']) === 0) {
                     $bank->personal()->give($userId, $point, $comment);
                 }
             }

@@ -303,34 +303,42 @@ class bdBank_Model_Bank extends XenForo_Model
         );
     }
 
-    public function reverseSystemTransactionByComment($comments)
+    public function reverseSystemTransactionByComment($comments, $skipIfAmountEqualsTo = null)
     {
+        $result = [
+            'deleted' => [],
+            'reversed' => [],
+            'skipped' => [],
+            'skippedByComment' => [],
+            'totalReversed' => 0,
+        ];
+
         if (!is_array($comments)) {
             $comments = array($comments);
         }
         if (empty($comments)) {
-            return 0;
+            return $result;
         }
 
-        $commentsQuoted = $this->_getDb()->quote($comments);
-        $reversed = array();
+        $db = $this->_getDb();
+        $commentsQuoted = $db->quote($comments);
 
-        $transactionFound = $this->fetchAllKeyed('
-			SELECT *, "transaction" AS found_table
-			FROM xf_bdbank_transaction
-			WHERE comment IN (' . $commentsQuoted . ')
-				AND reversed = 0
-				AND transaction_type = ' . self::TYPE_SYSTEM . '
-		', 'transaction_id');
-
-        $archivedFound = $this->fetchAllKeyed('
-			SELECT *, "archive" AS found_table
-			FROM xf_bdbank_archive
-			WHERE comment IN (' . $commentsQuoted . ')
-				AND transaction_type = ' . self::TYPE_SYSTEM . '
-		', 'transaction_id');
-
-        $found = array_merge($transactionFound, $archivedFound);
+        $found = $db->fetchAll('
+            (
+                SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "transaction" AS found_table
+                FROM xf_bdbank_transaction
+                WHERE `comment` IN (' . $commentsQuoted . ')
+                    AND reversed = 0
+                    AND transaction_type = ' . self::TYPE_SYSTEM . '
+            )
+            UNION
+            (
+                SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "archive" AS found_table
+                FROM xf_bdbank_archive
+                WHERE `comment` IN (' . $commentsQuoted . ')
+                    AND transaction_type = ' . self::TYPE_SYSTEM . '
+            )
+        ');
 
         if (count($found) > 0) {
             $personal = $this->personal();
@@ -338,6 +346,15 @@ class bdBank_Model_Bank extends XenForo_Model
             XenForo_Db::beginTransaction();
 
             foreach ($found as $info) {
+                if ($skipIfAmountEqualsTo !== null &&
+                    empty($result['skippedByComment'][$info['comment']]) &&
+                    bdBank_Helper_Number::comp($info['amount'], $skipIfAmountEqualsTo) === 0
+                ) {
+                    $result['skipped'][$info['transaction_id']] = $info['comment'];
+                    $result['skippedByComment'][$info['comment']] = $info['transaction_id'];
+                    continue;
+                }
+
                 try {
                     $personal->transfer(
                         $info['to_user_id'],
@@ -347,37 +364,43 @@ class bdBank_Model_Bank extends XenForo_Model
                         self::TYPE_SYSTEM,
                         false
                     );
-                    $reversed[$info['transaction_id']] = $info['amount'];
 
                     if ($info['found_table'] == 'transaction') {
                         self::$_reversedTransactions[$info['transaction_id']] = $info;
+                        $result['reversed'][$info['transaction_id']] = $info['comment'];
+                    } else {
+                        $result['deleted'][$info['transaction_id']] = $info['comment'];
                     }
+
+                    $result['totalReversed'] = bdBank_Helper_Number::add($result['totalReversed'], $info['amount']);
                 } catch (bdBank_Exception $e) {
                     // simply ignore it
                 }
             }
 
-            if (count($reversed) > 0) {
-                $this->_getDb()->update(
+            if (count($result['reversed']) > 0) {
+                $db->update(
                     'xf_bdbank_transaction',
                     array('reversed' => XenForo_Application::$time),
-                    'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+                    'transaction_id IN (' . implode(',', array_keys($result['reversed'])) . ')'
                 );
-                $this->_getDb()->delete(
+            }
+
+            if (count($result['deleted']) > 0) {
+                $db->delete(
                     'xf_bdbank_archive',
-                    'transaction_id IN (' . implode(',', array_keys($reversed)) . ')'
+                    'transaction_id IN (' . implode(',', array_keys($result['deleted'])) . ')'
                 );
             }
 
             XenForo_Db::commit();
         }
 
-        $totalReversed = 0;
-        foreach ($reversed as $amount) {
-            $totalReversed = bdBank_Helper_Number::add($totalReversed, $amount);
+        if (XenForo_Application::debugMode()) {
+            XenForo_Helper_File::log(__METHOD__, json_encode([$comments, $result]));
         }
 
-        return $totalReversed;
+        return $result;
     }
 
     public function clearReversedTransactionsCache()
@@ -597,21 +620,24 @@ class bdBank_Model_Bank extends XenForo_Model
 
     public function macro_bonusAttachment($contentType, $contentId, $userId)
     {
+        $point = $this->getActionBonus('attachment_' . $contentType);
+        if ($point == 0) {
+            return;
+        }
+
         $db = XenForo_Application::getDb();
 
-        $attachments = $db->fetchOne(
-            "SELECT COUNT(*) FROM `xf_attachment` WHERE content_type = ? AND content_id = ?",
-            array($contentType, $contentId)
-        );
+        $attachments = $db->fetchOne('
+            SELECT COUNT(*)
+            FROM `xf_attachment`
+            WHERE content_type = ? AND content_id = ?
+        ', array($contentType, $contentId));
         if ($attachments > 0) {
-            $point = $this->getActionBonus('attachment_' . $contentType);
-            if ($point != 0) {
-                $this->personal()->give(
-                    $userId,
-                    bdBank_Helper_Number::mul($point, $attachments),
-                    $this->comment('attachment_' . $contentType, $contentId)
-                );
-            }
+            $this->personal()->give(
+                $userId,
+                bdBank_Helper_Number::mul($point, $attachments),
+                $this->comment('attachment_' . $contentType, $contentId)
+            );
         }
     }
 

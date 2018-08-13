@@ -14,26 +14,31 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
             return;
         }
 
-        if (!$this->isInsert()) {
-            // updating a post, first we will reverse the old transaction...
-            $bank->reverseSystemTransactionByComment($this->_bdBankComment());
-        }
-
+        $comment = $this->_bdBankComment();
+        $point = 0;
         if (bdBank_AntiCheating::checkPostQuality($this)) {
             $bonusType = $this->_bdBank_isDiscussionFirstMessage() ? 'thread' : 'post';
             $point = $bank->getActionBonus($bonusType, array('forum' => $forum));
-            if ($point != 0) {
-                $bank->personal()->give(
-                    $userId,
-                    $point,
-                    $this->_bdBankComment(),
-                    bdBank_Model_Bank::TYPE_SYSTEM,
-                    true,
-                    array(
-                        bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $this->get('post_date'),
-                    )
-                );
+        }
+
+        if (!$this->isInsert()) {
+            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+            if (count($reverseResult['skipped']) > 0) {
+                return;
             }
+        }
+
+        if ($point != 0) {
+            $bank->personal()->give(
+                $userId,
+                $point,
+                $comment,
+                bdBank_Model_Bank::TYPE_SYSTEM,
+                true,
+                array(
+                    bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $this->get('post_date'),
+                )
+            );
         }
     }
 

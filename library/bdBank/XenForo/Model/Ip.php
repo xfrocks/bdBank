@@ -12,8 +12,10 @@ class bdBank_XenForo_Model_Ip extends XFCP_bdBank_XenForo_Model_Ip
             $point = $bank->getActionBonus($bonusType);
             if ($point != 0) {
                 $comment = $bank->comment($bonusType, floor(XenForo_Application::$time / 86400));
-                $bank->reverseSystemTransactionByComment($comment);
-                $bank->personal()->give($userId, $point, $comment);
+                $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+                if (count($reverseResult['skipped']) === 0) {
+                    $bank->personal()->give($userId, $point, $comment);
+                }
             }
         }
 

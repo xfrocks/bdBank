@@ -28,6 +28,8 @@ class bdBank_Model_Bank extends XenForo_Model
 
     const FETCH_USER = 0x01;
 
+    protected $valueRates = null;
+
     /**
      * Please read about TRANSACTION_OPTION_REPLAY in
      * bdBank_Model_Personal::transfer()
@@ -136,6 +138,12 @@ class bdBank_Model_Bank extends XenForo_Model
         }
 
         return $points;
+    }
+
+    public function scalePointsByTime($points, $time)
+    {
+        $rate = $this->_getValueRateForTime($time);
+        return $points * $rate;
     }
 
     public function parseComment($comment)
@@ -641,6 +649,30 @@ class bdBank_Model_Bank extends XenForo_Model
         }
     }
 
+    protected function _fetchAllValueRates()
+    {
+        $conditions = array();
+        $fetchOptions = array(
+            'order' => 'valid_to',
+            'orderDirection' => 'desc',
+        );
+        $this->valueRates = $this->_getValueRateModel()->getValueRates($conditions, $fetchOptions);
+        return $this->valueRates;
+    }
+
+    protected function _getValueRateForTime($time)
+    {
+        if ($this->valueRates === null) {
+            $this->_fetchAllValueRates();
+        }
+        foreach ($this->valueRates as $valueRate) {
+            if ($valueRate['valid_to'] >= $time) {
+                return $valueRate['rate'];
+            }
+        }
+        return 1;
+    }
+
     /**
      * @return XenForo_Model_User
      */
@@ -648,6 +680,13 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('XenForo_Model_User');
+    }
+
+    /** @return bdBank_Model_ValueRate */
+    protected function _getValueRateModel()
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->getModelFromCache('bdBank_Model_ValueRate');
     }
 
     /* STATIC METHODS */

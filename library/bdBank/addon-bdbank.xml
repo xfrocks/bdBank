@@ -381,6 +381,80 @@
 	<input type="hidden" name="bdbank_money_included" value="1" />
 </fieldset>
 </xen:if>]]></template>
+    <template title="bdbank_value_rate_delete"><![CDATA[<xen:title>{xen:phrase bdbank_value_rate_confirm_deletion}: {$valueRate.rate_id}</xen:title>
+<xen:h1>{xen:phrase bdbank_value_rate_confirm_deletion}</xen:h1>
+
+<xen:navigation>
+	<xen:breadcrumb href="{xen:adminlink 'value-rates/edit', $valueRate}">{$valueRate.rate_id}</xen:breadcrumb>
+</xen:navigation>
+
+<xen:require css="delete_confirmation.css" />
+
+<xen:form action="{xen:adminlink 'value-rates/delete', $valueRate}" class="deleteConfirmForm formOverlay">
+
+	<p>{xen:phrase bdbank_value_rate_please_confirm}:</p>
+	<strong><a href="{xen:adminlink 'value-rates/edit', $valueRate}">{$valueRate.rate_id}</a></strong>
+
+	<xen:submitunit save="{xen:phrase bdbank_value_rate_delete}" />
+
+	<input type="hidden" name="_xfConfirm" value="1" />
+</xen:form>]]></template>
+    <template title="bdbank_value_rate_edit"><![CDATA[<xen:title>{xen:if '{$valueRate.rate_id}', '{xen:phrase bdbank_value_rate_edit}', '{xen:phrase bdbank_value_rate_add}'}</xen:title>
+
+<xen:form action="{xen:adminlink 'value-rates/save'}" class="AutoValidator" data-redirect="yes">
+
+	
+	<xen:textboxunit label="{xen:phrase bdbank_rate}:" name="rate" value="{$valueRate.rate}" />
+	<xen:textboxunit label="{xen:phrase bdbank_valid_to}:" name="valid_to" value="{$valueRate.valid_to}" />
+
+	<xen:submitunit save="{xen:phrase bdbank_value_rate_save}">
+		<input type="button" name="delete" value="{xen:phrase bdbank_value_rate_delete}"
+			accesskey="d" class="button OverlayTrigger"
+			data-href="{xen:adminlink 'value-rates/delete', $valueRate}"
+			{xen:if '!{$valueRate.rate_id}', 'style="display: none"'}
+		/>
+	</xen:submitunit>
+
+	<input type="hidden" name="rate_id" value="{$valueRate.rate_id}" />
+</xen:form>]]></template>
+    <template title="bdbank_value_rate_list"><![CDATA[<xen:title>{xen:phrase bdbank_value_rates}</xen:title>
+
+<xen:topctrl>
+	<a href="{xen:adminlink 'value-rates/add'}" class="button" accesskey="a">+ {xen:phrase bdbank_value_rate_add}</a>
+</xen:topctrl>
+
+<xen:require css="filter_list.css" />
+<xen:require js="js/xenforo/filter_list.js" />
+
+<xen:form action="{xen:adminlink 'value-rates'}" class="section">
+	<xen:if is="{$allValueRate}">
+		<h2 class="subHeading">
+			<xen:include template="filter_list_controls" />
+			{xen:phrase bdbank_value_rates}
+		</h2>
+
+		<ol class="FilterList Scrollable">
+			<xen:include template="bdbank_value_rate_list_items" />
+		</ol>
+
+		<p class="sectionFooter">
+			{xen:phrase showing_x_of_y_items,
+				'count=<span class="FilterListCount">{xen:count $allValueRate}</span>',
+				'total={xen:count $allValueRate}'
+			}
+		</p>
+	<xen:else />
+		<div class="noResults">{xen:phrase bdbank_value_rate_no_results}</div>
+	</xen:if>
+</xen:form>]]></template>
+    <template title="bdbank_value_rate_list_items"><![CDATA[<xen:foreach loop="$allValueRate" value="$valueRate">
+	<xen:listitem
+		id="{$valueRate.rate_id}"
+		href="{xen:adminlink 'value-rates/edit', $valueRate}"
+		delete="{xen:adminlink 'value-rates/delete', $valueRate}">
+		<xen:label>{$valueRate.rate_id}</xen:label>
+	</xen:listitem>
+</xen:foreach>]]></template>
     <template title="bdbank_widget_options_richest_users"><![CDATA[<xen:spinboxunit label="{xen:phrase wf_limit}:"
 				 name="{$namePrefix}limit"
 				 value="{xen:if '!empty({$options.limit})', $options.limit, 5}"
@@ -696,6 +770,7 @@ eur=40</default_value>
     <phrase title="bdbank_privacy" version_id="6" version_string="0.9.6"><![CDATA[Bank Privacy]]></phrase>
     <phrase title="bdbank_privacy_show_money" version_id="6" version_string="0.9.6"><![CDATA[Show {money_lowercase}]]></phrase>
     <phrase title="bdbank_purchase_x" version_id="14" version_string="0.11.2"><![CDATA[Purchase {item}]]></phrase>
+    <phrase title="bdbank_rate" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Rate]]></phrase>
     <phrase title="bdbank_rebuild_bonuses" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Rebuild Bonuses]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_explain" version_id="10" version_string="0.9.9.2"><![CDATA[After rebuilding bonuses, you MUST rebuild user account information!]]></phrase>
     <phrase title="bdbank_rebuild_bonuses_message" version_id="10" version_string="0.9.9.2"><![CDATA[[bd] Banking - Bonuses]]></phrase>
@@ -758,6 +833,17 @@ eur=40</default_value>
     <phrase title="bdbank_user_has_at_least_x_of_y" version_id="10" version_string="0.9.9.1"><![CDATA[User has at least X of {money_lowercase}]]></phrase>
     <phrase title="bdbank_user_x" global_cache="1" version_id="5" version_string="0.9.5"><![CDATA[User #{id}]]></phrase>
     <phrase title="bdbank_use_forum_based_value_instead_of_default_x" version_id="6" version_string="0.9.6"><![CDATA[Use forum-based value instead of system-wide value (set at {value})]]></phrase>
+    <phrase title="bdbank_valid_to" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Valid To]]></phrase>
+    <phrase title="bdbank_value_rate" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Value Rate]]></phrase>
+    <phrase title="bdbank_value_rates" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Value Rates]]></phrase>
+    <phrase title="bdbank_value_rate_add" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Add New Value Rate]]></phrase>
+    <phrase title="bdbank_value_rate_confirm_deletion" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Confirm Deletion of Value Rate]]></phrase>
+    <phrase title="bdbank_value_rate_delete" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Delete Value Rate]]></phrase>
+    <phrase title="bdbank_value_rate_edit" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Edit Value Rate]]></phrase>
+    <phrase title="bdbank_value_rate_not_found" version_id="2000010" version_string="2.0.0-dev"><![CDATA[The requested value rate could not be found]]></phrase>
+    <phrase title="bdbank_value_rate_no_results" version_id="2000010" version_string="2.0.0-dev"><![CDATA[No value rate could be found...]]></phrase>
+    <phrase title="bdbank_value_rate_please_confirm" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Please confirm that you want to delete the following value rate]]></phrase>
+    <phrase title="bdbank_value_rate_save" version_id="2000010" version_string="2.0.0-dev"><![CDATA[Save Value Rate]]></phrase>
     <phrase title="bdbank_when_payment_has_been_approved_fund_will_be_transfered" version_id="14" version_string="0.11.2"><![CDATA[When the payment has been approved, the requested fund will be transfered to and made available for your account.]]></phrase>
     <phrase title="bdbank_your_accounts" version_id="1" version_string="beta"><![CDATA[Your Accounts]]></phrase>
     <phrase title="bdbank_your_balance" version_id="1" version_string="beta"><![CDATA[Your Balance]]></phrase>
@@ -846,6 +932,7 @@ Transfer $1000. Tax = ($500 - $50) * 5% + ($1000 - $500) * 10% = $72.5 = $73<br/
   <route_prefixes>
     <route_type type="admin">
       <prefix original_prefix="bank" class="bdBank_Route_PrefixAdmin_Bank" build_link="data_only"/>
+      <prefix original_prefix="value-rates" class="bdBank_Route_PrefixAdmin_ValueRate" build_link="data_only"/>
     </route_type>
     <route_type type="public">
       <prefix original_prefix="bank" class="bdBank_Route_Prefix_Public" build_link="data_only"/>

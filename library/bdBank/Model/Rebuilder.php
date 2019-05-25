@@ -174,6 +174,7 @@ class bdBank_Model_Rebuilder
             $position = $like['like_id'];
 
             $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
+            $point = $bank->scalePointsByTime($point, $like['like_date']);
             $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
             if (count($reverseResult['skipped']) > 0) {
                 continue;

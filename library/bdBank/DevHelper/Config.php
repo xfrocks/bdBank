@@ -110,11 +110,30 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'title_field' => 'stats_key',
             'primaryKey' => false,
             'indeces' => array(),
+            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
+        ),
+        'value_rate' => array(
+            'name' => 'value_rate',
+            'camelCase' => 'ValueRate',
+            'camelCasePlural' => 'ValueRates',
+            'camelCaseWSpace' => 'Value Rate',
+            'camelCasePluralWSpace' => 'Value Rates',
+            'fields' => array(
+                'rate_id' => array('name' => 'rate_id', 'type' => 'uint', 'autoIncrement' => true),
+                'rate' => array('name' => 'rate', 'type' => 'float', 'required' => true),
+                'valid_to' => array('name' => 'valid_to', 'type' => 'uint', 'required' => true),
+            ),
+            'phrases' => array(),
+            'title_field' => false,
+            'primaryKey' => array('rate_id'),
+            'indeces' => array(
+                'valid_to' => array('name' => 'valid_to', 'fields' => array('valid_to'), 'type' => 'UNIQUE'),
+            ),
             'files' => array(
-                'data_writer' => false,
-                'model' => false,
-                'route_prefix_admin' => false,
-                'controller_admin' => false
+                'data_writer' => array('className' => 'bdBank_DataWriter_ValueRate', 'hash' => 'a7500b84940a0a7b72395a4e299cbadb'),
+                'model' => array('className' => 'bdBank_Model_ValueRate', 'hash' => '852306145c710e0688752b17a97731df'),
+                'route_prefix_admin' => array('className' => 'bdBank_Route_PrefixAdmin_ValueRate', 'hash' => '439273bc05d9ebeb686367a37c4908ec'),
+                'controller_admin' => array('className' => 'bdBank_ControllerAdmin_ValueRate', 'hash' => 'cb3acc79b43f1d83e6bf9bc3b37d58f9'),
             ),
         ),
     );

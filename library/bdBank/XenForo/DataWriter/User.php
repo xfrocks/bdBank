@@ -60,6 +60,10 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
             'type' => self::TYPE_STRING,
             'default' => 0
         );
+        $fields['xf_user']['bdbank_credit'] = array(
+            'type' => self::TYPE_STRING,
+            'default' => 0
+        );
         $fields['xf_user_option']['bdbank_show_money'] = array(
             'type' => self::TYPE_BOOLEAN,
             'default' => 1

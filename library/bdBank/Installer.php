@@ -82,6 +82,15 @@ class bdBank_Installer
             'dropQuery' => 'ALTER TABLE `xf_user` DROP COLUMN `bdbank_money`',
         ),
         array(
+            'table' => 'xf_user',
+            'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_user\'',
+            'field' => 'bdbank_credit',
+            'checkQuery' => 'SHOW COLUMNS FROM `xf_user` LIKE \'bdbank_credit\'',
+            'addQuery' => 'ALTER TABLE `xf_user` ADD COLUMN `bdbank_credit` DECIMAL(13,4) DEFAULT \'0\'',
+            'modifyQuery' => 'ALTER TABLE `xf_user` MODIFY COLUMN `bdbank_credit` DECIMAL(13,4) DEFAULT \'0\'',
+            'dropQuery' => 'ALTER TABLE `xf_user` DROP COLUMN `bdbank_credit`',
+        ),
+        array(
             'table' => 'xf_forum',
             'tableCheckQuery' => 'SHOW TABLES LIKE \'xf_forum\'',
             'field' => 'bdbank_options',

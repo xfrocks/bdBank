@@ -116,9 +116,11 @@ class bdBank_Listeners
     {
         switch ($rule) {
             case 'bdbank':
-                $field = bdBank_Model_Bank::getInstance()->options('field');
+                $moneyField = bdBank_Model_Bank::getInstance()->options('field');
+                $money = isset($user[$moneyField]) ? $user[$moneyField] : 0;
+                $credit = isset($user['bdbank_credit']) ? $user['bdbank_credit'] : 0;
 
-                if (isset($user[$field]) && $user[$field] >= $data['money']) {
+                if ($money + $credit >= $data['money']) {
                     $returnValue = true;
                 }
                 break;

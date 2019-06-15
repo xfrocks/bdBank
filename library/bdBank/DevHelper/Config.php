@@ -139,6 +139,7 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
     protected $_dataPatches = array(
         'xf_user' => array(
             'bdbank_money' => array('name' => 'bdbank_money', 'type' => 'money', 'default' => 0),
+            'bdbank_credit' => array('name' => 'bdbank_credit', 'type' => 'money', 'default' => 0),
         ),
         'xf_forum' => array(
             'bdbank_options' => array('name' => 'bdbank_options', 'type' => 'serialized'),

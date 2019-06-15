@@ -32,9 +32,24 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
             $incoming = $this->_fetchSum('amount - tax_amount', 'to_user_id = ' . $userId);
             $outgoing = $this->_fetchSum('amount', 'from_user_id = ' . $userId);
 
+            $incomingAdjustedSum = $this->_fetchAdjustedSum($userId, 'incoming');
+            $outgoingAdjustedSum = $this->_fetchAdjustedSum($userId, 'outgoing');
+
+            $incoming = bdBank_Helper_Number::add($incoming, $incomingAdjustedSum);
+            $outgoing = bdBank_Helper_Number::add($outgoing, $outgoingAdjustedSum);
+
+            $credit = bdBank_Helper_Number::add(
+                // WARNING: credit is the NEGATED total adjusted amount
+                bdBank_Helper_Number::sub($outgoingAdjustedSum, $incomingAdjustedSum),
+                $this->_calculateAdditionalCredit($userId)
+            );
+
             $db->update(
                 'xf_user',
-                array($field => bdBank_Helper_Number::sub($incoming, $outgoing)),
+                array(
+                    $field => bdBank_Helper_Number::sub($incoming, $outgoing),
+                    'bdbank_credit' => $credit,
+                ),
                 array('user_id = ?' => $userId)
             );
         }
@@ -68,5 +83,36 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
         ");
 
         return bdBank_Helper_Number::add($liveValue, $archiveValue);
+    }
+
+    protected function _fetchAdjustedSum($userId, $direction)
+    {
+        if ($direction == 'incoming') {
+            $userIdCol = 'to_user_id';
+        } elseif ($direction == 'outgoing') {
+            $userIdCol = 'from_user_id';
+        } else {
+            throw new XenForo_Exception('Unsupported direction');
+        }
+        $db = XenForo_Application::getDb();
+
+        $totalAdjustedAmount = $db->fetchOne("
+            SELECT SUM(adj.amount)
+            FROM xf_bdbank_transaction_adjustment adj
+                LEFT JOIN xf_bdbank_transaction t
+                    ON adj.comment = t.comment
+                        AND t.reversed = 0
+                LEFT JOIN xf_bdbank_archive a
+                    ON adj.comment = a.comment 
+            WHERE t.$userIdCol = $userId
+                OR a.$userIdCol = $userId
+        ");
+
+        return $totalAdjustedAmount;
+    }
+
+    protected function _calculateAdditionalCredit($userId)
+    {
+        return 0;
     }
 }

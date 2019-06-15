@@ -28,6 +28,8 @@ class bdBank_Model_Bank extends XenForo_Model
 
     const FETCH_USER = 0x01;
 
+    const CONFIG_BONUSES_BY_TIME_PERIOD = 'bdBank_bonusesByTimePeriod';
+
     /**
      * Please read about TRANSACTION_OPTION_REPLAY in
      * bdBank_Model_Personal::transfer()
@@ -74,10 +76,24 @@ class bdBank_Model_Bank extends XenForo_Model
         return false;
     }
 
-    public function getActionBonus($action, $extraData = array())
+    public function getActionBonus($action, $extraData = array(), $actionDate = null)
     {
         $points = 0;
         $isPenalty = false;
+
+        if (!empty($actionDate)) {
+            $bonusesByTimePeriod = XenForo_Application::getConfig()->get(static::CONFIG_BONUSES_BY_TIME_PERIOD);
+            if ($bonusesByTimePeriod !== null) {
+                foreach ($bonusesByTimePeriod as $bonusesConfig) {
+                    if ($actionDate >= $bonusesConfig->get('start_date', 0) && $actionDate < $bonusesConfig->get('end_date', 0)) {
+                        $bonuses = $bonusesConfig->get('bonuses', array());
+                        if ($bonuses->get($action)) {
+                            return $bonuses->get($action);
+                        }
+                    }
+                }
+            }
+        }
 
         switch ($action) {
             case 'thread':

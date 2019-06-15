@@ -40,12 +40,6 @@ class bdBank_Model_Rebuilder
         /* @var $userModel XenForo_Model_User */
         $userModel = $bank->getModelFromCache('XenForo_Model_User');
 
-        $bonusType = 'register';
-        $point = $bank->getActionBonus($bonusType);
-        if ($point == 0) {
-            return true;
-        }
-
         $userIds = $userModel->getUserIdsInRange($position, $options['batch']);
         if (sizeof($userIds) == 0) {
             return true;
@@ -56,11 +50,17 @@ class bdBank_Model_Rebuilder
         $bank = bdBank_Model_Bank::getInstance();
         bdBank_Model_Bank::$isReplaying = true;
 
-        $comments = array();
+        $bonusType = 'register';
+        $batchedComments = array();
         foreach ($users AS $user) {
-            $comments[] = $bank->comment($bonusType, $user['user_id']);
+            $point = $bank->getActionBonus($bonusType, array(), $user['register_date']);
+            $comment = $bank->comment($bonusType, $user['user_id']);
+            $batchedComments[$point][] = $comment;
         }
-        $bank->makeTransactionAdjustments($comments, $point);
+
+        foreach ($batchedComments as $point => $comments) {
+            $bank->makeTransactionAdjustments($comments, $point);
+        }
 
         return $position;
     }
@@ -138,11 +138,6 @@ class bdBank_Model_Rebuilder
 
         $bank = bdBank_Model_Bank::getInstance();
 
-        $point = $bank->getActionBonus('liked');
-        if ($point == 0) {
-            return true;
-        }
-
         $likes = $db->fetchAll($db->limit('
             SELECT *
             FROM xf_liked_content
@@ -155,11 +150,16 @@ class bdBank_Model_Rebuilder
 
         bdBank_Model_Bank::$isReplaying = true;
 
-        $comments = array();
+        $batchedComments = array();
         foreach ($likes AS $like) {
-            $comments[] = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
+            $point = $bank->getActionBonus('liked', array(), $like['like_date']);
+            $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
+            $batchedComments[$point][] = $comment;
         }
-        $bank->makeTransactionAdjustments($comments, $point);
+
+        foreach ($batchedComments as $point => $comments) {
+            $bank->makeTransactionAdjustments($comments, $point);
+        }
 
         return $position;
     }

@@ -18,7 +18,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         $point = 0;
         if (bdBank_AntiCheating::checkPostQuality($this)) {
             $bonusType = $this->_bdBank_isDiscussionFirstMessage() ? 'thread' : 'post';
-            $point = $bank->getActionBonus($bonusType, array('forum' => $forum));
+            $point = $bank->getActionBonus($bonusType, array('forum' => $forum), $this->get('post_date'));
         }
 
         if (!$this->isInsert()) {

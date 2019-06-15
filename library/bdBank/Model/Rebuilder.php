@@ -60,8 +60,8 @@ class bdBank_Model_Rebuilder
             $position = max($position, $user['user_id']);
 
             $comment = $bank->comment($bonusType, $user['user_id']);
-            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
-            if (count($reverseResult['skipped']) > 0) {
+            $foundTransactions = $bank->adjustAmountOfTransactionByComment($comment, $point);
+            if (!empty($foundTransactions)) {
                 continue;
             }
 
@@ -174,8 +174,8 @@ class bdBank_Model_Rebuilder
             $position = $like['like_id'];
 
             $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
-            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
-            if (count($reverseResult['skipped']) > 0) {
+            $foundTransactions = $bank->adjustAmountOfTransactionByComment($comment, $point);
+            if (!empty($foundTransactions)) {
                 continue;
             }
 

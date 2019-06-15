@@ -117,6 +117,24 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
                 'controller_admin' => false
             ),
         ),
+        'transaction_adjustment' => array(
+            'name' => 'transaction_adjustment',
+            'camelCase' => 'TransactionAdjustment',
+            'camelCasePlural' => false,
+            'camelCaseWSpace' => 'Transaction Adjustment',
+            'camelCasePluralWSpace' => false,
+            'fields' => array(
+                'adjustment_id' => array('name' => 'adjustment_id', 'type' => 'uint', 'required' => true, 'autoIncrement' => true),
+                'transaction_id' => array('name' => 'transaction_id', 'type' => 'uint', 'required' => true),
+                'amount' => array('name' => 'amount', 'type' => 'serialized', 'required' => true),
+                'adjust_date' => array('name' => 'adjust_date', 'type' => 'uint', 'required' => true),
+            ),
+            'phrases' => array(),
+            'title_field' => false,
+            'primaryKey' => array('adjustment_id'),
+            'indeces' => array(),
+            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
+        ),
     );
     protected $_dataPatches = array(
         'xf_user' => array(

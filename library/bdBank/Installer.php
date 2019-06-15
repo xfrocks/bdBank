@@ -59,6 +59,17 @@ class bdBank_Installer
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_stats`',
         ),
+        'transaction_adjustment' => array(
+            'createQuery' => 'CREATE TABLE IF NOT EXISTS `xf_bdbank_transaction_adjustment` (
+                `adjustment_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT
+                ,`transaction_id` INT(10) UNSIGNED NOT NULL
+                ,`amount` MEDIUMBLOB NOT NULL
+                ,`adjust_date` INT(10) UNSIGNED NOT NULL
+                , PRIMARY KEY (`adjustment_id`)
+                
+            ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
+            'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_transaction_adjustment`',
+        ),
     );
     protected static $_patches = array(
         array(
@@ -67,6 +78,7 @@ class bdBank_Installer
             'field' => 'bdbank_money',
             'checkQuery' => 'SHOW COLUMNS FROM `xf_user` LIKE \'bdbank_money\'',
             'addQuery' => 'ALTER TABLE `xf_user` ADD COLUMN `bdbank_money` DECIMAL(13,4) DEFAULT \'0\'',
+            'modifyQuery' => 'ALTER TABLE `xf_user` MODIFY COLUMN `bdbank_money` DECIMAL(13,4) DEFAULT \'0\'',
             'dropQuery' => 'ALTER TABLE `xf_user` DROP COLUMN `bdbank_money`',
         ),
         array(
@@ -75,6 +87,7 @@ class bdBank_Installer
             'field' => 'bdbank_options',
             'checkQuery' => 'SHOW COLUMNS FROM `xf_forum` LIKE \'bdbank_options\'',
             'addQuery' => 'ALTER TABLE `xf_forum` ADD COLUMN `bdbank_options` MEDIUMBLOB',
+            'modifyQuery' => 'ALTER TABLE `xf_forum` MODIFY COLUMN `bdbank_options` MEDIUMBLOB',
             'dropQuery' => 'ALTER TABLE `xf_forum` DROP COLUMN `bdbank_options`',
         ),
         array(
@@ -83,6 +96,7 @@ class bdBank_Installer
             'field' => 'bdbank_show_money',
             'checkQuery' => 'SHOW COLUMNS FROM `xf_user_option` LIKE \'bdbank_show_money\'',
             'addQuery' => 'ALTER TABLE `xf_user_option` ADD COLUMN `bdbank_show_money` INT(10) UNSIGNED DEFAULT \'1\'',
+            'modifyQuery' => 'ALTER TABLE `xf_user_option` MODIFY COLUMN `bdbank_show_money` INT(10) UNSIGNED DEFAULT \'1\'',
             'dropQuery' => 'ALTER TABLE `xf_user_option` DROP COLUMN `bdbank_show_money`',
         ),
         array(
@@ -120,6 +134,8 @@ class bdBank_Installer
             $existed = $db->fetchOne($patch['checkQuery']);
             if (empty($existed)) {
                 $db->query($patch['addQuery']);
+            } elseif (!empty($patch['modifyQuery'])) {
+                $db->query($patch['modifyQuery']);
             }
         }
 

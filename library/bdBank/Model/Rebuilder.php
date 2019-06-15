@@ -56,26 +56,11 @@ class bdBank_Model_Rebuilder
         $bank = bdBank_Model_Bank::getInstance();
         bdBank_Model_Bank::$isReplaying = true;
 
+        $comments = array();
         foreach ($users AS $user) {
-            $position = max($position, $user['user_id']);
-
-            $comment = $bank->comment($bonusType, $user['user_id']);
-            $foundTransactions = $bank->adjustAmountOfTransactionByComment($comment, $point);
-            if (!empty($foundTransactions)) {
-                continue;
-            }
-
-            $bank->personal()->give(
-                $user['user_id'],
-                $point,
-                $comment,
-                bdBank_Model_Bank::TYPE_SYSTEM,
-                true,
-                array(
-                    bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $user['register_date']
-                )
-            );
+            $comments[] = $bank->comment($bonusType, $user['user_id']);
         }
+        $bank->makeTransactionAdjustments($comments, $point);
 
         return $position;
     }
@@ -170,26 +155,11 @@ class bdBank_Model_Rebuilder
 
         bdBank_Model_Bank::$isReplaying = true;
 
+        $comments = array();
         foreach ($likes AS $like) {
-            $position = $like['like_id'];
-
-            $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
-            $foundTransactions = $bank->adjustAmountOfTransactionByComment($comment, $point);
-            if (!empty($foundTransactions)) {
-                continue;
-            }
-
-            $bank->personal()->give(
-                $like['content_user_id'],
-                $point,
-                $comment,
-                bdBank_Model_Bank::TYPE_SYSTEM,
-                true,
-                array(
-                    bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $like['like_date']
-                )
-            );
+            $comments[] = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
         }
+        $bank->makeTransactionAdjustments($comments, $point);
 
         return $position;
     }

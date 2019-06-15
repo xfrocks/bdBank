@@ -408,67 +408,47 @@ class bdBank_Model_Bank extends XenForo_Model
         self::$_reversedTransactions = array();
     }
 
-    public function adjustAmountOfTransactionByComment($comment, $amount)
+    public function makeTransactionAdjustments($comments, $targetAmount)
     {
         $db = $this->_getDb();
 
-        $commentQuoted = $db->quote($comment);
-
-        $found = $db->fetchAll("
-            (
-                SELECT transaction_id, $amount - amount AS adjusting_amount, 'transaction' AS found_table
-                FROM xf_bdbank_transaction
-                WHERE `comment` = $commentQuoted
-                    AND reversed = 0
-                    AND transaction_type = " . self::TYPE_SYSTEM . "
-            )
-            UNION
-            (
-                SELECT transaction_id, $amount - amount AS adjusting_amount, 'archive' AS found_table
-                FROM xf_bdbank_archive
-                WHERE `comment` = $commentQuoted
-                    AND transaction_type = " . self::TYPE_SYSTEM . "
-            )
-        ");
-
-        XenForo_Db::beginTransaction();
-
-        $adjustingTransactionIds = array();
-        $adjustingArchivedIds = array();
-        foreach ($found as $transaction) {
-            if (bdBank_Helper_Number::comp($transaction['adjusting_amount'], 0) === 0) {
-                continue;
-            }
-            if ($transaction['found_table'] == 'transaction') {
-                $adjustingTransactionIds[] = $transaction['transaction_id'];
-            } else {
-                $adjustingArchivedIds[] = $transaction['transaction_id'];
-            }
-            $db->query("
-                INSERT INTO xf_bdbank_transaction_adjustment(transaction_id, amount, adjust_date)
-                VALUES(?, ?, ?)
-            ", array($transaction['transaction_id'], $transaction['adjusting_amount'], XenForo_Application::$time));
+        if (!is_array($comments)) {
+            $comments = array($comments);
+        }
+        if (empty($comments)) {
+            return;
         }
 
-        if (!empty($adjustingTransactionIds)) {
-            $db->query("
-                UPDATE xf_bdbank_transaction
-                SET amount = ?
-                WHERE transaction_id IN (" . $db->quote($adjustingTransactionIds) . ")
-            ", array($amount));
-        }
+        $commentsQuoted = $db->quote($comments);
 
-        if (!empty($adjustingArchivedIds)) {
-            $db->query("
-                UPDATE xf_bdbank_archive
-                SET amount = ?
-                WHERE transaction_id IN (" . $db->quote($adjustingArchivedIds) . ")
-            ", array($amount));
-        }
-
-        XenForo_Db::commit();
-
-        return $found;
+        $db->query("
+            INSERT INTO xf_bdbank_transaction_adjustment(`comment`, amount, adjust_date)
+            SELECT `comment`, $targetAmount - SUM(amount), ?
+            FROM (
+                (
+                    SELECT `comment`, amount
+                    FROM xf_bdbank_transaction
+                    WHERE `comment` IN ($commentsQuoted)
+                        AND reversed = 0
+                        AND transaction_type = " . self::TYPE_SYSTEM . "
+                )
+                UNION
+                (
+                    SELECT `comment`, amount
+                    FROM xf_bdbank_archive
+                    WHERE `comment` IN ($commentsQuoted)
+                        AND transaction_type = " . self::TYPE_SYSTEM . "
+                )
+                UNION
+                (
+                    SELECT `comment`, amount
+                    FROM xf_bdbank_transaction_adjustment
+                    WHERE `comment` IN ($commentsQuoted)
+                )
+            ) t
+            GROUP BY `comment`
+            HAVING SUM(amount) <> $targetAmount
+        ", array(XenForo_Application::$time));
     }
 
     public function getTransactionByComment($comment, array $fetchOptions = array())

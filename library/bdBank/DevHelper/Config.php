@@ -125,8 +125,8 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'camelCasePluralWSpace' => false,
             'fields' => array(
                 'adjustment_id' => array('name' => 'adjustment_id', 'type' => 'uint', 'required' => true, 'autoIncrement' => true),
-                'transaction_id' => array('name' => 'transaction_id', 'type' => 'uint', 'required' => true),
-                'amount' => array('name' => 'amount', 'type' => 'serialized', 'required' => true),
+                'comment' => array('name' => 'comment', 'type' => 'string', 'length' => 255, 'required' => true),
+                'amount' => array('name' => 'amount', 'type' => 'money', 'required' => true),
                 'adjust_date' => array('name' => 'adjust_date', 'type' => 'uint', 'required' => true),
             ),
             'phrases' => array(),

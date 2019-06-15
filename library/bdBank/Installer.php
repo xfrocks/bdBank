@@ -62,8 +62,8 @@ class bdBank_Installer
         'transaction_adjustment' => array(
             'createQuery' => 'CREATE TABLE IF NOT EXISTS `xf_bdbank_transaction_adjustment` (
                 `adjustment_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT
-                ,`transaction_id` INT(10) UNSIGNED NOT NULL
-                ,`amount` MEDIUMBLOB NOT NULL
+                ,`comment` VARCHAR(255) NOT NULL
+                ,`amount` DECIMAL(13,4) NOT NULL
                 ,`adjust_date` INT(10) UNSIGNED NOT NULL
                 , PRIMARY KEY (`adjustment_id`)
                 

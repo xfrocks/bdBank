@@ -435,6 +435,8 @@ class bdBank_Model_Bank extends XenForo_Model
             return;
         }
 
+        // make sure $targetAmount is number
+        $targetAmount = bdBank_Helper_Number::add(0, $targetAmount);
         $commentsQuoted = $db->quote($comments);
 
         $db->query("

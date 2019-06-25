@@ -444,24 +444,27 @@ class bdBank_Model_Bank extends XenForo_Model
             SELECT `comment`, $targetAmount - SUM(amount), ?
             FROM (
                 (
-                    SELECT `comment`, amount
+                    SELECT `comment`, SUM(amount) amount
                     FROM xf_bdbank_transaction
                     WHERE `comment` IN ($commentsQuoted)
                         AND reversed = 0
                         AND transaction_type = " . self::TYPE_SYSTEM . "
+                    GROUP BY 1
                 )
                 UNION ALL
                 (
-                    SELECT `comment`, amount
+                    SELECT `comment`, SUM(amount) amount
                     FROM xf_bdbank_archive
                     WHERE `comment` IN ($commentsQuoted)
                         AND transaction_type = " . self::TYPE_SYSTEM . "
+                    GROUP BY 1
                 )
                 UNION ALL
                 (
-                    SELECT `comment`, amount
+                    SELECT `comment`, SUM(amount) amount
                     FROM xf_bdbank_transaction_adjustment
                     WHERE `comment` IN ($commentsQuoted)
+                    GROUP BY 1
                 )
             ) t
             GROUP BY `comment`

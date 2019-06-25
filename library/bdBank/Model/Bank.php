@@ -450,14 +450,14 @@ class bdBank_Model_Bank extends XenForo_Model
                         AND reversed = 0
                         AND transaction_type = " . self::TYPE_SYSTEM . "
                 )
-                UNION
+                UNION ALL
                 (
                     SELECT `comment`, amount
                     FROM xf_bdbank_archive
                     WHERE `comment` IN ($commentsQuoted)
                         AND transaction_type = " . self::TYPE_SYSTEM . "
                 )
-                UNION
+                UNION ALL
                 (
                     SELECT `comment`, amount
                     FROM xf_bdbank_transaction_adjustment

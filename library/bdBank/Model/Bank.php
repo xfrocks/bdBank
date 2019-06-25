@@ -409,6 +409,17 @@ class bdBank_Model_Bank extends XenForo_Model
                 );
             }
 
+            if (count($result['reversed']) > 0 || count($result['deleted']) > 0) {
+                // Make new adjustments to cancel out the adjustments of reversed/deleted transactions
+                $this->makeTransactionAdjustments(
+                    array_merge(
+                        array_values($result['reversed']),
+                        array_values($result['deleted'])
+                    ),
+                    0
+                );
+            }
+
             XenForo_Db::commit();
         }
 

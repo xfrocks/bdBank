@@ -66,7 +66,7 @@ class bdBank_Installer
                 ,`amount` DECIMAL(13,4) NOT NULL
                 ,`adjust_date` INT(10) UNSIGNED NOT NULL
                 , PRIMARY KEY (`adjustment_id`)
-                
+                ,INDEX `comment` (`comment`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_transaction_adjustment`',
         ),

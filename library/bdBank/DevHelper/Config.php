@@ -132,7 +132,9 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
             'phrases' => array(),
             'title_field' => false,
             'primaryKey' => array('adjustment_id'),
-            'indeces' => array(),
+            'indeces' => array(
+                'comment' => array('name' => 'comment', 'fields' => array('comment'), 'type' => 'NORMAL'),
+            ),
             'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
         ),
     );

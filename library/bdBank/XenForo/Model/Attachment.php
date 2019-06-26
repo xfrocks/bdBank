@@ -2,19 +2,6 @@
 
 class bdBank_XenForo_Model_Attachment extends XFCP_bdBank_XenForo_Model_Attachment
 {
-    public function deleteAttachmentsFromContentIds($contentType, array $contentIds)
-    {
-        $bank = bdBank_Model_Bank::getInstance();
-        $point = $bank->getActionBonus('attachment_' . $contentType);
-        if ($point != 0) {
-            foreach ($contentIds as $contentId) {
-                $bank->reverseSystemTransactionByComment($bank->comment('attachment_' . $contentType, $contentId));
-            }
-        }
-
-        parent::deleteAttachmentsFromContentIds($contentType, $contentIds);
-    }
-
     public function bdBank_isDownloaded(array $attachment, $userId)
     {
         $found = $this->_getDb()->fetchOne('

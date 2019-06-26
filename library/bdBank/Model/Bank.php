@@ -76,7 +76,7 @@ class bdBank_Model_Bank extends XenForo_Model
         return false;
     }
 
-    public function getActionBonus($action, $extraData = array(), $actionDate = null)
+    public function getActionBonus($action, $actionDate, $extraData = array())
     {
         $points = 0;
         $isPenalty = false;
@@ -691,29 +691,6 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('bdBank_Model_Stats');
-    }
-
-    public function macro_bonusAttachment($contentType, $contentId, $userId)
-    {
-        $point = $this->getActionBonus('attachment_' . $contentType);
-        if ($point == 0) {
-            return;
-        }
-
-        $db = XenForo_Application::getDb();
-
-        $attachments = $db->fetchOne('
-            SELECT COUNT(*)
-            FROM `xf_attachment`
-            WHERE content_type = ? AND content_id = ?
-        ', array($contentType, $contentId));
-        if ($attachments > 0) {
-            $this->personal()->give(
-                $userId,
-                bdBank_Helper_Number::mul($point, $attachments),
-                $this->comment('attachment_' . $contentType, $contentId)
-            );
-        }
     }
 
     /**

@@ -73,7 +73,6 @@ class bdBank_Listeners
             'XenForo_ControllerPublic_Attachment',
             'XenForo_ControllerPublic_Thread',
 
-            'XenForo_DataWriter_Attachment',
             'XenForo_DataWriter_Discussion_Thread',
             'XenForo_DataWriter_DiscussionMessage_Post',
             'XenForo_DataWriter_Forum',

@@ -13,7 +13,7 @@ class bdBank_XenResource_DataWriter_Update extends XFCP_bdBank_XenResource_DataW
 
             $bonusType = ($this->_bdBank_isResourceDescriptionUpdate() ? 'resource' : 'resourceUpdate');
             $comment = $this->_bdBankComment();
-            $point = $bank->getActionBonus($bonusType, array(), $this->get('post_date'));
+            $point = $bank->getActionBonus($bonusType, $this->get('post_date'), array());
 
             if (!$this->isInsert()) {
                 $bank->makeTransactionAdjustments($comment, $point);

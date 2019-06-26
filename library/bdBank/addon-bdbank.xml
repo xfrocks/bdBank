@@ -492,12 +492,6 @@ value_first = {xen:phrase bdbank_balance_format_value_first}</edit_format_params
       <sub_options></sub_options>
       <relation group_id="bdbank" display_order="160"/>
     </option>
-    <option option_id="bdbank_bonus_attachment_post" edit_format="spinbox" data_type="numeric" can_backup="1">
-      <default_value>10</default_value>
-      <edit_format_params></edit_format_params>
-      <sub_options></sub_options>
-      <relation group_id="bdbank" display_order="150"/>
-    </option>
     <option option_id="bdbank_bonus_liked" edit_format="spinbox" data_type="numeric" can_backup="1">
       <default_value>1</default_value>
       <edit_format_params></edit_format_params>
@@ -772,8 +766,6 @@ eur=40</default_value>
     <phrase title="option_bdbank_balanceFormat_explain" version_id="10" version_string="0.9.9.2"><![CDATA[Money will be formatted before output, you can specify the format here. In order to change the currency symbol, just edit the phrase "bdbank_currency_name". If you want to call money something else (for example: point), you will need to edit 2 phrases: "bdbank_money" and "bdbank_money_lowercase".]]></phrase>
     <phrase title="option_bdbank_bonus_attachment_downloaded" version_id="1" version_string="beta"><![CDATA[Bonus for Downloaded Attachment]]></phrase>
     <phrase title="option_bdbank_bonus_attachment_downloaded_explain" version_id="5" version_string="0.9.5"><![CDATA[The uploader will get this bonus when somebody (non-guest) downloads his/her attachment. The file extension will be checked before processing. It's not recommend to enable bonus for images because they can be embedded into the post and it's a little unfair to give the bonus in those cases. The format is {extension} = {bonus}, you can separate extensions by comma, to match all extension, simply use a single asterisk. The list will be matched top down.]]></phrase>
-    <phrase title="option_bdbank_bonus_attachment_post" version_id="1" version_string="beta"><![CDATA[Bonus for an Attachment]]></phrase>
-    <phrase title="option_bdbank_bonus_attachment_post_explain" version_id="1" version_string="beta"><![CDATA[The bonus will be multiplied if multiple files are attached in a post. When the target post is hard deleted or the attachment is removed individually, the bonus will be taken away accordingly.]]></phrase>
     <phrase title="option_bdbank_bonus_liked" version_id="27" version_string="1.0.2b"><![CDATA[Bonus for Liked Content]]></phrase>
     <phrase title="option_bdbank_bonus_liked_explain" version_id="27" version_string="1.0.2b"><![CDATA[The content owner will get this bonus when somebody likes his/her content. The bonus will be taken away only when the content is hard deleted.]]></phrase>
     <phrase title="option_bdbank_bonus_login" version_id="25" version_string="1.0.1"><![CDATA[Bonus for Login]]></phrase>

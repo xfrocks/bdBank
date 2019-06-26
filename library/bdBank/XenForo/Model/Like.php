@@ -8,7 +8,7 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
 
         if ($result !== false) {
             $bank = bdBank_Model_Bank::getInstance();
-            $point = $bank->getActionBonus('liked');
+            $point = $bank->getActionBonus('liked', $likeDate);
             if ($point != 0) {
                 if ($likeUserId === null) {
                     $likeUserId = XenForo_Visitor::getUserId();
@@ -29,14 +29,14 @@ class bdBank_XenForo_Model_Like extends XFCP_bdBank_XenForo_Model_Like
         if ($result !== false) {
             $bank = bdBank_Model_Bank::getInstance();
 
-            $likeBonus = $bank->getActionBonus('liked');
+            $likeBonus = $bank->getActionBonus('liked', $like['like_date']);
             if ($likeBonus > 0) {
                 $bank->reverseSystemTransactionByComment(
                     $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id'])
                 );
             }
 
-            $unlikePenalty = $bank->getActionBonus('unlike');
+            $unlikePenalty = $bank->getActionBonus('unlike', $like['like_date']);
             if ($unlikePenalty !== 0) {
                 $bank->personal()->give(
                     $like['like_user_id'],

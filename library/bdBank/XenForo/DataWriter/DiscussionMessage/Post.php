@@ -18,7 +18,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         $point = 0;
         if (bdBank_AntiCheating::checkPostQuality($this)) {
             $bonusType = $this->_bdBank_isDiscussionFirstMessage() ? 'thread' : 'post';
-            $point = $bank->getActionBonus($bonusType, array('forum' => $forum), $this->get('post_date'));
+            $point = $bank->getActionBonus($bonusType, $this->get('post_date'), array('forum' => $forum));
         }
 
         if (!$this->isInsert()) {
@@ -52,17 +52,6 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         bdBank_Model_Bank::getInstance()->reverseSystemTransactionByComment($this->_bdBankComment());
 
         parent::_messagePostDelete();
-    }
-
-    protected function _associateAttachments($attachmentHash)
-    {
-        parent::_associateAttachments($attachmentHash);
-
-        $bank = bdBank_Model_Bank::getInstance();
-        $comment = $bank->comment('attachment_post', $this->get('post_id'));
-        $bank->reverseSystemTransactionByComment($comment);
-        // always do reverse for attachments
-        $bank->macro_bonusAttachment('post', $this->get('post_id'), $this->get('user_id'));
     }
 
     protected function _bdBankComment()

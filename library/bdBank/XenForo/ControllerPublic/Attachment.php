@@ -20,7 +20,7 @@ class bdBank_XenForo_ControllerPublic_Attachment extends XFCP_bdBank_XenForo_Con
                 // process our stuff here
                 $bank = bdBank_Model_Bank::getInstance();
                 $extension = XenForo_Helper_File::getFileExtension($attachment['filename']);
-                $point = $bank->getActionBonus('attachment_downloaded', $extension);
+                $point = $bank->getActionBonus('attachment_downloaded', XenForo_Application::$time, $extension);
                 if (bdBank_Helper_Number::comp($point, 0) === 1) {
                     // this attachment generates bonus for uploader
                     // check to make sure no duplicated bonus

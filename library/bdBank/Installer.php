@@ -59,19 +59,6 @@ class bdBank_Installer
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
             'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_stats`',
         ),
-        'credit' => array(
-            'createQuery' => 'CREATE TABLE IF NOT EXISTS `xf_bdbank_credit` (
-                `credit_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT
-                ,`transaction_id` INT(10) UNSIGNED NOT NULL
-                ,`user_id` INT(10) UNSIGNED NOT NULL
-                ,`amount` DECIMAL(13,4) NOT NULL
-                ,`credit_date` INT(10) UNSIGNED NOT NULL
-                , PRIMARY KEY (`credit_id`)
-                ,INDEX `transaction_id` (`transaction_id`)
-                ,INDEX `user_id` (`user_id`)
-            ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;',
-            'dropQuery' => 'DROP TABLE IF EXISTS `xf_bdbank_credit`',
-        ),
     );
     protected static $_patches = array(
         array(
@@ -205,9 +192,6 @@ class bdBank_Installer
         /** @var XenForo_Model_ContentType $contentTypeModel */
         $contentTypeModel = XenForo_Model::create('XenForo_Model_ContentType');
         $contentTypeModel->rebuildContentTypeCache();
-
-        bdBank_Model_Bank::createDbTriggerInsertCreditAfterTransaction();
-        bdBank_Model_Bank::createDbTriggerUpdateUserCredit();
     }
 
     public static function uninstallCustomized()
@@ -220,9 +204,6 @@ class bdBank_Installer
         /** @var XenForo_Model_ContentType $contentTypeModel */
         $contentTypeModel = XenForo_Model::create('XenForo_Model_ContentType');
         $contentTypeModel->rebuildContentTypeCache();
-
-        bdBank_Model_Bank::dropDbTriggerInsertCreditAfterTransaction();
-        bdBank_Model_Bank::dropDbTriggerUpdateUserCredit();
 
         bdBank_ShippableHelper_Updater::onUninstall(null, 'bdbank');
     }

@@ -32,13 +32,14 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
             $incoming = $this->_fetchSum('amount - tax_amount', 'to_user_id = ' . $userId);
             $outgoing = $this->_fetchSum('amount', 'from_user_id = ' . $userId);
 
-            $credit = $this->_fetchCredit($userId);
+            $incomingCredit = $this->_fetchCredit('amount - tax_amount', 'to_user_id = ' . $userId);
+            $outgoingCredit = $this->_fetchCredit('amount', 'from_user_id = ' . $userId);
 
             $db->update(
                 'xf_user',
                 array(
                     $field => bdBank_Helper_Number::sub($incoming, $outgoing),
-                    'bdbank_credit' => $credit,
+                    'bdbank_credit' => bdBank_Helper_Number::sub($incomingCredit, $outgoingCredit),
                 ),
                 array('user_id = ?' => $userId)
             );
@@ -75,16 +76,25 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
         return bdBank_Helper_Number::add($liveValue, $archiveValue);
     }
 
-    protected function _fetchCredit($userId)
+    protected function _fetchCredit($formula, $where)
     {
         $db = XenForo_Application::getDb();
 
-        $credit = $db->fetchOne("
-            SELECT SUM(c.amount)
-            FROM xf_bdbank_credit c
-            WHERE c.user_id = $userId
-        ");
+        $liveCredit = $db->fetchOne("
+            SELECT SUM({$formula}) * -1
+            FROM xf_bdbank_transaction
+            WHERE {$where}
+                AND reversed= 0
+                AND transaction_type IN (?, ?)
+        ", array(bdBank_Model_Bank::TYPE_CREDITABLE, bdBank_Model_Bank::TYPE_ADJUSTMENT));
 
-        return $credit;
+        $archiveCredit = $db->fetchOne("
+            SELECT SUM({$formula}) * -1
+            FROM xf_bdbank_archive
+            WHERE {$where}
+                AND transaction_type IN (?, ?)
+        ", array(bdBank_Model_Bank::TYPE_CREDITABLE, bdBank_Model_Bank::TYPE_ADJUSTMENT));
+
+        return bdBank_Helper_Number::add($liveCredit, $archiveCredit);
     }
 }

@@ -14,8 +14,6 @@ class bdBank_Model_Bank extends XenForo_Model
     const TYPE_CREDITABLE = 3;
     const TYPE_ADJUSTMENT = 4; // Note: adjustment transactions are also creditable
 
-    const TYPE_CANCELING = 5; // Transactions that are made to cancel out other transactions
-
     const TAX_MODE_KEY = 'taxMode';
     const TAX_MODE_RECEIVER_PAY = 'receiver';
     const TAX_MODE_SENDER_PAY = 'sender';
@@ -355,14 +353,12 @@ class bdBank_Model_Bank extends XenForo_Model
                 FROM xf_bdbank_transaction
                 WHERE `comment` IN (' . $commentsQuoted . ')
                     AND reversed = 0
-                    AND transaction_type = ' . self::TYPE_SYSTEM . '
             )
             UNION
             (
                 SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "archive" AS found_table
                 FROM xf_bdbank_archive
                 WHERE `comment` IN (' . $commentsQuoted . ')
-                    AND transaction_type = ' . self::TYPE_SYSTEM . '
             )
         ');
 
@@ -419,18 +415,6 @@ class bdBank_Model_Bank extends XenForo_Model
                 );
             }
 
-            if (count($result['reversed']) > 0 || count($result['deleted']) > 0) {
-                // Make new adjustments to cancel out the adjustments of reversed/deleted transactions
-                $this->makeTransactionAdjustments(
-                    array_merge(
-                        array_values($result['reversed']),
-                        array_values($result['deleted'])
-                    ),
-                    0,
-                    self::TYPE_CANCELING
-                );
-            }
-
             XenForo_Db::commit();
         }
 
@@ -461,9 +445,8 @@ class bdBank_Model_Bank extends XenForo_Model
         $targetAmount = bdBank_Helper_Number::add(0, $targetAmount);
         $commentsQuoted = $db->quote($comments);
 
-        $db->query("
-            INSERT INTO xf_bdbank_transaction (`comment`, from_user_id, to_user_id, amount, transaction_type, transfered) 
-            SELECT `comment`, from_user_id, to_user_id, $targetAmount - SUM(amount), ?, ?
+        $adjustmentTransactions = $db->fetchAll("
+            SELECT `comment`, from_user_id, to_user_id, $targetAmount - SUM(amount) amount
             FROM (
                 (
                     SELECT `comment`, from_user_id, to_user_id, SUM(amount) amount
@@ -482,7 +465,52 @@ class bdBank_Model_Bank extends XenForo_Model
             ) t
             GROUP BY 1,2,3
             HAVING SUM(amount) <> $targetAmount
-        ", array($type, XenForo_Application::$time));
+        ");
+
+        $creditByUserId = array();
+
+        $db->beginTransaction();
+
+        foreach ($adjustmentTransactions as $transaction) {
+            $transaction = array_merge($transaction, array(
+                'transaction_type' => $type,
+                'transfered' => XenForo_Application::$time,
+            ));
+            $db->insert('xf_bdbank_transaction', $transaction);
+
+            if ($type === bdBank_Model_Bank::TYPE_CREDITABLE) {
+                // Credits for ADJUSTMENT transactions will be rebuilt in Deferred_User in bulk,
+                //   so we only update users' credit for CREDITABLE transactions
+
+                $fromUserId = $transaction['from_user_id'];
+                if (!isset($creditByUserId[$fromUserId])) {
+                    $creditByUserId[$fromUserId] = 0;
+                }
+                $creditByUserId[$fromUserId] = bdBank_Helper_Number::add(
+                    $creditByUserId[$fromUserId],
+                    $transaction['amount']
+                );
+
+                $toUserId = $transaction['to_user_id'];
+                if (!isset($creditByUserId[$toUserId])) {
+                    $creditByUserId[$toUserId] = 0;
+                }
+                $creditByUserId[$toUserId] = bdBank_Helper_Number::sub(
+                    $creditByUserId[$toUserId],
+                    $transaction['amount']
+                );
+            }
+        }
+
+        foreach ($creditByUserId as $userId => $credit) {
+            if ($userId !== 0 && !bdBank_Helper_Number::comp($credit, 0)) {
+                $db->query("
+                    UPDATE xf_user
+                    SET bdbank_credit = bdbank_credit + ?
+                    WHERE user_id = ?
+                ", array($credit, $userId));
+            }
+        }
 
         $db->commit();
     }
@@ -957,88 +985,5 @@ class bdBank_Model_Bank extends XenForo_Model
         }
 
         return XenForo_Visitor::getInstance()->hasPermission($group, $permissionId);
-    }
-
-    public static function createDbTriggerInsertCreditAfterTransaction()
-    {
-        $db = XenForo_Application::getDb();
-
-        $triggerName = self::TRIGGER_INSERT_CREDIT_AFTER_TRANSACTION;
-
-        $triggerExisted = $db->fetchOne("
-            SELECT 1
-            FROM information_schema.triggers
-            WHERE trigger_name = ?
-        ", array($triggerName));
-
-        if (!empty($triggerExisted)) {
-            return;
-        }
-
-        // WARNING: modifying these constants' values requires making a proper migration for the related trigger
-        $creditableTransactionTypes = array(self::TYPE_CREDITABLE, self::TYPE_ADJUSTMENT);
-        $creditableTransactionTypes = $db->quote($creditableTransactionTypes);
-        $db->getConnection()->query("
-            CREATE TRIGGER $triggerName
-            AFTER INSERT ON xf_bdbank_transaction
-            FOR EACH ROW
-            BEGIN
-                IF NEW.transaction_type IN ($creditableTransactionTypes) THEN
-                    IF NEW.from_user_id > 0 THEN
-                        INSERT INTO xf_bdbank_credit (transaction_id, user_id, amount, credit_date)
-                        VALUES (NEW.transaction_id, NEW.from_user_id, NEW.amount, NEW.transfered);
-                    END IF;
-                    IF NEW.to_user_id > 0 THEN
-                        INSERT INTO xf_bdbank_credit (transaction_id, user_id, amount, credit_date)
-                        VALUES (NEW.transaction_id, NEW.to_user_id, NEW.amount * -1, NEW.transfered);
-                    END IF;
-                END IF; 
-            END
-        ");
-    }
-
-    public static function dropDbTriggerInsertCreditAfterTransaction()
-    {
-        $db = XenForo_Application::getDb();
-        $triggerName = self::TRIGGER_INSERT_CREDIT_AFTER_TRANSACTION;
-        $db->getConnection()->query("
-            DROP TRIGGER IF EXISTS $triggerName
-        ");
-    }
-
-    public static function createDbTriggerUpdateUserCredit()
-    {
-        $db = XenForo_Application::getDb();
-
-        $triggerName = self::TRIGGER_UPDATE_USER_CREDIT;
-
-        $triggerExisted = $db->fetchOne("
-            SELECT 1
-            FROM information_schema.triggers
-            WHERE trigger_name = ?
-        ", array($triggerName));
-
-        if (!empty($triggerExisted)) {
-            return;
-        }
-
-        $db->getConnection()->query("
-            CREATE TRIGGER $triggerName
-            AFTER INSERT ON xf_bdbank_credit
-            FOR EACH ROW
-            BEGIN
-                UPDATE xf_user
-                SET bdbank_credit = bdbank_credit + NEW.amount;
-            END
-        ");
-    }
-
-    public static function dropDbTriggerUpdateUserCredit()
-    {
-        $db = XenForo_Application::getDb();
-        $triggerName = self::TRIGGER_UPDATE_USER_CREDIT;
-        $db->getConnection()->query("
-            DROP TRIGGER IF EXISTS $triggerName
-        ");
     }
 }

@@ -117,28 +117,6 @@ class bdBank_DevHelper_Config extends DevHelper_Config_Base
                 'controller_admin' => false
             ),
         ),
-        'credit' => array(
-            'name' => 'credit',
-            'camelCase' => 'Credit',
-            'camelCasePlural' => false,
-            'camelCaseWSpace' => 'Credit',
-            'camelCasePluralWSpace' => false,
-            'fields' => array(
-                'credit_id' => array('name' => 'credit_id', 'type' => 'uint', 'required' => true, 'autoIncrement' => true),
-                'transaction_id' => array('name' => 'transaction_id', 'type' => 'uint', 'required' => true),
-                'user_id' => array('name' => 'user_id', 'type' => 'uint', 'required' => true),
-                'amount' => array('name' => 'amount', 'type' => 'money', 'required' => true),
-                'credit_date' => array('name' => 'credit_date', 'type' => 'uint', 'required' => true),
-            ),
-            'phrases' => array(),
-            'title_field' => false,
-            'primaryKey' => array('credit_id'),
-            'indeces' => array(
-                'transaction_id' => array('name' => 'transaction_id', 'fields' => array('transaction_id'), 'type' => 'NORMAL'),
-                'user_id' => array('name' => 'user_id', 'fields' => array('user_id'), 'type' => 'NORMAL'),
-            ),
-            'files' => array('data_writer' => false, 'model' => false, 'route_prefix_admin' => false, 'controller_admin' => false),
-        ),
     );
     protected $_dataPatches = array(
         'xf_user' => array(

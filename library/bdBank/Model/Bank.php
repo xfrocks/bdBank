@@ -430,7 +430,7 @@ class bdBank_Model_Bank extends XenForo_Model
         self::$_reversedTransactions = array();
     }
 
-    public function makeTransactionAdjustments($comments, $targetAmount, $type = self::TYPE_ADJUSTMENT)
+    public function makeTransactionAdjustments($comments, $targetAmount)
     {
         $db = $this->_getDb();
 
@@ -445,8 +445,9 @@ class bdBank_Model_Bank extends XenForo_Model
         $targetAmount = bdBank_Helper_Number::add(0, $targetAmount);
         $commentsQuoted = $db->quote($comments);
 
-        $adjustmentTransactions = $db->fetchAll("
-            SELECT `comment`, from_user_id, to_user_id, $targetAmount - SUM(amount) amount
+        $db->query("
+            INSERT INTO xf_bdbank_transaction (`comment`, from_user_id, to_user_id, amount, transaction_type, transfered)
+            SELECT `comment`, from_user_id, to_user_id, $targetAmount - SUM(amount), ?, ?
             FROM (
                 (
                     SELECT `comment`, from_user_id, to_user_id, SUM(amount) amount
@@ -465,54 +466,7 @@ class bdBank_Model_Bank extends XenForo_Model
             ) t
             GROUP BY 1,2,3
             HAVING SUM(amount) <> $targetAmount
-        ");
-
-        $creditByUserId = array();
-
-        $db->beginTransaction();
-
-        foreach ($adjustmentTransactions as $transaction) {
-            $transaction = array_merge($transaction, array(
-                'transaction_type' => $type,
-                'transfered' => XenForo_Application::$time,
-            ));
-            $db->insert('xf_bdbank_transaction', $transaction);
-
-            if ($type === bdBank_Model_Bank::TYPE_CREDITABLE) {
-                // Credits for ADJUSTMENT transactions will be rebuilt in Deferred_User in bulk,
-                //   so we only update users' credit for CREDITABLE transactions
-
-                $fromUserId = $transaction['from_user_id'];
-                if (!isset($creditByUserId[$fromUserId])) {
-                    $creditByUserId[$fromUserId] = 0;
-                }
-                $creditByUserId[$fromUserId] = bdBank_Helper_Number::add(
-                    $creditByUserId[$fromUserId],
-                    $transaction['amount']
-                );
-
-                $toUserId = $transaction['to_user_id'];
-                if (!isset($creditByUserId[$toUserId])) {
-                    $creditByUserId[$toUserId] = 0;
-                }
-                $creditByUserId[$toUserId] = bdBank_Helper_Number::sub(
-                    $creditByUserId[$toUserId],
-                    $transaction['amount']
-                );
-            }
-        }
-
-        foreach ($creditByUserId as $userId => $credit) {
-            if ($userId !== 0 && !bdBank_Helper_Number::comp($credit, 0)) {
-                $db->query("
-                    UPDATE xf_user
-                    SET bdbank_credit = bdbank_credit + ?
-                    WHERE user_id = ?
-                ", array($credit, $userId));
-            }
-        }
-
-        $db->commit();
+        ", array(self::TYPE_ADJUSTMENT, XenForo_Application::$time));
     }
 
     public function getTransactionByComment($comment, array $fetchOptions = array())

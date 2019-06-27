@@ -244,18 +244,28 @@ class bdBank_Model_Personal extends XenForo_Model
                 // REPLAY mode: do not update account information
             } else {
                 if ($from > 0) {
+                    $credit = 0;
+                    if ($type === bdBank_Model_Bank::TYPE_CREDITABLE) {
+                        $credit = bdBank_Helper_Number::mul($fromAmount, -1);
+                    }
                     /** @noinspection SqlResolve */
                     $this->_getDb()->query("
                         UPDATE xf_user
                         SET `$selfField` = `$selfField` + $fromAmount
+                            , bdbank_credit = bdbank_credit + $credit
                         WHERE user_id = $from
                     ");
                 }
                 if ($to > 0) {
+                    $credit = 0;
+                    if ($type === bdBank_Model_Bank::TYPE_CREDITABLE) {
+                        $credit = bdBank_Helper_Number::mul($toAmount, -1);
+                    }
                     /** @noinspection SqlResolve */
                     $this->_getDb()->query("
                         UPDATE xf_user
                         SET `$selfField` = `$selfField` + $toAmount
+                            , bdbank_credit = bdbank_credit + $credit
                         WHERE user_id = $to
                     ");
                 }

@@ -4,7 +4,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 {
     const DATA_THREAD = '_bdBank_threadInfo';
 
-    public function bdBank_doBonus()
+    public function bdBank_doBonus($isRebuilding = false)
     {
         $bank = bdBank_Model_Bank::getInstance();
 
@@ -19,6 +19,11 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         if (bdBank_AntiCheating::checkPostQuality($this)) {
             $bonusType = $this->_bdBank_isDiscussionFirstMessage() ? 'thread' : 'post';
             $point = $bank->getActionBonus($bonusType, $this->get('post_date'), array('forum' => $forum));
+        }
+
+        if ($isRebuilding) {
+            $bank->makeTransactionAdjustments($comment, $point);
+            return;
         }
 
         if (!$this->isInsert()) {

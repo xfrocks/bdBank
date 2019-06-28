@@ -99,7 +99,7 @@ class bdBank_Model_Rebuilder
                     $dw->setExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM, $forums[$post['node_id']]);
                 }
 
-                $dw->bdBank_doBonus();
+                $dw->bdBank_doBonus(true);
             }
         }
 

@@ -118,8 +118,9 @@ class bdBank_Listeners
                 $moneyField = bdBank_Model_Bank::getInstance()->options('field');
                 $money = isset($user[$moneyField]) ? $user[$moneyField] : 0;
                 $credit = isset($user['bdbank_credit']) ? $user['bdbank_credit'] : 0;
+                $rankingPoints = bdBank_Helper_Number::add($money, $credit);
 
-                if ($money + $credit >= $data['money']) {
+                if (bdBank_Helper_Number::comp($rankingPoints, $data['money']) !== -1) {
                     $returnValue = true;
                 }
                 break;

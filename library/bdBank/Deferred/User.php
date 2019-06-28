@@ -40,8 +40,7 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
             foreach ($incomingTransactions as $transaction) {
                 $money = bdBank_Helper_Number::sub($transaction['amount'], $transaction['tax_amount']);
                 $incomingMoney = bdBank_Helper_Number::add($incomingMoney, $money);
-                if (
-                    $transaction['transaction_type'] === bdBank_Model_Bank::TYPE_CREDITABLE
+                if ($transaction['transaction_type'] === bdBank_Model_Bank::TYPE_CREDITABLE
                     || $transaction['transaction_type'] === bdBank_Model_Bank::TYPE_ADJUSTMENT
                 ) {
                     $incomingCredit = bdBank_Helper_Number::sub($incomingCredit, $money);
@@ -51,8 +50,7 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
             foreach ($outgoingTransactions as $transaction) {
                 $money = $transaction['amount'];
                 $outgoingMoney = bdBank_Helper_Number::add($outgoingMoney, $money);
-                if (
-                    $transaction['transaction_type'] === bdBank_Model_Bank::TYPE_CREDITABLE
+                if ($transaction['transaction_type'] === bdBank_Model_Bank::TYPE_CREDITABLE
                     || $transaction['transaction_type'] === bdBank_Model_Bank::TYPE_ADJUSTMENT
                 ) {
                     $outgoingCredit = bdBank_Helper_Number::sub($outgoingCredit, $money);

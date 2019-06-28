@@ -9,6 +9,15 @@ class bdBank_Model_Bank extends XenForo_Model
     const TYPE_PERSONAL = 1;
     const TYPE_ADMIN = 2;
 
+    // After a CREDITABLE transaction,
+    //   each involved user is granted an amount of credit points equal to the amount of money that he/she LOST
+    const TYPE_CREDITABLE = 3;
+    // ADJUSTMENT transactions are adjustments on systematic transactions
+    // Note: adjustment transactions are also creditable
+    const TYPE_ADJUSTMENT = 4;
+
+    const SYSTEMATIC_TRANSACTION_TYPES = array(self::TYPE_SYSTEM, self::TYPE_ADJUSTMENT);
+
     const TAX_MODE_KEY = 'taxMode';
     const TAX_MODE_RECEIVER_PAY = 'receiver';
     const TAX_MODE_SENDER_PAY = 'sender';
@@ -27,6 +36,8 @@ class bdBank_Model_Bank extends XenForo_Model
     const BALANCE_NOT_AVAILABLE = 'N/A';
 
     const FETCH_USER = 0x01;
+
+    const CONFIG_BONUSES_BY_TIME_PERIOD = 'bdBank_bonusesByTimePeriod';
 
     /**
      * Please read about TRANSACTION_OPTION_REPLAY in
@@ -74,10 +85,24 @@ class bdBank_Model_Bank extends XenForo_Model
         return false;
     }
 
-    public function getActionBonus($action, $extraData = array())
+    public function getActionBonus($action, $actionDate, $extraData = array())
     {
         $points = 0;
         $isPenalty = false;
+
+        if (!empty($actionDate)) {
+            $bonusesByTimePeriod = XenForo_Application::getConfig()->get(static::CONFIG_BONUSES_BY_TIME_PERIOD);
+            if ($bonusesByTimePeriod !== null) {
+                foreach ($bonusesByTimePeriod as $bonusesConfig) {
+                    if ($actionDate >= $bonusesConfig->get('start_date', 0) && $actionDate < $bonusesConfig->get('end_date', 0)) {
+                        $bonuses = $bonusesConfig->get('bonuses', array());
+                        if ($bonuses->get($action)) {
+                            return $bonuses->get($action);
+                        }
+                    }
+                }
+            }
+        }
 
         switch ($action) {
             case 'thread':
@@ -323,20 +348,22 @@ class bdBank_Model_Bank extends XenForo_Model
         $db = $this->_getDb();
         $commentsQuoted = $db->quote($comments);
 
+        $reversibleTransactionTypes = $db->quote(self::SYSTEMATIC_TRANSACTION_TYPES);
+
         $found = $db->fetchAll('
             (
                 SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "transaction" AS found_table
                 FROM xf_bdbank_transaction
                 WHERE `comment` IN (' . $commentsQuoted . ')
                     AND reversed = 0
-                    AND transaction_type = ' . self::TYPE_SYSTEM . '
+                    AND transaction_type IN (' . $reversibleTransactionTypes . ')
             )
             UNION
             (
                 SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "archive" AS found_table
                 FROM xf_bdbank_archive
                 WHERE `comment` IN (' . $commentsQuoted . ')
-                    AND transaction_type = ' . self::TYPE_SYSTEM . '
+                    AND transaction_type IN (' . $reversibleTransactionTypes . ')
             )
         ');
 
@@ -406,6 +433,52 @@ class bdBank_Model_Bank extends XenForo_Model
     public function clearReversedTransactionsCache()
     {
         self::$_reversedTransactions = array();
+    }
+
+    // Adjust the bonus points for a certain action (the action is identified by `comment`)
+    // Should only use this to handle adjustments in **bonuses**,
+    //   e.g. when the bonus for a `like` is adjusted from 1 to 3
+    public function makeTransactionAdjustments($comments, $targetAmount)
+    {
+        $db = $this->_getDb();
+
+        if (!is_array($comments)) {
+            $comments = array($comments);
+        }
+        if (empty($comments)) {
+            return;
+        }
+
+        // make sure $targetAmount is number
+        $targetAmount = bdBank_Helper_Number::add(0, $targetAmount);
+        $commentsQuoted = $db->quote($comments);
+
+        $adjustableTransactionTypes = $db->quote(self::SYSTEMATIC_TRANSACTION_TYPES);
+
+        $db->query("
+            INSERT INTO xf_bdbank_transaction (`comment`, from_user_id, to_user_id, amount, transaction_type, transfered)
+            SELECT `comment`, from_user_id, to_user_id, $targetAmount - SUM(amount), ?, ?
+            FROM (
+                (
+                    SELECT `comment`, from_user_id, to_user_id, SUM(amount) amount
+                    FROM xf_bdbank_transaction
+                    WHERE `comment` IN ($commentsQuoted)
+                        AND reversed = 0
+                        AND transaction_type IN ($adjustableTransactionTypes)
+                    GROUP BY 1,2,3
+                )
+                UNION ALL
+                (
+                    SELECT `comment`, from_user_id, to_user_id, SUM(amount) amount
+                    FROM xf_bdbank_archive
+                    WHERE `comment` IN ($commentsQuoted)
+                        AND transaction_type IN ($adjustableTransactionTypes)
+                    GROUP BY 1,2,3
+                )
+            ) t
+            GROUP BY 1,2,3
+            HAVING SUM(amount) <> $targetAmount
+        ", array(self::TYPE_ADJUSTMENT, XenForo_Application::$time));
     }
 
     public function getTransactionByComment($comment, array $fetchOptions = array())
@@ -616,29 +689,6 @@ class bdBank_Model_Bank extends XenForo_Model
     {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->getModelFromCache('bdBank_Model_Stats');
-    }
-
-    public function macro_bonusAttachment($contentType, $contentId, $userId)
-    {
-        $point = $this->getActionBonus('attachment_' . $contentType);
-        if ($point == 0) {
-            return;
-        }
-
-        $db = XenForo_Application::getDb();
-
-        $attachments = $db->fetchOne('
-            SELECT COUNT(*)
-            FROM `xf_attachment`
-            WHERE content_type = ? AND content_id = ?
-        ', array($contentType, $contentId));
-        if ($attachments > 0) {
-            $this->personal()->give(
-                $userId,
-                bdBank_Helper_Number::mul($point, $attachments),
-                $this->comment('attachment_' . $contentType, $contentId)
-            );
-        }
     }
 
     /**

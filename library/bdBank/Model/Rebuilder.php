@@ -40,12 +40,6 @@ class bdBank_Model_Rebuilder
         /* @var $userModel XenForo_Model_User */
         $userModel = $bank->getModelFromCache('XenForo_Model_User');
 
-        $bonusType = 'register';
-        $point = $bank->getActionBonus($bonusType);
-        if ($point == 0) {
-            return true;
-        }
-
         $userIds = $userModel->getUserIdsInRange($position, $options['batch']);
         if (sizeof($userIds) == 0) {
             return true;
@@ -56,25 +50,18 @@ class bdBank_Model_Rebuilder
         $bank = bdBank_Model_Bank::getInstance();
         bdBank_Model_Bank::$isReplaying = true;
 
+        $bonusType = 'register';
+        $batchedComments = array();
         foreach ($users AS $user) {
             $position = max($position, $user['user_id']);
 
+            $point = $bank->getActionBonus($bonusType, $user['register_date'], array());
             $comment = $bank->comment($bonusType, $user['user_id']);
-            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
-            if (count($reverseResult['skipped']) > 0) {
-                continue;
-            }
+            $batchedComments[$point][] = $comment;
+        }
 
-            $bank->personal()->give(
-                $user['user_id'],
-                $point,
-                $comment,
-                bdBank_Model_Bank::TYPE_SYSTEM,
-                true,
-                array(
-                    bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $user['register_date']
-                )
-            );
+        foreach ($batchedComments as $point => $comments) {
+            $bank->makeTransactionAdjustments($comments, $point);
         }
 
         return $position;
@@ -112,7 +99,7 @@ class bdBank_Model_Rebuilder
                     $dw->setExtraData(XenForo_DataWriter_DiscussionMessage_Post::DATA_FORUM, $forums[$post['node_id']]);
                 }
 
-                $dw->bdBank_doBonus();
+                $dw->bdBank_doBonus(true);
             }
         }
 
@@ -153,11 +140,6 @@ class bdBank_Model_Rebuilder
 
         $bank = bdBank_Model_Bank::getInstance();
 
-        $point = $bank->getActionBonus('liked');
-        if ($point == 0) {
-            return true;
-        }
-
         $likes = $db->fetchAll($db->limit('
             SELECT *
             FROM xf_liked_content
@@ -170,25 +152,17 @@ class bdBank_Model_Rebuilder
 
         bdBank_Model_Bank::$isReplaying = true;
 
+        $batchedComments = array();
         foreach ($likes AS $like) {
             $position = $like['like_id'];
 
+            $point = $bank->getActionBonus('liked', $like['like_date'], array());
             $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
-            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
-            if (count($reverseResult['skipped']) > 0) {
-                continue;
-            }
+            $batchedComments[$point][] = $comment;
+        }
 
-            $bank->personal()->give(
-                $like['content_user_id'],
-                $point,
-                $comment,
-                bdBank_Model_Bank::TYPE_SYSTEM,
-                true,
-                array(
-                    bdBank_Model_Bank::TRANSACTION_OPTION_TIMESTAMP => $like['like_date']
-                )
-            );
+        foreach ($batchedComments as $point => $comments) {
+            $bank->makeTransactionAdjustments($comments, $point);
         }
 
         return $position;

@@ -4,7 +4,7 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
 {
     const DATA_THREAD = '_bdBank_threadInfo';
 
-    public function bdBank_doBonus()
+    public function bdBank_doBonus($isRebuilding = false)
     {
         $bank = bdBank_Model_Bank::getInstance();
 
@@ -18,7 +18,12 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         $point = 0;
         if (bdBank_AntiCheating::checkPostQuality($this)) {
             $bonusType = $this->_bdBank_isDiscussionFirstMessage() ? 'thread' : 'post';
-            $point = $bank->getActionBonus($bonusType, array('forum' => $forum));
+            $point = $bank->getActionBonus($bonusType, $this->get('post_date'), array('forum' => $forum));
+        }
+
+        if ($isRebuilding) {
+            $bank->makeTransactionAdjustments($comment, $point);
+            return;
         }
 
         if (!$this->isInsert()) {
@@ -54,17 +59,6 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         bdBank_Model_Bank::getInstance()->reverseSystemTransactionByComment($this->_bdBankComment());
 
         parent::_messagePostDelete();
-    }
-
-    protected function _associateAttachments($attachmentHash)
-    {
-        parent::_associateAttachments($attachmentHash);
-
-        $bank = bdBank_Model_Bank::getInstance();
-        $comment = $bank->comment('attachment_post', $this->get('post_id'));
-        $bank->reverseSystemTransactionByComment($comment);
-        // always do reverse for attachments
-        $bank->macro_bonusAttachment('post', $this->get('post_id'), $this->get('user_id'));
     }
 
     protected function _bdBankComment()

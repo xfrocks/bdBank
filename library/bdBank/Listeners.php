@@ -73,7 +73,6 @@ class bdBank_Listeners
             'XenForo_ControllerPublic_Attachment',
             'XenForo_ControllerPublic_Thread',
 
-            'XenForo_DataWriter_Attachment',
             'XenForo_DataWriter_Discussion_Thread',
             'XenForo_DataWriter_DiscussionMessage_Post',
             'XenForo_DataWriter_Forum',
@@ -116,9 +115,12 @@ class bdBank_Listeners
     {
         switch ($rule) {
             case 'bdbank':
-                $field = bdBank_Model_Bank::getInstance()->options('field');
+                $moneyField = bdBank_Model_Bank::getInstance()->options('field');
+                $money = isset($user[$moneyField]) ? $user[$moneyField] : 0;
+                $credit = isset($user['bdbank_credit']) ? $user['bdbank_credit'] : 0;
+                $rankingPoints = bdBank_Helper_Number::add($money, $credit);
 
-                if (isset($user[$field]) && $user[$field] >= $data['money']) {
+                if (bdBank_Helper_Number::comp($rankingPoints, $data['money']) !== -1) {
                     $returnValue = true;
                 }
                 break;

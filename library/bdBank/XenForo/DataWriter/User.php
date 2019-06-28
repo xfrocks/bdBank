@@ -27,7 +27,7 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
         if ($this->isChanged('user_state') && $this->get('user_state') === 'valid') {
             $bank = bdBank_Model_Bank::getInstance();
             $bonusType = 'register';
-            $point = $bank->getActionBonus($bonusType);
+            $point = $bank->getActionBonus($bonusType, $this->get('register_date'));
             if ($point != 0) {
                 $userId = $this->get('user_id');
                 $comment = $bank->comment($bonusType, $userId);
@@ -57,6 +57,10 @@ class bdBank_XenForo_DataWriter_User extends XFCP_bdBank_XenForo_DataWriter_User
         $fields = parent::_getFields();
 
         $fields['xf_user']['bdbank_money'] = array(
+            'type' => self::TYPE_STRING,
+            'default' => 0
+        );
+        $fields['xf_user']['bdbank_credit'] = array(
             'type' => self::TYPE_STRING,
             'default' => 0
         );

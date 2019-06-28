@@ -29,12 +29,40 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
         foreach ($userIds AS $userId) {
             $data['position'] = $userId;
 
-            $incoming = $this->_fetchSum('amount - tax_amount', 'to_user_id = ' . $userId);
-            $outgoing = $this->_fetchSum('amount', 'from_user_id = ' . $userId);
+            $incomingTransactions = $this->_fetchTransactions('to_user_id = ' . $userId);
+            $outgoingTransactions = $this->_fetchTransactions('from_user_id = ' . $userId);
+
+            $incomingMoney = 0;
+            $outgoingMoney = 0;
+            $incomingCredit = 0;
+            $outgoingCredit = 0;
+
+            foreach ($incomingTransactions as $transaction) {
+                $money = bdBank_Helper_Number::sub($transaction['amount'], $transaction['tax_amount']);
+                $incomingMoney = bdBank_Helper_Number::add($incomingMoney, $money);
+                if ($transaction['transaction_type'] === bdBank_Model_Bank::TYPE_CREDITABLE
+                    || $transaction['transaction_type'] === bdBank_Model_Bank::TYPE_ADJUSTMENT
+                ) {
+                    $incomingCredit = bdBank_Helper_Number::sub($incomingCredit, $money);
+                }
+            }
+
+            foreach ($outgoingTransactions as $transaction) {
+                $money = $transaction['amount'];
+                $outgoingMoney = bdBank_Helper_Number::add($outgoingMoney, $money);
+                if ($transaction['transaction_type'] === bdBank_Model_Bank::TYPE_CREDITABLE
+                    || $transaction['transaction_type'] === bdBank_Model_Bank::TYPE_ADJUSTMENT
+                ) {
+                    $outgoingCredit = bdBank_Helper_Number::sub($outgoingCredit, $money);
+                }
+            }
 
             $db->update(
                 'xf_user',
-                array($field => bdBank_Helper_Number::sub($incoming, $outgoing)),
+                array(
+                    $field => bdBank_Helper_Number::sub($incomingMoney, $outgoingMoney),
+                    'bdbank_credit' => bdBank_Helper_Number::sub($incomingCredit, $outgoingCredit),
+                ),
                 array('user_id = ?' => $userId)
             );
         }
@@ -51,22 +79,24 @@ class bdBank_Deferred_User extends XenForo_Deferred_Abstract
         return true;
     }
 
-    protected function _fetchSum($formula, $where)
+    protected function _fetchTransactions($where)
     {
         $db = XenForo_Application::getDb();
 
-        $liveValue = $db->fetchOne("
-            SELECT SUM({$formula})
+        $liveTransactions = $db->fetchAll("
+            SELECT transaction_type, SUM(amount) amount, SUM(tax_amount) tax_amount
             FROM xf_bdbank_transaction
             WHERE {$where} AND reversed= 0
+            GROUP BY transaction_type
         ");
 
-        $archiveValue = $db->fetchOne("
-            SELECT SUM({$formula})
+        $archivedTransactions = $db->fetchAll("
+            SELECT transaction_type, SUM(amount) amount, SUM(tax_amount) tax_amount
             FROM xf_bdbank_archive
             WHERE {$where}
+            GROUP BY transaction_type
         ");
 
-        return bdBank_Helper_Number::add($liveValue, $archiveValue);
+        return array_merge($liveTransactions, $archivedTransactions);
     }
 }

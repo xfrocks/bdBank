@@ -344,18 +344,23 @@ class bdBank_Model_Bank extends XenForo_Model
         $db = $this->_getDb();
         $commentsQuoted = $db->quote($comments);
 
+        $reversibleTransactionTypes = array(self::TYPE_CREDITABLE, self::TYPE_ADJUSTMENT);
+        $reversibleTransactionTypes = $db->quote($reversibleTransactionTypes);
+
         $found = $db->fetchAll('
             (
                 SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "transaction" AS found_table
                 FROM xf_bdbank_transaction
                 WHERE `comment` IN (' . $commentsQuoted . ')
                     AND reversed = 0
+                    AND transaction_type IN (' . $reversibleTransactionTypes . ')
             )
             UNION
             (
                 SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "archive" AS found_table
                 FROM xf_bdbank_archive
                 WHERE `comment` IN (' . $commentsQuoted . ')
+                    AND transaction_type IN (' . $reversibleTransactionTypes . ')
             )
         ');
 
@@ -445,6 +450,9 @@ class bdBank_Model_Bank extends XenForo_Model
         $targetAmount = bdBank_Helper_Number::add(0, $targetAmount);
         $commentsQuoted = $db->quote($comments);
 
+        $adjustableTransactionTypes = array(self::TYPE_SYSTEM, self::TYPE_ADJUSTMENT);
+        $adjustableTransactionTypes = $db->quote($adjustableTransactionTypes);
+
         $db->query("
             INSERT INTO xf_bdbank_transaction (`comment`, from_user_id, to_user_id, amount, transaction_type, transfered)
             SELECT `comment`, from_user_id, to_user_id, $targetAmount - SUM(amount), ?, ?
@@ -454,6 +462,7 @@ class bdBank_Model_Bank extends XenForo_Model
                     FROM xf_bdbank_transaction
                     WHERE `comment` IN ($commentsQuoted)
                         AND reversed = 0
+                        AND transaction_type IN ($adjustableTransactionTypes)
                     GROUP BY 1,2,3
                 )
                 UNION ALL
@@ -461,6 +470,7 @@ class bdBank_Model_Bank extends XenForo_Model
                     SELECT `comment`, from_user_id, to_user_id, SUM(amount) amount
                     FROM xf_bdbank_archive
                     WHERE `comment` IN ($commentsQuoted)
+                        AND transaction_type IN ($adjustableTransactionTypes)
                     GROUP BY 1,2,3
                 )
             ) t

@@ -35,9 +35,6 @@ class bdBank_Model_Bank extends XenForo_Model
 
     const CONFIG_BONUSES_BY_TIME_PERIOD = 'bdBank_bonusesByTimePeriod';
 
-    const TRIGGER_INSERT_CREDIT_AFTER_TRANSACTION = 'bdBank_insertCreditAfterTransaction';
-    const TRIGGER_UPDATE_USER_CREDIT = 'bdBank_updateUserCredit';
-
     /**
      * Please read about TRANSACTION_OPTION_REPLAY in
      * bdBank_Model_Personal::transfer()

@@ -12,7 +12,11 @@ class bdBank_Model_Bank extends XenForo_Model
     // After a CREDITABLE transaction,
     //   each involved user is granted an amount of credit points equal to the amount of money that he/she LOST
     const TYPE_CREDITABLE = 3;
-    const TYPE_ADJUSTMENT = 4; // Note: adjustment transactions are also creditable
+    // ADJUSTMENT transactions are adjustments on systematic transactions
+    // Note: adjustment transactions are also creditable
+    const TYPE_ADJUSTMENT = 4;
+
+    const SYSTEMATIC_TRANSACTION_TYPES = array(self::TYPE_SYSTEM, self::TYPE_ADJUSTMENT);
 
     const TAX_MODE_KEY = 'taxMode';
     const TAX_MODE_RECEIVER_PAY = 'receiver';
@@ -344,8 +348,7 @@ class bdBank_Model_Bank extends XenForo_Model
         $db = $this->_getDb();
         $commentsQuoted = $db->quote($comments);
 
-        $reversibleTransactionTypes = array(self::TYPE_CREDITABLE, self::TYPE_ADJUSTMENT);
-        $reversibleTransactionTypes = $db->quote($reversibleTransactionTypes);
+        $reversibleTransactionTypes = $db->quote(self::SYSTEMATIC_TRANSACTION_TYPES);
 
         $found = $db->fetchAll('
             (
@@ -450,8 +453,7 @@ class bdBank_Model_Bank extends XenForo_Model
         $targetAmount = bdBank_Helper_Number::add(0, $targetAmount);
         $commentsQuoted = $db->quote($comments);
 
-        $adjustableTransactionTypes = array(self::TYPE_SYSTEM, self::TYPE_ADJUSTMENT);
-        $adjustableTransactionTypes = $db->quote($adjustableTransactionTypes);
+        $adjustableTransactionTypes = $db->quote(self::SYSTEMATIC_TRANSACTION_TYPES);
 
         $db->query("
             INSERT INTO xf_bdbank_transaction (`comment`, from_user_id, to_user_id, amount, transaction_type, transfered)

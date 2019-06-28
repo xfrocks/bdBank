@@ -22,10 +22,8 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         }
 
         if ($isRebuilding) {
-            if (!$this->_getPostModel()->isDeleted($this->getMergedData())) {
-                $bank->makeTransactionAdjustments($comment, $point);
-                return;
-            }
+            $bank->makeTransactionAdjustments($comment, $point);
+            return;
         }
 
         if (!$this->isInsert()) {

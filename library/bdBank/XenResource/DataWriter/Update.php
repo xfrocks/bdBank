@@ -16,8 +16,10 @@ class bdBank_XenResource_DataWriter_Update extends XFCP_bdBank_XenResource_DataW
             $point = $bank->getActionBonus($bonusType, $this->get('post_date'), array());
 
             if (!$this->isInsert()) {
-                $bank->makeTransactionAdjustments($comment, $point);
-                return;
+                $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+                if (count($reverseResult['skipped']) > 0) {
+                    return;
+                }
             }
 
             if ($point != 0) {

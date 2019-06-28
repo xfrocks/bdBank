@@ -430,6 +430,9 @@ class bdBank_Model_Bank extends XenForo_Model
         self::$_reversedTransactions = array();
     }
 
+    // Adjust the bonus points for a certain action (the action is identified by `comment`)
+    // Should only use this to handle adjustments in **bonuses**,
+    //   e.g. when the bonus for a `like` is adjusted from 1 to 3
     public function makeTransactionAdjustments($comments, $targetAmount)
     {
         $db = $this->_getDb();

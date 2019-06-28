@@ -22,8 +22,10 @@ class bdBank_XenForo_DataWriter_DiscussionMessage_Post extends XFCP_bdBank_XenFo
         }
 
         if (!$this->isInsert()) {
-            $bank->makeTransactionAdjustments($comment, $point);
-            return;
+            $reverseResult = $bank->reverseSystemTransactionByComment($comment, $point);
+            if (count($reverseResult['skipped']) > 0) {
+                return;
+            }
         }
 
         if ($point != 0) {

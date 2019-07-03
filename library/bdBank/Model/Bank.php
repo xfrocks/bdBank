@@ -97,7 +97,7 @@ class bdBank_Model_Bank extends XenForo_Model
                     if ($actionDate >= $bonusesConfig->get('start_date', 0) && $actionDate < $bonusesConfig->get('end_date', 0)) {
                         $bonuses = $bonusesConfig->get('bonuses', array());
                         if ($bonuses->get($action)) {
-                            return $bonuses->get($action);
+                            return bdBank_Helper_Number::add(0, $bonuses->get($action));
                         }
                     }
                 }

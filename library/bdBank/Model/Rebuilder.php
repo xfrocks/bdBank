@@ -57,7 +57,7 @@ class bdBank_Model_Rebuilder
 
             $point = $bank->getActionBonus($bonusType, $user['register_date'], array());
             $comment = $bank->comment($bonusType, $user['user_id']);
-            $batchedComments[$point][] = $comment;
+            $batchedComments[strval($point)][] = $comment;
         }
 
         foreach ($batchedComments as $point => $comments) {
@@ -158,7 +158,7 @@ class bdBank_Model_Rebuilder
 
             $point = $bank->getActionBonus('liked', $like['like_date'], array());
             $comment = $bank->comment('liked_' . $like['content_type'], $like['content_id'], $like['like_user_id']);
-            $batchedComments[$point][] = $comment;
+            $batchedComments[strval($point)][] = $comment;
         }
 
         foreach ($batchedComments as $point => $comments) {

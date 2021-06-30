@@ -352,7 +352,8 @@ class bdBank_Model_Bank extends XenForo_Model
 
         $found = $db->fetchAll('
             (
-                SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "transaction" AS found_table
+                SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "transaction" AS found_table,
+                    transaction_type, tax_amount
                 FROM xf_bdbank_transaction
                 WHERE `comment` IN (' . $commentsQuoted . ')
                     AND reversed = 0
@@ -360,7 +361,8 @@ class bdBank_Model_Bank extends XenForo_Model
             )
             UNION
             (
-                SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "archive" AS found_table
+                SELECT transaction_id, from_user_id, to_user_id, amount, `comment`, "archive" AS found_table,
+                    transaction_type, tax_amount
                 FROM xf_bdbank_archive
                 WHERE `comment` IN (' . $commentsQuoted . ')
                     AND transaction_type IN (' . $reversibleTransactionTypes . ')
